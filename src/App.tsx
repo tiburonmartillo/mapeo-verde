@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { motion, useScroll, useTransform, AnimatePresence } from 'motion/react';
 import { ArrowRight, ArrowDown, MapPin, TreePine, AlertCircle, Camera, X, Plus, FileText, LayoutGrid, List, Search, Mail, MessageCircle, Eye, ChevronLeft, ChevronRight, Calendar, Download, ExternalLink } from 'lucide-react';
 import { Map, Marker, Overlay } from 'pigeon-maps';
-import heroImage from 'figma:asset/0455b28a6febe3461bb9a6a5b2108ae41450da05.png';
 import { LogoMap } from './components/LogoMap';
-import { projectId, publicAnonKey } from './utils/supabase/info';
+import boletinesSource from '../../dashboard-json/public/data/boletines.json';
+import gacetasSource from '../../dashboard-json/public/data/gacetas_semarnat_analizadas.json';
 
 export const DataContext = React.createContext({
   greenAreas: [],
@@ -15,6 +16,24 @@ export const DataContext = React.createContext({
   refresh: () => {},
   loading: true
 });
+
+const TAB_ROUTES = {
+  HOME: '/',
+  AGENDA: '/agenda',
+  GREEN_AREAS: '/areas-verdes',
+  NEWSLETTERS: '/boletines',
+  GAZETTES: '/gacetas',
+  PARTICIPATION: '/participacion'
+};
+
+const pathToTab = (pathname) => {
+  if (pathname.startsWith('/agenda')) return 'AGENDA';
+  if (pathname.startsWith('/areas-verdes')) return 'GREEN_AREAS';
+  if (pathname.startsWith('/boletines')) return 'NEWSLETTERS';
+  if (pathname.startsWith('/gacetas')) return 'GAZETTES';
+  if (pathname.startsWith('/participacion')) return 'PARTICIPATION';
+  return 'HOME';
+};
 
 const DataProvider = ({ children }) => {
   const [data, setData] = useState({
@@ -28,46 +47,20 @@ const DataProvider = ({ children }) => {
 
   const fetchData = async () => {
     setLoading(true);
-    try {
-      const BASE_URL = `https://${projectId}.supabase.co/functions/v1/make-server-183eaf28`;
-      const HEADERS = { 'Authorization': `Bearer ${publicAnonKey}` };
-
-      const get = async (type) => {
-        const res = await fetch(`${BASE_URL}/data/${type}`, { headers: HEADERS });
-        if (!res.ok) return [];
-        return await res.json();
-      };
-
-      const [ga, pr, gz, ev, pe] = await Promise.all([
-        get('green_areas'),
-        get('projects'),
-        get('gazettes'),
-        get('events'),
-        get('past_events')
-      ]);
-
-      if (ga.length === 0 && pr.length === 0) {
-         await fetch(`${BASE_URL}/seed`, { method: 'POST', headers: HEADERS });
-         const [ga2, pr2, gz2, ev2, pe2] = await Promise.all([
-            get('green_areas'),
-            get('projects'),
-            get('gazettes'),
-            get('events'),
-            get('past_events')
-          ]);
-         setData({ greenAreas: ga2, projects: pr2, gazettes: gz2, events: ev2, pastEvents: pe2 });
-      } else {
-         setData({ greenAreas: ga, projects: pr, gazettes: gz, events: ev, pastEvents: pe });
-      }
-    } catch (e) {
-      console.error("Failed to fetch data", e);
-    } finally {
-      setLoading(false);
-    }
+    const projects = mapBoletinesToProjects();
+    const gazettes = mapGacetasToDataset();
+    setData({
+      greenAreas: GREEN_AREAS_DATA,
+      projects: projects.length ? projects : GAZETTES_DATA,
+      gazettes: gazettes.length ? gazettes : GAZETTES_DATA,
+      events: EVENTS_DATA,
+      pastEvents: PAST_EVENTS_DATA
+    });
+    setLoading(false);
   };
 
   useEffect(() => {
-    if (projectId) fetchData();
+    fetchData();
   }, []);
 
   return (
@@ -86,6 +79,51 @@ const MOCK_IMAGES = {
   lineaVerde: "https://images.unsplash.com/photo-1502082553048-f009c37129b9?q=80&w=1000&auto=format&fit=crop"
 };
 
+// Mappers to transform external JSON datasets into the UI-friendly shape
+const mapBoletinesToProjects = () => {
+  const boletines = boletinesSource?.boletines ?? [];
+  return boletines.flatMap((b) =>
+    (b.proyectos_ingresados ?? []).map((p) => ({
+      id: `${b.id}-${p.numero ?? '0'}`,
+      project: p.nombre_proyecto ?? 'Proyecto sin nombre',
+      promoter: p.promovente ?? 'Promovente no especificado',
+      type: p.tipo_estudio ?? 'Sin tipo',
+      date: p.fecha_ingreso ?? b.fecha_publicacion ?? '2025-01-01',
+      year: (p.fecha_ingreso ?? b.fecha_publicacion ?? '2025').toString().slice(0, 4),
+      status: 'Ingreso',
+      lat: p.coordenadas_x ?? 21.8853,
+      lng: p.coordenadas_y ?? -102.2916,
+      description: p.naturaleza_proyecto ?? '',
+      impact: p.giro ?? ''
+    }))
+  );
+};
+
+const mapGacetasToDataset = () => {
+  const analyses = gacetasSource?.analyses ?? [];
+  const items = [];
+  analyses.forEach((a, idx) => {
+    const registros = a.analisis_completo?.registros ?? [];
+    registros.forEach((r, ri) => {
+      const date = r.fecha_ingreso ?? r.fecha_resolucion ?? a.fecha_publicacion ?? '2025-01-01';
+      const year = (r.fecha_ingreso ?? r.fecha_resolucion ?? a.año ?? a.analisis_completo?.gaceta?.anio ?? '2025').toString().slice(0, 4);
+      items.push({
+        id: r.clave_proyecto ?? r.id ?? `GAC-${idx}-${ri}`,
+        project: r.proyecto_nombre ?? 'Proyecto sin nombre',
+        promoter: r.promovente ?? 'Promovente no especificado',
+        type: r.modalidad ?? 'Sin modalidad',
+        date,
+        year,
+        status: r.estatus ?? 'En trámite',
+        lat: r.lat ?? 21.8853,
+        lng: r.lng ?? -102.2916,
+        description: r.tipo_proyecto ?? '',
+        impact: r.seccion_documento ?? (a.secciones?.[0] ?? 'Federal')
+      });
+    });
+  });
+  return items;
+};
 
 
 const GAZETTES_DATA = [
@@ -224,10 +262,10 @@ const GREEN_AREAS_DATA = [
 const NavBar = ({ activeTab, onNavigate }) => {
   const tabs = [
     { id: 'HOME', label: 'INICIO', color: 'bg-[#b4ff6f]', hoverColor: 'hover:bg-[#b4ff6f]' },
+    { id: 'AGENDA', label: 'AGENDA', color: 'bg-[#ff7e67]', hoverColor: 'hover:bg-[#ff7e67]' },
     { id: 'GREEN_AREAS', label: 'ÁREAS VERDES', color: 'bg-[#fccb4e]', hoverColor: 'hover:bg-[#fccb4e]' },
     { id: 'NEWSLETTERS', label: 'BOLETINES', color: 'bg-[#ff9d9d]', hoverColor: 'hover:bg-[#ff9d9d]' },
     { id: 'GAZETTES', label: 'GACETAS', color: 'bg-[#9dcdff]', hoverColor: 'hover:bg-[#9dcdff]' },
-    { id: 'AGENDA', label: 'AGENDA', color: 'bg-[#ff7e67]', hoverColor: 'hover:bg-[#ff7e67]' },
     { id: 'PARTICIPATION', label: 'PARTICIPACIÓN', color: 'bg-[#d89dff]', hoverColor: 'hover:bg-[#d89dff]' },
   ];
 
@@ -276,7 +314,7 @@ const HeroSection = () => {
                animate={{ opacity: 1, y: 0 }}
                transition={{ delay: 0.1 }}
              >
-               <span className="inline-block px-3 py-1 border border-black bg-black text-white text-xs font-mono uppercase tracking-widest mb-4">Plataforma Ciudadana v3.0</span>
+               <span className="inline-block px-3 py-1 border border-black bg-black text-white text-xs font-mono uppercase tracking-widest mb-4">Plataforma Ciudadana v2.0</span>
              </motion.div>
              
              <div className="mb-6 w-[800px]">
@@ -510,7 +548,12 @@ const NewslettersPage = () => {
   const { projects: PROJECTS_DATA } = React.useContext(DataContext);
   const [viewMode, setViewMode] = useState('table'); // 'table' or 'grid'
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedYear, setSelectedYear] = useState('2025');
+  const years = useMemo(() => {
+    const allYears = PROJECTS_DATA.map(p => p.year).filter(Boolean);
+    const unique = Array.from(new Set(allYears));
+    return unique.sort((a, b) => Number(b) - Number(a));
+  }, [PROJECTS_DATA]);
+  const [selectedYear, setSelectedYear] = useState(() => years[0] || 'all');
   const [center, setCenter] = useState([21.8853, -102.2916]);
   const [zoom, setZoom] = useState(12);
   const [selectedProjectId, setSelectedProjectId] = useState(null);
@@ -518,15 +561,18 @@ const NewslettersPage = () => {
   const itemsPerPage = 10;
 
   // Filter projects logic
-  const filteredByYear = PROJECTS_DATA.filter(p => p.year === selectedYear);
+  const filteredByYear = selectedYear === 'all'
+    ? PROJECTS_DATA
+    : PROJECTS_DATA.filter(p => p.year === selectedYear);
   const filteredBySearch = filteredByYear.filter(p => 
     p.project.toLowerCase().includes(searchQuery.toLowerCase()) ||
     p.promoter.toLowerCase().includes(searchQuery.toLowerCase())
   );
+  const sortedData = [...filteredBySearch].sort((a, b) => new Date(b.date) - new Date(a.date));
 
-  // Pagination logic
-  const totalPages = Math.ceil(filteredBySearch.length / itemsPerPage);
-  const currentData = filteredBySearch.slice(
+  // Pagination logic (newest first)
+  const totalPages = Math.ceil(sortedData.length / itemsPerPage);
+  const currentData = sortedData.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -587,9 +633,10 @@ const NewslettersPage = () => {
                     onChange={(e) => { setSelectedYear(e.target.value); setCurrentPage(1); }}
                     className="w-full pl-10 pr-4 py-2 border border-black font-mono text-sm focus:outline-none focus:ring-2 focus:ring-[#ff9d9d] uppercase bg-white appearance-none cursor-pointer hover:bg-gray-50"
                   >
-                     <option value="2025">2025</option>
-                     <option value="2024">2024</option>
-                     <option value="2023">2023</option>
+                     <option value="all">Todos</option>
+                     {years.map(y => (
+                       <option key={y} value={y}>{y}</option>
+                     ))}
                   </select>
                </div>
 
@@ -866,7 +913,12 @@ const GazettesPage = () => {
   const { gazettes: GAZETTES_DATA } = React.useContext(DataContext);
   const [viewMode, setViewMode] = useState('table');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedYear, setSelectedYear] = useState('2025');
+  const years = useMemo(() => {
+    const allYears = GAZETTES_DATA.map(p => p.year).filter(Boolean);
+    const unique = Array.from(new Set(allYears));
+    return unique.sort((a, b) => Number(b) - Number(a));
+  }, [GAZETTES_DATA]);
+  const [selectedYear, setSelectedYear] = useState(() => years[0] || 'all');
   const [center, setCenter] = useState([21.8853, -102.2916]);
   const [zoom, setZoom] = useState(9); // More zoomed out for regional/federal view
   const [selectedProjectId, setSelectedProjectId] = useState(null);
@@ -874,15 +926,18 @@ const GazettesPage = () => {
   const itemsPerPage = 10;
 
   // Filter projects logic
-  const filteredByYear = GAZETTES_DATA.filter(p => p.year === selectedYear);
+  const filteredByYear = selectedYear === 'all'
+    ? GAZETTES_DATA
+    : GAZETTES_DATA.filter(p => p.year === selectedYear);
   const filteredBySearch = filteredByYear.filter(p => 
     p.project.toLowerCase().includes(searchQuery.toLowerCase()) ||
     p.promoter.toLowerCase().includes(searchQuery.toLowerCase())
   );
+  const sortedData = [...filteredBySearch].sort((a, b) => new Date(b.date) - new Date(a.date));
 
-  // Pagination logic
-  const totalPages = Math.ceil(filteredBySearch.length / itemsPerPage);
-  const currentData = filteredBySearch.slice(
+  // Pagination logic (newest first)
+  const totalPages = Math.ceil(sortedData.length / itemsPerPage);
+  const currentData = sortedData.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -946,8 +1001,10 @@ const GazettesPage = () => {
                     onChange={(e) => { setSelectedYear(e.target.value); setCurrentPage(1); }}
                     className="w-full pl-10 pr-4 py-2 border border-black font-mono text-sm focus:outline-none focus:ring-2 focus:ring-[#9dcdff] uppercase bg-white appearance-none cursor-pointer hover:bg-gray-50"
                   >
-                     <option value="2025">2025</option>
-                     <option value="2024">2024</option>
+                     <option value="all">Todos</option>
+                     {years.map(y => (
+                       <option key={y} value={y}>{y}</option>
+                     ))}
                   </select>
                </div>
 
@@ -2188,7 +2245,7 @@ const Footer = () => {
       
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center text-xs font-mono uppercase text-gray-500">
         <p>© 2025 OPENSCI PLATFORM. TODOS LOS DERECHOS RESERVADOS.</p>
-        <p className="mt-2 md:mt-0">DISEÑADO CON ♥ PARA LA CIENCIA</p>
+        <p className="mt-2 md:mt-0">DISEÑADO CON ♥ POR ORÉGANO STUDIO</p>
       </div>
     </footer>
   );
@@ -2196,7 +2253,9 @@ const Footer = () => {
 
 const MainApp = () => {
   const { greenAreas: GREEN_AREAS_DATA, projects: PROJECTS_DATA, gazettes: GAZETTES_DATA, events: EVENTS_DATA } = React.useContext(DataContext);
-  const [activeTab, setActiveTab] = useState('HOME');
+  const navigate = useNavigate();
+  const location = useLocation();
+  const activeTab = pathToTab(location.pathname);
   const [selectedImpactId, setSelectedImpactId] = useState(null);
   const [selectedGreenAreaId, setSelectedGreenAreaId] = useState(null);
   const [hoveredFeature, setHoveredFeature] = useState(null);
@@ -2218,7 +2277,7 @@ const MainApp = () => {
   }, [activeTab, selectedImpactId, selectedGreenAreaId]);
 
   const handleNavigate = (tab) => {
-    setActiveTab(tab);
+    navigate(TAB_ROUTES[tab] || '/');
     setSelectedImpactId(null);
     setSelectedGreenAreaId(null);
   };
@@ -2392,7 +2451,15 @@ const MainApp = () => {
 export default function App() {
   return (
     <DataProvider>
-      <MainApp />
+      <Routes>
+        <Route path="/" element={<MainApp />} />
+        <Route path="/agenda" element={<MainApp />} />
+        <Route path="/areas-verdes" element={<MainApp />} />
+        <Route path="/boletines" element={<MainApp />} />
+        <Route path="/gacetas" element={<MainApp />} />
+        <Route path="/participacion" element={<MainApp />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </DataProvider>
   );
 }
