@@ -4,8 +4,6 @@ import { motion, useScroll, useTransform, AnimatePresence } from 'motion/react';
 import { ArrowRight, ArrowDown, MapPin, TreePine, AlertCircle, Camera, X, Plus, FileText, LayoutGrid, List, Search, Mail, MessageCircle, Eye, ChevronLeft, ChevronRight, Calendar, Download, ExternalLink } from 'lucide-react';
 import { Map, Marker, Overlay } from 'pigeon-maps';
 import { LogoMap } from './components/LogoMap';
-import boletinesSource from '../../dashboard-json/public/data/boletines.json';
-import gacetasSource from '../../dashboard-json/public/data/gacetas_semarnat_analizadas.json';
 
 export const DataContext = React.createContext({
   greenAreas: [],
@@ -47,8 +45,25 @@ const DataProvider = ({ children }) => {
 
   const fetchData = async () => {
     setLoading(true);
-    const projects = mapBoletinesToProjects();
-    const gazettes = mapGacetasToDataset();
+
+    const fetchLocalJSON = async (path) => {
+      try {
+        const res = await fetch(path);
+        if (!res.ok) return null;
+        return await res.json();
+      } catch {
+        return null;
+      }
+    };
+
+    const [boletinesSource, gacetasSource] = await Promise.all([
+      fetchLocalJSON('/data/boletines.json'),
+      fetchLocalJSON('/data/gacetas_semarnat_analizadas.json')
+    ]);
+
+    const projects = mapBoletinesToProjects(boletinesSource);
+    const gazettes = mapGacetasToDataset(gacetasSource);
+
     setData({
       greenAreas: GREEN_AREAS_DATA,
       projects: projects.length ? projects : GAZETTES_DATA,
@@ -80,7 +95,7 @@ const MOCK_IMAGES = {
 };
 
 // Mappers to transform external JSON datasets into the UI-friendly shape
-const mapBoletinesToProjects = () => {
+const mapBoletinesToProjects = (boletinesSource) => {
   const boletines = boletinesSource?.boletines ?? [];
   return boletines.flatMap((b) =>
     (b.proyectos_ingresados ?? []).map((p) => ({
@@ -99,7 +114,7 @@ const mapBoletinesToProjects = () => {
   );
 };
 
-const mapGacetasToDataset = () => {
+const mapGacetasToDataset = (gacetasSource) => {
   const analyses = gacetasSource?.analyses ?? [];
   const items = [];
   analyses.forEach((a, idx) => {
