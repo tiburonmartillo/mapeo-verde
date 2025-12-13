@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate, useLocation, useParams } from 'react-router-dom';
 import { motion, useScroll, useTransform, AnimatePresence } from 'motion/react';
 import { ArrowRight, ArrowDown, MapPin, TreePine, AlertCircle, Camera, X, Plus, FileText, LayoutGrid, List, Search, Mail, MessageCircle, Eye, ChevronLeft, ChevronRight, Calendar, Download, ExternalLink, Menu } from 'lucide-react';
 import { Map, Marker, Overlay } from 'pigeon-maps';
@@ -25,8 +25,10 @@ const TAB_ROUTES = {
 };
 
 const pathToTab = (pathname) => {
-  if (pathname.startsWith('/agenda')) return 'AGENDA';
-  if (pathname.startsWith('/areas-verdes')) return 'GREEN_AREAS';
+  // Remove ID parameter for tab detection
+  const pathWithoutId = pathname.split('/').slice(0, 2).join('/');
+  if (pathWithoutId === '/agenda' || pathname.startsWith('/agenda/')) return 'AGENDA';
+  if (pathWithoutId === '/areas-verdes' || pathname.startsWith('/areas-verdes/')) return 'GREEN_AREAS';
   if (pathname.startsWith('/boletines')) return 'NEWSLETTERS';
   if (pathname.startsWith('/gacetas')) return 'GAZETTES';
   if (pathname.startsWith('/participacion')) return 'PARTICIPATION';
@@ -700,7 +702,7 @@ const NewslettersPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [navbarHeight, setNavbarHeight] = useState(64);
   
-  // Get navbar height on mount and resize
+  // Get navbar height on mount, resize, and scroll (for mobile navbar visibility)
   useEffect(() => {
     const updateNavbarHeight = () => {
       setNavbarHeight(getNavbarHeight());
@@ -708,7 +710,11 @@ const NewslettersPage = () => {
     
     updateNavbarHeight();
     window.addEventListener('resize', updateNavbarHeight);
-    return () => window.removeEventListener('resize', updateNavbarHeight);
+    window.addEventListener('scroll', updateNavbarHeight, { passive: true });
+    return () => {
+      window.removeEventListener('resize', updateNavbarHeight);
+      window.removeEventListener('scroll', updateNavbarHeight);
+    };
   }, []);
   
   const years = useMemo(() => {
@@ -1085,7 +1091,7 @@ const GazettesPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [navbarHeight, setNavbarHeight] = useState(64);
   
-  // Get navbar height on mount and resize
+  // Get navbar height on mount, resize, and scroll (for mobile navbar visibility)
   useEffect(() => {
     const updateNavbarHeight = () => {
       setNavbarHeight(getNavbarHeight());
@@ -1093,7 +1099,11 @@ const GazettesPage = () => {
     
     updateNavbarHeight();
     window.addEventListener('resize', updateNavbarHeight);
-    return () => window.removeEventListener('resize', updateNavbarHeight);
+    window.addEventListener('scroll', updateNavbarHeight, { passive: true });
+    return () => {
+      window.removeEventListener('resize', updateNavbarHeight);
+      window.removeEventListener('scroll', updateNavbarHeight);
+    };
   }, []);
   
   const years = useMemo(() => {
@@ -1462,179 +1472,455 @@ const GazettesPage = () => {
 
 const GreenAreasPage = ({ onSelectArea }) => {
   const { greenAreas: GREEN_AREAS_DATA } = React.useContext(DataContext);
+  const [viewMode, setViewMode] = useState('table'); // 'table' or 'grid'
+  const [searchQuery, setSearchQuery] = useState('');
+  const [navbarHeight, setNavbarHeight] = useState(64);
+  
+  // Get navbar height on mount, resize, and scroll (for mobile navbar visibility)
+  useEffect(() => {
+    const updateNavbarHeight = () => {
+      setNavbarHeight(getNavbarHeight());
+    };
+    
+    updateNavbarHeight();
+    window.addEventListener('resize', updateNavbarHeight);
+    window.addEventListener('scroll', updateNavbarHeight, { passive: true });
+    return () => {
+      window.removeEventListener('resize', updateNavbarHeight);
+      window.removeEventListener('scroll', updateNavbarHeight);
+    };
+  }, []);
+  
   const [center, setCenter] = useState([21.8853, -102.2916]);
   const [zoom, setZoom] = useState(12);
-  const [hoveredId, setHoveredId] = useState(null);
+  const [selectedAreaId, setSelectedAreaId] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  const mapDetailSectionRef = useRef(null);
+  const toolbarRef = useRef(null);
+  
   // Filter states
   const [categoryFilter, setCategoryFilter] = useState('TODOS');
   const [statusFilter, setStatusFilter] = useState('TODOS');
 
-  const filteredData = GREEN_AREAS_DATA.filter(item => {
+  // Filter logic
+  let filteredData = GREEN_AREAS_DATA.filter(item => {
      if (categoryFilter !== 'TODOS' && !item.tags.some(t => t.toUpperCase().includes(categoryFilter))) return false;
+     if (statusFilter !== 'TODOS') {
+       const hasNeed = !!item.need;
+       if (statusFilter === 'RIESGO' && !hasNeed) return false;
+       if (statusFilter === 'OPTIMO' && hasNeed) return false;
+     }
      return true;
   });
+
+  // Search filter
+  const filteredBySearch = filteredData.filter(item => 
+    item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredBySearch.length / itemsPerPage);
+  const currentData = filteredBySearch.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const selectedArea = GREEN_AREAS_DATA.find(a => a.id === selectedAreaId);
+
+  // Handle area selection (only updates local state, doesn't navigate)
+  const handleSelectArea = (id, lat, lng, scrollToMap = false) => {
+    setSelectedAreaId(id);
+    if (lat && lng) {
+      setCenter([lat, lng]);
+      setZoom(16); // Increased zoom to make street names readable
+    }
+    // Scroll to map/detail section if requested (from table/grid click)
+    if (scrollToMap && mapDetailSectionRef.current) {
+      setTimeout(() => {
+        // Calculate total height of sticky elements (navbar + toolbar)
+        const toolbarHeight = toolbarRef.current?.offsetHeight || 0;
+        const totalStickyHeight = navbarHeight + toolbarHeight;
+        
+        // Get the position of the map/detail section
+        const element = mapDetailSectionRef.current;
+        const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+        
+        // Calculate scroll position with offset to account for sticky elements
+        // Add extra padding (16px) to ensure the title is visible
+        const offsetPosition = elementPosition - totalStickyHeight - 16;
+        
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
+        });
+      }, 100);
+    }
+  };
 
   const mapTiler = (x, y, z, dpr) => {
     return `https://basemaps.cartocdn.com/light_all/${z}/${x}/${y}${dpr >= 2 ? '@2x' : ''}.png`;
   };
 
+  const GREEN_AREAS_KPIS = [
+    { label: "Espacios Registrados", value: String(GREEN_AREAS_DATA.length), change: "Activos" },
+    { label: "Requieren Atención", value: String(GREEN_AREAS_DATA.filter(a => a.need).length), change: "Urgente" },
+    { label: "Estado Óptimo", value: String(GREEN_AREAS_DATA.filter(a => !a.need).length), change: "Estable" },
+  ];
+
   return (
     <div className="flex flex-col min-h-screen bg-[#f3f4f0]">
-       {/* Introduction Section */}
-       <div className="bg-[#fccb4e] border-b border-black p-8 md:p-12 shrink-0">
-          <div className="max-w-4xl">
-             <div className="flex items-center gap-3 mb-6">
-                <div className="w-3 h-3 bg-white border border-black rounded-full"></div>
-                <span className="font-mono text-xs uppercase tracking-widest font-bold">Patrimonio Natural</span>
-             </div>
-             <h1 className="text-4xl md:text-6xl font-black uppercase leading-[0.9] mb-6 tracking-tighter">
-                Inventario Verde
-             </h1>
-             <p className="font-serif text-lg text-black max-w-2xl leading-relaxed">
-                Explora el catálogo vivo de nuestros parques y jardines.
-                Conoce su estado de salud, necesidades de mantenimiento y valor ambiental.
-             </p>
+      {/* Introduction Section */}
+      <div className="bg-[#fccb4e] border-b border-black p-8 md:p-12">
+        <div className="max-w-4xl">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-3 h-3 bg-white border border-black rounded-full"></div>
+            <span className="font-mono text-xs uppercase tracking-widest font-bold">Patrimonio Natural</span>
           </div>
-       </div>
+          <h1 className="text-4xl md:text-6xl font-black uppercase leading-[0.9] mb-6 tracking-tighter">
+            Inventario Verde
+          </h1>
+          <p className="font-serif text-lg text-black max-w-2xl leading-relaxed">
+            Explora el catálogo vivo de nuestros parques y jardines.
+            Conoce su estado de salud, necesidades de mantenimiento y valor ambiental.
+          </p>
+        </div>
+      </div>
 
-       {/* Split View Content */}
-       <div className="flex-1 flex flex-col lg:flex-row min-h-[600px] border-b border-black">
-          {/* LEFT: Map Section (60%) */}
-          <div className="w-full lg:w-3/5 relative border-b lg:border-b-0 lg:border-r border-black min-h-[400px]">
-             <Map 
-                center={center} 
-                zoom={zoom} 
-                provider={mapTiler}
-                onBoundsChanged={({ center, zoom }) => { 
-                  setCenter(center); 
-                  setZoom(zoom); 
-                }}
-                style={{ filter: 'grayscale(100%) contrast(1.2)' }}
-             >
-                {filteredData.map(point => (
-                  <Overlay key={point.id} anchor={[point.lat, point.lng]} offset={[15, 30]}>
-                    <div 
-                      className={`
-                        cursor-pointer transform -translate-x-1/2 -translate-y-full transition-all duration-300
-                        ${hoveredId === point.id ? 'z-50 scale-125' : 'z-10 hover:z-40 hover:scale-110'}
-                      `}
-                      onClick={() => onSelectArea(point.id)}
-                      onMouseEnter={() => setHoveredId(point.id)}
-                      onMouseLeave={() => setHoveredId(null)}
-                    >
-                      <TreePine 
-                        fill={hoveredId === point.id ? "#b4ff6f" : "#000"} 
-                        color="white" 
-                        size={32} 
-                        strokeWidth={1.5}
-                        className="drop-shadow-sm"
-                      />
+      {/* KPIs Section */}
+      <div className="border-b border-black grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-black bg-white">
+        {GREEN_AREAS_KPIS.map((kpi, i) => (
+          <div key={i} className="p-3 md:p-4 flex flex-col justify-center items-center text-center hover:bg-gray-50 transition-colors">
+            <span className="font-mono text-[10px] uppercase text-gray-500 mb-1">{kpi.label}</span>
+            <span className="text-2xl md:text-3xl font-black tracking-tighter">{kpi.value}</span>
+            <span className="text-[9px] font-bold bg-black text-white px-2 py-0.5 mt-1 rounded-full">{kpi.change}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Toolbar - Sticky Top */}
+      <div 
+        ref={toolbarRef}
+        className="sticky z-30 shadow-sm p-4 border-b border-black bg-white flex flex-col md:flex-row gap-4 items-center justify-between" 
+        style={{ 
+          top: `${navbarHeight}px`,
+          zIndex: 30,
+          position: 'sticky'
+        }}
+      >
+        <div className="flex gap-4 w-full md:max-w-2xl">
+          {/* Category Filter */}
+          <div className="relative w-40 shrink-0">
+            <TreePine className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+            <select 
+              value={categoryFilter}
+              onChange={(e) => { setCategoryFilter(e.target.value); setCurrentPage(1); }}
+              className="w-full pl-10 pr-4 py-2 border border-black font-mono text-sm focus:outline-none focus:ring-2 focus:ring-[#fccb4e] uppercase bg-white appearance-none cursor-pointer hover:bg-gray-50"
+            >
+              <option value="TODOS">Todas</option>
+              <option value="PARQUE">Parques</option>
+              <option value="JARDÍN">Jardines</option>
+              <option value="CORREDOR">Corredores</option>
+            </select>
+          </div>
+
+          {/* Status Filter */}
+          <div className="relative w-32 shrink-0">
+            <select 
+              value={statusFilter}
+              onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
+              className="w-full pl-4 pr-4 py-2 border border-black font-mono text-sm focus:outline-none focus:ring-2 focus:ring-[#fccb4e] uppercase bg-white appearance-none cursor-pointer hover:bg-gray-50"
+            >
+              <option value="TODOS">Estado</option>
+              <option value="OPTIMO">Óptimo</option>
+              <option value="RIESGO">En Riesgo</option>
+            </select>
+          </div>
+
+          {/* Search */}
+          <div className="relative w-full">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+            <input 
+              type="text" 
+              placeholder="BUSCAR ÁREA VERDE..." 
+              value={searchQuery}
+              onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+              className="w-full pl-10 pr-4 py-2 border border-black font-mono text-sm focus:outline-none focus:ring-2 focus:ring-[#fccb4e] uppercase"
+            />
+          </div>
+        </div>
+
+        {/* View Toggles */}
+        <div className="flex border border-black bg-gray-100 shrink-0">
+          <button 
+            onClick={() => setViewMode('table')}
+            className={`p-2 border-r border-black hover:bg-gray-200 ${viewMode === 'table' ? 'bg-[#fccb4e]' : ''}`}
+          >
+            <List size={18} />
+          </button>
+          <button 
+            onClick={() => setViewMode('grid')}
+            className={`p-2 hover:bg-gray-200 ${viewMode === 'grid' ? 'bg-[#fccb4e]' : ''}`}
+          >
+            <LayoutGrid size={18} />
+          </button>
+        </div>
+      </div>
+
+      {/* Main Content Area */}
+      <div className="flex flex-col flex-1">
+        
+        {/* TOP SECTION: Data Table/Grid (100vw) */}
+        <div className="w-full border-b border-black bg-[#f3f4f0] p-6">
+          <div className="bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            {viewMode === 'table' ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left font-mono text-xs md:text-sm">
+                  <thead className="bg-black text-white uppercase tracking-wider">
+                    <tr>
+                      <th className="p-3 border-r border-white/20 w-20">ID</th>
+                      <th className="p-3 border-r border-white/20">Área Verde</th>
+                      <th className="p-3 border-r border-white/20 hidden md:table-cell">Dirección</th>
+                      <th className="p-3 border-r border-white/20 w-32">Categoría</th>
+                      <th className="p-3 w-32">Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-black">
+                    {currentData.map((row) => (
+                      <tr 
+                        key={row.id} 
+                        onClick={() => handleSelectArea(row.id, row.lat, row.lng, true)}
+                        className={`cursor-pointer hover:bg-[#fccb4e]/20 transition-colors ${selectedAreaId === row.id ? 'bg-[#fccb4e]/50' : ''}`}
+                      >
+                        <td className="p-3 border-r border-black font-bold whitespace-nowrap">#{row.id}</td>
+                        <td className="p-3 border-r border-black">
+                          <div className="font-bold truncate max-w-[200px] md:max-w-md">{row.name}</div>
+                          <div className="text-[10px] text-gray-500 mt-1">{row.tags.join(', ')}</div>
+                        </td>
+                        <td className="p-3 border-r border-black hidden md:table-cell truncate max-w-xs">{row.address}</td>
+                        <td className="p-3 border-r border-black">
+                          <span className="inline-block px-2 py-0.5 border border-black text-[10px] uppercase font-bold whitespace-nowrap bg-gray-50">
+                            {row.tags[0] || 'N/A'}
+                          </span>
+                        </td>
+                        <td className="p-3">
+                          <span className={`
+                            inline-block px-2 py-0.5 border border-black text-[10px] uppercase font-bold whitespace-nowrap
+                            ${row.need ? 'bg-red-400' : 'bg-[#b4ff6f]'}
+                          `}>
+                            {row.need ? 'En Riesgo' : 'Óptimo'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {currentData.length === 0 && (
+                  <div className="p-12 text-center text-gray-500 font-mono">
+                    No se encontraron áreas verdes.
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4">
+                {currentData.map((card) => (
+                  <div 
+                    key={card.id}
+                    onClick={() => handleSelectArea(card.id, card.lat, card.lng, true)}
+                    className={`
+                      border-2 border-black bg-white p-4 cursor-pointer hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all h-full
+                      ${selectedAreaId === card.id ? 'shadow-[4px_4px_0px_0px_#fccb4e] border-[#fccb4e]' : 'shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'}
+                    `}
+                  >
+                    {/* Image */}
+                    <div className="w-full h-32 mb-3 border border-black overflow-hidden bg-gray-100 relative">
+                      {card.image ? (
+                        <img 
+                          src={card.image} 
+                          alt={card.name}
+                          className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                          }}
+                        />
+                      ) : null}
+                      {(!card.image || card.image === '') && (
+                        <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                          <TreePine size={32} className="opacity-30" />
+                        </div>
+                      )}
                     </div>
-                  </Overlay>
+                    
+                    <div className="flex justify-between items-start mb-2">
+                      <span className="font-mono text-[10px] bg-black text-white px-1">#{card.id}</span>
+                      <span className={`text-[10px] font-bold uppercase ${card.need ? 'text-red-600' : 'text-green-600'}`}>
+                        ● {card.need ? 'Riesgo' : 'Óptimo'}
+                      </span>
+                    </div>
+                    <h4 className="font-bold text-lg leading-tight mb-2 line-clamp-2">{card.name}</h4>
+                    <p className="text-xs font-mono text-gray-600 mb-3 line-clamp-1">{card.address}</p>
+                    <div className="pt-2 border-t border-dashed border-gray-300">
+                      <div className="flex flex-wrap gap-1">
+                        {card.tags.slice(0, 2).map((tag, i) => (
+                          <span key={i} className="text-[9px] font-bold uppercase text-gray-500">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
                 ))}
-             </Map>
-             
-             <div className="absolute top-4 left-4 bg-white border border-black p-2 shadow-sm">
-                <h2 className="font-bold uppercase text-xs flex items-center gap-2">
-                   <MapPin size={14}/> Mapa en vivo
-                </h2>
-             </div>
+              </div>
+            )}
+            
+            {/* Pagination */}
+            <div className="p-4 border-t border-black bg-white flex justify-between items-center">
+              <div className="text-xs font-mono text-gray-500">
+                Mostrando {currentData.length} de {filteredBySearch.length} resultados
+              </div>
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="p-2 border border-black hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <span className="font-mono text-sm px-2">
+                  {currentPage} / {totalPages || 1}
+                </span>
+                <button 
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages || totalPages === 0}
+                  className="p-2 border border-black hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            </div>
           </div>
+        </div>
 
-          {/* RIGHT: List Section (40%) */}
-          <div className="w-full lg:w-2/5 overflow-y-auto bg-white flex flex-col">
-             {/* Header & Filters */}
-             <div className="p-6 border-b border-black sticky top-0 md:top-16 bg-white z-20" style={{ zIndex: 20 }}>
-                <div className="mb-4">
-                   <h2 className="font-black text-xl uppercase tracking-tighter">Filtros</h2>
-                   <p className="font-mono text-xs text-gray-500 mt-1">
-                      {GREEN_AREAS_DATA.length} espacios registrados.
-                   </p>
+        {/* BOTTOM SECTION: Split View (Map | Details) */}
+        <div ref={mapDetailSectionRef} className="flex flex-col md:flex-row min-h-[800px] border-b border-black">
+          
+          {/* LEFT HALF: Map */}
+          <div className="w-full md:w-1/2 relative border-b md:border-b-0 md:border-r border-black bg-gray-100 min-h-[800px]">
+            <Map 
+              center={center} 
+              zoom={zoom} 
+              provider={mapTiler}
+              onBoundsChanged={({ center, zoom }) => { 
+                setCenter(center); 
+                setZoom(zoom); 
+              }}
+              style={{ filter: 'grayscale(100%) contrast(1.2)' }}
+            >
+              {filteredBySearch.map(point => (
+                <Overlay key={point.id} anchor={[point.lat, point.lng]} offset={[15, 30]}>
+                  <div 
+                    onClick={() => handleSelectArea(point.id, point.lat, point.lng)}
+                    className={`
+                      cursor-pointer transform -translate-x-1/2 -translate-y-full transition-all duration-300 group
+                      ${selectedAreaId === point.id ? 'z-50 scale-125' : 'z-10 hover:z-40 hover:scale-110'}
+                    `}
+                  >
+                    <TreePine 
+                      fill={selectedAreaId === point.id ? "#fccb4e" : "#000"} 
+                      color="white" 
+                      size={40} 
+                      strokeWidth={1.5}
+                      className="drop-shadow-md"
+                    />
+                  </div>
+                </Overlay>
+              ))}
+            </Map>
+            <div className="absolute top-4 right-4 bg-white border border-black p-2 shadow-sm pointer-events-none opacity-90 z-20">
+              <p className="text-[10px] font-mono uppercase font-bold mb-1">Mapa de Áreas Verdes</p>
+            </div>
+          </div>
+          
+          {/* RIGHT HALF: Details */}
+          <div className="w-full md:w-1/2 bg-white p-8 md:p-12 flex flex-col min-h-[800px]">
+            {selectedArea ? (
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="flex justify-between items-start mb-6">
+                  <span className="px-3 py-1 bg-black text-white font-mono text-xs uppercase tracking-widest shadow-[4px_4px_0px_0px_#fccb4e]">
+                    #{selectedArea.id}
+                  </span>
+                  <span className={`text-[10px] font-bold uppercase px-2 py-1 border border-black ${selectedArea.need ? 'bg-red-400' : 'bg-[#b4ff6f]'}`}>
+                    {selectedArea.need ? 'En Riesgo' : 'Óptimo'}
+                  </span>
                 </div>
 
-                <div className="flex flex-col gap-3">
-                   <div className="flex gap-2">
-                      <select 
-                         className="flex-1 border border-black p-2 text-xs font-mono uppercase bg-gray-50 focus:outline-none focus:ring-1 focus:ring-black"
-                         value={categoryFilter}
-                         onChange={(e) => setCategoryFilter(e.target.value)}
-                      >
-                         <option value="TODOS">Todas las Categorías</option>
-                         <option value="PARQUE">Parques</option>
-                         <option value="JARDÍN">Jardines</option>
-                         <option value="CORREDOR">Corredores</option>
-                      </select>
-                      <select 
-                         className="flex-1 border border-black p-2 text-xs font-mono uppercase bg-gray-50 focus:outline-none focus:ring-1 focus:ring-black"
-                         value={statusFilter}
-                         onChange={(e) => setStatusFilter(e.target.value)}
-                      >
-                         <option value="TODOS">Cualquier Estado</option>
-                         <option value="OPTIMO">Óptimo</option>
-                         <option value="RIESGO">En Riesgo</option>
-                      </select>
-                   </div>
-                   
-                   <button className="w-full py-3 bg-black text-white font-bold uppercase text-xs tracking-widest hover:bg-[#b4ff6f] hover:text-black transition-colors border border-black flex items-center justify-center gap-2">
-                      <Plus size={14} /> Registrar Nuevo Punto
-                   </button>
+                <h3 className="text-3xl font-bold leading-none mb-6 font-sans">
+                  {selectedArea.name}
+                </h3>
+                
+                {/* Image */}
+                {selectedArea.image && (
+                  <div className="w-full h-48 mb-6 border-2 border-black overflow-hidden bg-gray-100">
+                    <img 
+                      src={selectedArea.image} 
+                      alt={selectedArea.name}
+                      className="w-full h-full object-cover grayscale"
+                    />
+                  </div>
+                )}
+                
+                <div className="space-y-8">
+                  <div>
+                    <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">Dirección</p>
+                    <p className="font-mono text-lg border-l-4 border-[#fccb4e] pl-4">
+                      {selectedArea.address}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">Categorías</p>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedArea.tags.map((tag, i) => (
+                        <span key={i} className="px-3 py-1 border-2 border-black text-sm font-bold bg-gray-50">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {selectedArea.need && (
+                    <div className="bg-[#fff0f0] border-l-8 border-red-500 p-4">
+                      <p className="text-[10px] uppercase font-bold text-red-600 flex items-center gap-2 mb-2">
+                        <AlertCircle size={16}/> Necesidad Prioritaria
+                      </p>
+                      <p className="text-lg font-medium">{selectedArea.need}</p>
+                    </div>
+                  )}
+                  
+                  <div className="pt-8 mt-8 border-t border-dashed border-gray-300">
+                    <button 
+                      onClick={() => onSelectArea && onSelectArea(selectedArea.id)}
+                      className="w-full flex items-center justify-center gap-2 bg-[#fccb4e] hover:bg-black hover:text-white transition-colors text-black font-bold uppercase py-4 border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none text-lg"
+                    >
+                      <Eye size={20} /> Ver Detalles Completos
+                    </button>
+                  </div>
                 </div>
-             </div>
-
-             {/* List */}
-             <div className="p-4 grid grid-cols-1 gap-2">
-                {filteredData.map((item) => (
-                   <div 
-                     key={item.id}
-                     // Interaction Update: Removed setCenter from hover
-                     onMouseEnter={() => setHoveredId(item.id)}
-                     onMouseLeave={() => setHoveredId(null)}
-                     onClick={() => onSelectArea(item.id)}
-                     className={`
-                       flex border border-black bg-white cursor-pointer transition-all duration-200 h-20 group
-                       ${hoveredId === item.id ? 'bg-gray-50 border-l-4 border-l-[#b4ff6f]' : 'hover:border-gray-400'}
-                     `}
-                   >
-                      {/* Compact Image */}
-                      <div className="w-20 shrink-0 border-r border-black overflow-hidden relative grayscale group-hover:grayscale-0 transition-all bg-gray-100">
-                         {item.image ? (
-                           <img 
-                             src={item.image} 
-                             alt={item.name}
-                             className="w-full h-full object-cover"
-                             onError={(e) => {
-                               e.target.style.display = 'none';
-                             }}
-                           />
-                         ) : null}
-                         {(!item.image || item.image === '') && (
-                           <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                             <TreePine size={24} className="opacity-30" />
-                           </div>
-                         )}
-                      </div>
-
-                      {/* Compact Content */}
-                      <div className="flex-1 p-2 pl-3 flex flex-col justify-center">
-                         <div className="flex justify-between items-start">
-                            <h3 className="font-bold text-sm leading-tight truncate pr-2">{item.name}</h3>
-                            <span className="text-[9px] font-mono text-gray-400">#{item.id}</span>
-                         </div>
-                         
-                         <p className="text-[10px] font-mono text-gray-500 truncate mt-0.5">{item.address}</p>
-                         
-                         <div className="flex items-center gap-2 mt-2">
-                            <span className={`w-2 h-2 rounded-full ${item.need ? 'bg-red-400' : 'bg-green-400'}`}></span>
-                            <span className="text-[9px] font-bold uppercase text-gray-400 group-hover:text-black">
-                               {item.need ? 'Requiere Atención' : 'Estable'}
-                            </span>
-                         </div>
-                      </div>
-                   </div>
-                ))}
-             </div>
+              </div>
+            ) : (
+              <div className="h-full flex flex-col items-center justify-center text-gray-300 text-center space-y-6">
+                <TreePine size={80} strokeWidth={0.5} />
+                <p className="font-mono text-lg max-w-[300px] text-gray-400">
+                  Selecciona un área verde de la lista superior para ver los detalles.
+                </p>
+              </div>
+            )}
           </div>
-       </div>
+        </div>
+
+      </div>
     </div>
   );
 };
@@ -1787,14 +2073,33 @@ const getNavbarHeight = () => {
   
   const isMobile = window.innerWidth < 768;
   const navbarSelector = isMobile ? '[data-navbar-mobile]' : '[data-navbar-desktop]';
-  const navbar = document.querySelector(navbarSelector);
+  const navbar = document.querySelector(navbarSelector) as HTMLElement;
   
   if (navbar) {
+    // In mobile, check if navbar is visible (not translated out of view)
+    if (isMobile) {
+      // Check if navbar has translate-y-full class (hidden) by checking computed transform
+      const computedStyle = window.getComputedStyle(navbar);
+      const transform = computedStyle.transform;
+      
+      // If transform translates Y by -100% or has the class, navbar is hidden
+      // translate-y-full in Tailwind = translateY(-100%)
+      if (transform.includes('translateY(-100%)') || transform.includes('matrix(1, 0, 0, 1, 0, -')) {
+        return 0; // Navbar is hidden, no offset needed
+      }
+      
+      // Also check the bounding rect - if it's above the viewport, it's hidden
+      const rect = navbar.getBoundingClientRect();
+      if (rect.top < -rect.height / 2) {
+        return 0; // Navbar is mostly or completely hidden above viewport
+      }
+    }
+    
     return navbar.getBoundingClientRect().height;
   }
   
   // Fallback: h-16 = 64px (4rem * 16 = 64px)
-  return 64;
+  return isMobile ? 0 : 64;
 };
 
 const EventsPage = ({ onSelectImpact }) => {
@@ -1805,7 +2110,7 @@ const EventsPage = ({ onSelectImpact }) => {
   const selectedDayRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
   const [navbarHeight, setNavbarHeight] = useState(64);
   
-  // Get navbar height on mount and resize
+  // Get navbar height on mount, resize, and scroll (for mobile navbar visibility)
   useEffect(() => {
     const updateNavbarHeight = () => {
       setNavbarHeight(getNavbarHeight());
@@ -1813,7 +2118,11 @@ const EventsPage = ({ onSelectImpact }) => {
     
     updateNavbarHeight();
     window.addEventListener('resize', updateNavbarHeight);
-    return () => window.removeEventListener('resize', updateNavbarHeight);
+    window.addEventListener('scroll', updateNavbarHeight, { passive: true });
+    return () => {
+      window.removeEventListener('resize', updateNavbarHeight);
+      window.removeEventListener('scroll', updateNavbarHeight);
+    };
   }, []);
   
   // Get current month in Spanish
@@ -2825,10 +3134,14 @@ const MainApp = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const activeTab = pathToTab(location.pathname);
-  const [selectedImpactId, setSelectedImpactId] = useState(null);
-  const [selectedGreenAreaId, setSelectedGreenAreaId] = useState(null);
   const [hoveredFeature, setHoveredFeature] = useState(null);
   const hoverTimeoutRef = React.useRef(null);
+
+  // Extract ID from URL if present
+  const pathParts = location.pathname.split('/').filter(Boolean);
+  const isDetailPage = pathParts.length === 2 && (pathParts[0] === 'areas-verdes' || pathParts[0] === 'agenda');
+  const detailId = isDetailPage ? parseInt(pathParts[1], 10) : null;
+  const detailType = isDetailPage ? pathParts[0] : null;
 
   const handleFeatureEnter = (feature) => {
     if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
@@ -2843,41 +3156,49 @@ const MainApp = () => {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [activeTab, selectedImpactId, selectedGreenAreaId]);
+  }, [activeTab, location.pathname]);
 
   const handleNavigate = (tab) => {
     navigate(TAB_ROUTES[tab] || '/');
-    setSelectedImpactId(null);
-    setSelectedGreenAreaId(null);
   };
 
   const handleSelectImpact = (id) => {
-     setSelectedImpactId(id);
+     navigate(`/agenda/${id}`);
   };
 
   const handleSelectGreenArea = (id) => {
-     setSelectedGreenAreaId(id);
+     navigate(`/areas-verdes/${id}`);
   };
 
-  // Override content if a detail view is active
-  if (selectedImpactId) {
+  // Override content if a detail view is active (based on URL)
+  if (detailType === 'agenda' && detailId) {
      return (
         <div className="min-h-screen bg-[#f3f4f0] font-sans selection:bg-[#b4ff6f] selection:text-black">
            <NavBar activeTab={activeTab} onNavigate={handleNavigate} />
            <main className="pt-16 md:pt-0">
-              <ImpactDetailPage eventId={selectedImpactId} onBack={() => setSelectedImpactId(null)} />
+              <ImpactDetailPage 
+                eventId={detailId} 
+                onBack={() => {
+                  navigate(TAB_ROUTES.AGENDA);
+                }} 
+              />
            </main>
            <Footer />
         </div>
      );
   }
 
-  if (selectedGreenAreaId) {
+  if (detailType === 'areas-verdes' && detailId) {
      return (
         <div className="min-h-screen bg-[#f3f4f0] font-sans selection:bg-[#b4ff6f] selection:text-black">
            <NavBar activeTab={activeTab} onNavigate={handleNavigate} />
            <main className="pt-16 md:pt-0">
-              <GreenAreaDetailPage areaId={selectedGreenAreaId} onBack={() => setSelectedGreenAreaId(null)} />
+              <GreenAreaDetailPage 
+                areaId={detailId} 
+                onBack={() => {
+                  navigate(TAB_ROUTES.GREEN_AREAS);
+                }} 
+              />
            </main>
            <Footer />
         </div>
@@ -3034,7 +3355,9 @@ export default function App() {
         <Route path="/" element={<MainApp />} />
         <Route path="/inicio" element={<MainApp />} />
         <Route path="/agenda" element={<MainApp />} />
+        <Route path="/agenda/:id" element={<MainApp />} />
         <Route path="/areas-verdes" element={<MainApp />} />
+        <Route path="/areas-verdes/:id" element={<MainApp />} />
         <Route path="/boletines" element={<MainApp />} />
         <Route path="/gacetas" element={<MainApp />} />
         <Route path="/participacion" element={<MainApp />} />
