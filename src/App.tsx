@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation, useParams } from 'react-router-dom';
 import { motion, useScroll, useTransform, AnimatePresence } from 'motion/react';
 import { ArrowRight, ArrowDown, MapPin, TreePine, AlertCircle, Camera, X, Plus, FileText, LayoutGrid, List, Search, Mail, MessageCircle, Eye, ChevronLeft, ChevronRight, Calendar, Download, ExternalLink, Menu } from 'lucide-react';
-import { Map, Marker, Overlay } from 'pigeon-maps';
+import { Map, Overlay } from 'pigeon-maps';
 import { LogoMap } from './components/LogoMap';
 
 export const DataContext = React.createContext({
