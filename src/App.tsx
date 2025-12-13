@@ -361,7 +361,7 @@ const NavBar = ({ activeTab, onNavigate }) => {
       </nav>
 
       {/* Desktop Navbar - Sticky (only visible on desktop) */}
-      <div className="hidden md:block sticky top-0 z-50" style={{ position: 'sticky', top: 0, zIndex: 50 }}>
+      <div className="hidden md:block sticky top-0 z-50" data-navbar-desktop style={{ position: 'sticky', top: 0, zIndex: 50 }}>
         <nav 
           className="w-full border-b border-black bg-white text-xs md:text-sm font-mono tracking-wider uppercase overflow-x-auto scrollbar-hide flex"
           style={{ backgroundColor: 'white' }}
@@ -697,6 +697,19 @@ const NewslettersPage = () => {
   const { projects: PROJECTS_DATA } = React.useContext(DataContext);
   const [viewMode, setViewMode] = useState('table'); // 'table' or 'grid'
   const [searchQuery, setSearchQuery] = useState('');
+  const [navbarHeight, setNavbarHeight] = useState(64);
+  
+  // Get navbar height on mount and resize
+  useEffect(() => {
+    const updateNavbarHeight = () => {
+      setNavbarHeight(getNavbarHeight());
+    };
+    
+    updateNavbarHeight();
+    window.addEventListener('resize', updateNavbarHeight);
+    return () => window.removeEventListener('resize', updateNavbarHeight);
+  }, []);
+  
   const years = useMemo(() => {
     const allYears = PROJECTS_DATA.map(p => p.year).filter(Boolean);
     const unique = Array.from(new Set(allYears));
@@ -772,7 +785,14 @@ const NewslettersPage = () => {
       </div>
 
       {/* Toolbar - Sticky Top */}
-      <div className="sticky top-[110px] md:top-16 z-40 shadow-sm p-4 border-b border-black bg-white flex flex-col md:flex-row gap-4 items-center justify-between">
+      <div 
+        className="sticky z-30 shadow-sm p-4 border-b border-black bg-white flex flex-col md:flex-row gap-4 items-center justify-between" 
+        style={{ 
+          top: window.innerWidth >= 768 ? `${navbarHeight}px` : '110px',
+          zIndex: 30,
+          position: 'sticky'
+        }}
+      >
             <div className="flex gap-4 w-full md:max-w-2xl">
                {/* Year Filter */}
                <div className="relative w-32 shrink-0">
@@ -1062,6 +1082,19 @@ const GazettesPage = () => {
   const { gazettes: GAZETTES_DATA } = React.useContext(DataContext);
   const [viewMode, setViewMode] = useState('table');
   const [searchQuery, setSearchQuery] = useState('');
+  const [navbarHeight, setNavbarHeight] = useState(64);
+  
+  // Get navbar height on mount and resize
+  useEffect(() => {
+    const updateNavbarHeight = () => {
+      setNavbarHeight(getNavbarHeight());
+    };
+    
+    updateNavbarHeight();
+    window.addEventListener('resize', updateNavbarHeight);
+    return () => window.removeEventListener('resize', updateNavbarHeight);
+  }, []);
+  
   const years = useMemo(() => {
     const allYears = GAZETTES_DATA.map(p => p.year).filter(Boolean);
     const unique = Array.from(new Set(allYears));
@@ -1141,7 +1174,14 @@ const GazettesPage = () => {
       </div>
 
       {/* Toolbar - Sticky Top */}
-      <div className="sticky top-[110px] md:top-16 z-40 shadow-sm p-4 border-b border-black bg-white flex flex-col md:flex-row gap-4 items-center justify-between">
+      <div 
+        className="sticky z-30 shadow-sm p-4 border-b border-black bg-white flex flex-col md:flex-row gap-4 items-center justify-between" 
+        style={{ 
+          top: window.innerWidth >= 768 ? `${navbarHeight}px` : '110px',
+          zIndex: 30,
+          position: 'sticky'
+        }}
+      >
             <div className="flex gap-4 w-full md:max-w-2xl">
                <div className="relative w-32 shrink-0">
                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
@@ -1503,7 +1543,7 @@ const GreenAreasPage = ({ onSelectArea }) => {
           {/* RIGHT: List Section (40%) */}
           <div className="w-full lg:w-2/5 overflow-y-auto bg-white flex flex-col">
              {/* Header & Filters */}
-             <div className="p-6 border-b border-black sticky top-0 md:top-16 bg-white z-20">
+             <div className="p-6 border-b border-black sticky top-0 md:top-16 bg-white z-20" style={{ zIndex: 20 }}>
                 <div className="mb-4">
                    <h2 className="font-black text-xl uppercase tracking-tighter">Filtros</h2>
                    <p className="font-mono text-xs text-gray-500 mt-1">
@@ -1740,12 +1780,35 @@ const EventImage = ({ event }) => {
   );
 };
 
+// Helper function to get navbar height dynamically
+const getNavbarHeight = () => {
+  if (typeof window === 'undefined') return 64; // Default 64px (h-16)
+  const navbar = document.querySelector('[data-navbar-desktop]');
+  if (navbar) {
+    return navbar.getBoundingClientRect().height;
+  }
+  // Fallback: h-16 = 64px (4rem * 16 = 64px)
+  return window.innerWidth >= 768 ? 64 : 0;
+};
+
 const EventsPage = ({ onSelectImpact }) => {
   const { events: EVENTS_DATA, pastEvents: PAST_EVENTS_DATA } = React.useContext(DataContext);
   const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
   const [selectedDate, setSelectedDate] = useState("2025-12-13"); // Default to a date with events
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const selectedDayRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
+  const [navbarHeight, setNavbarHeight] = useState(64);
+  
+  // Get navbar height on mount and resize
+  useEffect(() => {
+    const updateNavbarHeight = () => {
+      setNavbarHeight(getNavbarHeight());
+    };
+    
+    updateNavbarHeight();
+    window.addEventListener('resize', updateNavbarHeight);
+    return () => window.removeEventListener('resize', updateNavbarHeight);
+  }, []);
   
   // Get current month in Spanish
   const getCurrentMonthYear = () => {
@@ -1864,7 +1927,14 @@ const EventsPage = ({ onSelectImpact }) => {
 
        {/* VIEW MODE: WEEKLY STRIP */}
        {viewMode === 'week' && (
-           <div className="bg-black text-white border-b border-black sticky top-0 md:top-16 z-30 w-full">
+           <div 
+             className="bg-black text-white border-b border-black sticky z-20 w-full" 
+             style={{ 
+               top: window.innerWidth >= 768 ? `${navbarHeight}px` : '0px',
+               zIndex: 20,
+               position: 'sticky'
+             }}
+           >
               <div 
                 ref={scrollContainerRef}
                 className="overflow-x-auto scrollbar-hide"
@@ -2932,7 +3002,7 @@ const MainApp = () => {
   return (
     <div className="min-h-screen bg-[#f3f4f0] font-sans selection:bg-[#b4ff6f] selection:text-black" style={{ overflow: 'visible' }}>
       <NavBar activeTab={activeTab} onNavigate={handleNavigate} />
-      <main>
+      <main style={{ position: 'relative', zIndex: 0 }}>
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -2940,6 +3010,7 @@ const MainApp = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.3 }}
+            style={{ position: 'relative', zIndex: 0 }}
           >
             {renderContent()}
           </motion.div>
