@@ -335,6 +335,7 @@ const NavBar = ({ activeTab, onNavigate }) => {
     <>
       {/* Mobile Navbar - Fixed (only visible on mobile) */}
       <nav 
+        data-navbar-mobile
         className={`
           md:hidden
           fixed top-0 left-0 right-0
@@ -788,7 +789,7 @@ const NewslettersPage = () => {
       <div 
         className="sticky z-30 shadow-sm p-4 border-b border-black bg-white flex flex-col md:flex-row gap-4 items-center justify-between" 
         style={{ 
-          top: window.innerWidth >= 768 ? `${navbarHeight}px` : '110px',
+          top: `${navbarHeight}px`,
           zIndex: 30,
           position: 'sticky'
         }}
@@ -1177,7 +1178,7 @@ const GazettesPage = () => {
       <div 
         className="sticky z-30 shadow-sm p-4 border-b border-black bg-white flex flex-col md:flex-row gap-4 items-center justify-between" 
         style={{ 
-          top: window.innerWidth >= 768 ? `${navbarHeight}px` : '110px',
+          top: `${navbarHeight}px`,
           zIndex: 30,
           position: 'sticky'
         }}
@@ -1783,12 +1784,17 @@ const EventImage = ({ event }) => {
 // Helper function to get navbar height dynamically
 const getNavbarHeight = () => {
   if (typeof window === 'undefined') return 64; // Default 64px (h-16)
-  const navbar = document.querySelector('[data-navbar-desktop]');
+  
+  const isMobile = window.innerWidth < 768;
+  const navbarSelector = isMobile ? '[data-navbar-mobile]' : '[data-navbar-desktop]';
+  const navbar = document.querySelector(navbarSelector);
+  
   if (navbar) {
     return navbar.getBoundingClientRect().height;
   }
+  
   // Fallback: h-16 = 64px (4rem * 16 = 64px)
-  return window.innerWidth >= 768 ? 64 : 0;
+  return 64;
 };
 
 const EventsPage = ({ onSelectImpact }) => {
@@ -1930,7 +1936,7 @@ const EventsPage = ({ onSelectImpact }) => {
            <div 
              className="bg-black text-white border-b border-black sticky z-20 w-full" 
              style={{ 
-               top: window.innerWidth >= 768 ? `${navbarHeight}px` : '0px',
+               top: `${navbarHeight}px`,
                zIndex: 20,
                position: 'sticky'
              }}
