@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { motion, useScroll, useTransform, AnimatePresence } from 'motion/react';
-import { ArrowRight, ArrowDown, MapPin, TreePine, AlertCircle, Camera, X, Plus, FileText, LayoutGrid, List, Search, Mail, MessageCircle, Eye, ChevronLeft, ChevronRight, Calendar, Download, ExternalLink } from 'lucide-react';
+import { ArrowRight, ArrowDown, MapPin, TreePine, AlertCircle, Camera, X, Plus, FileText, LayoutGrid, List, Search, Mail, MessageCircle, Eye, ChevronLeft, ChevronRight, Calendar, Download, ExternalLink, Menu } from 'lucide-react';
 import { Map, Marker, Overlay } from 'pigeon-maps';
 import { LogoMap } from './components/LogoMap';
 
@@ -86,12 +86,21 @@ const DataProvider = ({ children }) => {
 };
 
 // --- Assets & Data ---
-// Placeholder images from Unsplash source or similar for the cards
+// Helper function to generate random Unsplash images using Picsum Photos
+const getRandomUnsplashImage = (seed, width = 1000, height = 1000) => {
+  // Use seed to generate consistent but varied image IDs
+  const seedNum = seed.toString().split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const imageId = (seedNum % 1000) + 1; // Random ID between 1-1000
+  // Picsum Photos provides random images with seed for consistency
+  return `https://picsum.photos/seed/${seed}${imageId}/${width}/${height}`;
+};
+
+// Placeholder images using random Unsplash
 const MOCK_IMAGES = {
-  sanMarcos: "https://images.unsplash.com/photo-1596276122653-651a3898309f?q=80&w=1000&auto=format&fit=crop",
-  tresCenturias: "https://images.unsplash.com/photo-1555899434-94d1368b7af6?q=80&w=1000&auto=format&fit=crop",
-  rodolfoLanderos: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=1000&auto=format&fit=crop",
-  lineaVerde: "https://images.unsplash.com/photo-1502082553048-f009c37129b9?q=80&w=1000&auto=format&fit=crop"
+  sanMarcos: getRandomUnsplashImage('sanmarcos', 1000, 1000),
+  tresCenturias: getRandomUnsplashImage('trescenturias', 1000, 1000),
+  rodolfoLanderos: getRandomUnsplashImage('rodolfolanderos', 1000, 1000),
+  lineaVerde: getRandomUnsplashImage('lineaverde', 1000, 1000)
 };
 
 // Mappers to transform external JSON datasets into the UI-friendly shape
@@ -284,32 +293,163 @@ const NavBar = ({ activeTab, onNavigate }) => {
     { id: 'PARTICIPATION', label: 'PARTICIPACIÓN', color: 'bg-[#d89dff]', hoverColor: 'hover:bg-[#d89dff]' },
   ];
 
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isNavbarVisible, setIsNavbarVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
+  // Hide/show navbar on scroll (mobile only)
+  useEffect(() => {
+    const handleScroll = () => {
+      // Early return for desktop - navbar is always visible via sticky
+      if (window.innerWidth >= 768) {
+        return;
+      }
+
+      // Mobile only: hide/show navbar
+      const currentScrollY = window.scrollY;
+      if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        setIsNavbarVisible(false);
+      } else {
+        setIsNavbarVisible(true);
+      }
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
+
+  const handleTabClick = (tabId) => {
+    onNavigate(tabId);
+    setIsMenuOpen(false);
+  };
+
+  const Logo = () => (
+    <svg className="w-20 h-auto md:w-24" viewBox="0 0 835 383" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path fillRule="evenodd" clipRule="evenodd" d="M443.716 1.29473C428.451 4.34118 413.078 16.024 406.695 29.4286L403.655 35.8116L403.029 32.3989C402.684 30.5217 401.421 23.4169 400.219 16.6102L398.036 4.23425H359.568L359.075 33.9364C358.803 50.2726 358.699 90.4824 358.843 123.29L359.105 182.942H404.48L404.519 142.597C404.557 102.513 404.57 102.275 406.404 105.957C413.345 119.896 427.296 130.823 442.729 134.412C449.045 135.88 462.266 135.916 469.626 134.484C486.059 131.287 500.475 118.339 507.56 100.41C511.967 89.2597 513.374 79.4006 512.739 64.1336C512.12 49.2311 510.034 39.7333 505.258 30.0652C493.927 7.12526 470.165 -3.98335 443.716 1.29473ZM753.659 0.732362C740.044 3.23527 725.217 11.2351 717.576 20.2021C705.367 34.5275 698.643 54.0111 697.116 79.4797C696.167 95.2981 698.648 121.604 702.122 132.587C702.687 134.369 700.706 134.429 640.992 134.429H579.279L578.988 127.746C578.827 124.071 578.84 117.388 579.015 112.895L579.334 104.727H690.727V69.084H579.189V42.352H700.598V2.74915H516.007L516.511 174.527H703.066L703.635 137.894L706.638 144.131C711.215 153.638 719.925 162.357 729.597 167.114C739.608 172.037 749.327 174.083 763.276 174.206C776.938 174.327 783.807 172.93 794.293 167.898C807.961 161.339 820.065 147.692 826.595 131.479C838.097 102.915 837.324 57.8704 824.882 31.7632C817.647 16.5795 805.339 6.73419 787.953 2.22144C780.953 0.404654 760.319 -0.491367 753.659 0.732362ZM0.318073 6.94508C0.0446573 8.17673 -0.0757373 49.2825 0.0496196 98.2911L0.277619 187.398L53.0687 187.925L53.579 77.9204L99.9965 187.398L147.631 187.927L151.022 179.742C152.886 175.24 163.039 150.476 173.583 124.71L192.755 77.863L193.265 187.925L246.056 187.398L246.559 4.70553L173.266 5.22433L148.463 65.3455C134.822 98.4119 123.438 125.474 123.167 125.482C122.895 125.491 111.343 98.4367 97.4943 65.3613L72.3164 5.22433L0.814587 4.70455L0.318073 6.94508ZM292.699 5.7451C286.61 7.27972 278.022 12.1608 271.546 17.7676C263.44 24.7852 252.264 38.9145 252.662 41.6402C252.889 43.1956 254.804 44.4599 260.299 46.6866C268.927 50.1815 275.811 56.1873 276.784 61.0684C277.415 64.2316 279.501 66.0613 280.892 64.6712C281.276 64.2881 281.861 57.6615 282.191 49.9459C282.889 33.6602 284.23 27.596 288.033 23.5119C291.94 19.317 297.659 19.3438 301.206 23.5714C304.377 27.3505 305.515 31.4098 306.887 43.8233C308.807 61.1832 306.48 71.4711 298.946 78.9501C296.144 81.7312 289.218 86.2657 280.748 90.8656C260.772 101.714 255.643 106.921 251.37 120.692C249.112 127.971 248.833 146.174 250.864 153.735C254.171 166.044 260.642 174.811 269.888 179.51C277.617 183.438 289.569 184.204 295.533 181.151C299.186 179.282 306.119 172.597 310.105 167.101C311.338 165.401 312.054 165.031 312.393 165.919C312.663 166.63 314.283 169.047 315.991 171.289C327.212 186.012 351.014 181.187 354.969 163.388C356.039 158.568 355.378 158.203 351.19 161.308C348.432 163.354 348.219 163.371 345.719 161.727C339.879 157.889 339.88 157.905 339.251 97.3011C338.75 49.0786 338.455 41.0838 336.983 35.9166C331.238 15.7359 320.495 5.71739 303.936 5.09661C299.789 4.94117 294.732 5.23225 292.699 5.7451ZM786.434 11.639C788.693 12.8518 790.169 16.8894 792.053 27.0059C794.083 37.8947 795.073 101.064 793.42 114.226C790.567 136.964 782.904 151.916 770.684 158.588C760.937 163.909 748.747 165.773 745.765 162.398C743.467 159.797 741.145 152.024 739.344 140.913C736.886 125.744 736.897 61.9327 739.36 50.7676C742.93 34.573 750.833 22.5516 761.739 16.721C770.357 12.1132 782.617 9.59055 786.434 11.639ZM447.57 41.8471C470.169 48.5786 474.801 78.6134 455.069 90.4755C440.417 99.2832 416.824 96.3932 408.424 84.7618C399.74 72.7374 401.258 56.4655 411.876 47.7569C420.061 41.0432 436.008 38.4036 447.57 41.8471ZM307.978 127.168L308.241 154.065L303.556 157.27C297.125 161.671 291.344 161.851 287.111 157.784C281.772 152.653 279.284 140.622 281 128.24C283.05 113.458 287.486 105.942 300.344 95.4655L307.254 89.8359L307.485 95.0536C307.611 97.9228 307.833 112.375 307.978 127.168Z" fill="#242424"/>
+      <path fillRule="evenodd" clipRule="evenodd" d="M516.233 234.766L513.344 230.765C511.48 228.184 508.415 225.76 504.707 223.934C499.548 221.392 497.95 221.103 489.089 221.103C480.253 221.103 478.65 221.392 473.79 223.858C470.804 225.372 467.293 227.976 465.988 229.644C462.257 234.412 459.199 243.134 458.058 252.265C456.783 262.47 456.722 332.054 457.976 345.852C460.269 371.077 468.807 381.375 488.532 382.706C499.577 383.451 503.743 381.996 510.558 375.01L516.233 369.192V381.039L558.184 380.505L558.687 194.866H516.233V234.766ZM682.553 195.476C655.215 198.323 629.661 205.484 612.505 215.107C587.187 229.309 571.011 249.57 566.032 273.315C564.204 282.03 564.199 295.801 566.021 304.452C573.558 340.241 607.234 366.619 659.328 377.539C689.861 383.939 730.682 384.654 764.479 379.382C781.246 376.766 806.284 370.247 813.339 366.66C814.696 365.97 819.283 363.738 823.532 361.699C827.781 359.662 831.461 357.464 831.709 356.814C832.068 355.878 812.014 319.937 810.014 317.93C809.729 317.647 805.809 319.001 801.301 320.942C784.989 327.969 762.115 332.76 736.558 334.502C709.074 336.376 685.098 332.996 669.17 325.002C662.978 321.895 655.276 315.571 653.132 311.833L651.349 308.725H832.846L833.95 304.326C835.49 298.194 835.299 278.858 833.621 270.918C830.612 256.673 824.398 245.044 813.624 233.491C796.343 214.961 770.222 202.661 736.805 197.32C727.342 195.808 691.174 194.578 682.553 195.476ZM0 201.183C0 202.636 5.97568 223.33 33.2758 316.408L52.8078 383L94.0157 382.485L113.942 314.665C136.822 236.795 147.072 201.514 147.072 200.629C147.072 200.289 137.35 199.999 125.465 199.985L103.859 199.958L96.3096 226.867C92.157 241.667 85.5368 265.272 81.5974 279.323L74.4353 304.87L44.779 200.312L22.3895 200.114C4.75765 199.958 0 200.185 0 201.183ZM298.242 200.715C297.475 201.19 297.228 226.732 297.382 289.458L297.599 377.535L341.523 378.067V319.615H356.017C368.668 319.615 371.05 319.877 374.742 321.669C380.454 324.443 384.908 330.831 389.89 343.397C398.154 364.238 405.694 375.159 415.167 380.013C419.204 382.08 422.185 382.487 427.769 382.485C433.536 382.485 437.497 382.178 444.233 378.834C448.274 376.828 453.084 373.626 454.922 371.72L458.263 368.254L450.831 341.438L447.922 343.893C443.823 347.352 439.188 347.495 435.713 344.268C434.586 343.222 430.889 336.167 427.498 328.592C423.704 320.119 420.061 313.508 418.03 311.41L414.728 308L418.502 306.865C423.201 305.453 432.96 298.328 436.39 293.805C444.291 283.386 447.446 272.494 447.409 255.756C447.343 226.587 435.813 208.63 413.011 202.19C407.929 200.754 400.097 200.506 353.241 200.293C323.583 200.158 298.833 200.347 298.242 200.715ZM193.464 202.231C168.115 207.529 153.578 220.25 148.038 241.979C146.248 248.997 146.086 252.992 146.102 289.824C146.121 333.101 146.587 338.306 151.387 348.823C161.211 370.347 180.931 381.412 211.725 382.679C245.133 384.053 268.496 373.059 279.422 350.82C283.725 342.063 286.205 332.05 286.231 323.328L286.248 317.635H245.158L244.034 328.279C243.416 334.133 242.023 341.493 240.936 344.636C235.439 360.538 221.951 369.45 201.361 370.784C193.203 371.313 192.903 371.254 190.503 368.66L188.035 365.992L187.466 302.27L285.754 266.324L286.041 258.938C286.645 243.335 281.094 228.056 271.33 218.453C265.068 212.292 253.449 205.948 243.311 203.154C235.232 200.928 202.592 200.324 193.464 202.231ZM241.316 214.062C244.596 217.352 244.915 220.247 244.586 243.794L244.298 264.503L216.186 275.228C200.726 281.126 187.955 285.953 187.808 285.953C187.662 285.953 187.542 279.328 187.542 271.232C187.542 254.081 189.417 241.52 193.105 233.966C199.746 220.362 214.493 212.004 232.251 211.782C238.068 211.708 239.272 212.011 241.316 214.062ZM394.461 241.275C400.694 244.847 403.215 250.606 403.215 261.273C403.215 268.807 402.92 270.209 400.588 273.742C395.824 280.964 393.726 281.453 365.953 281.821L341.523 282.145V238.229L365.953 238.584C389.489 238.925 390.532 239.023 394.461 241.275ZM717.389 240.996C725.226 242.618 730.43 244.436 732.625 246.316C733.315 246.908 736.001 248.766 738.591 250.444C744.425 254.225 749.668 260.522 751.635 266.115C752.456 268.449 753.128 270.75 753.128 271.227C753.128 271.71 730.221 272.092 701.289 272.092H649.449L650.112 269.369C651.83 262.32 659.915 253.081 667.994 248.935C669.759 248.03 671.202 246.892 671.202 246.405C671.202 245.346 681.577 241.831 688.476 240.554C696.359 239.095 709.157 239.29 717.389 240.996ZM512.744 253.651C514.15 255.061 515.341 257.737 515.719 260.334C516.067 262.717 516.213 283.255 516.045 305.975C515.747 346.352 515.693 347.331 513.677 349.353C508.579 354.464 501.178 350.585 499.952 342.158C499.613 339.834 499.474 319.291 499.642 296.508L499.947 255.084L502.277 253.192C505.484 250.589 509.883 250.781 512.744 253.651Z" fill="#7FB800"/>
+    </svg>
+  );
+
   return (
-    <nav className="sticky top-0 z-50 flex w-full border-b border-black bg-white text-xs md:text-sm font-mono tracking-wider uppercase overflow-x-auto scrollbar-hide">
-      <div className="flex-shrink-0 w-32 h-16 border-r border-black flex items-center justify-center bg-white cursor-pointer" onClick={() => onNavigate('HOME')}>
-        <svg className="w-24 h-auto" viewBox="0 0 835 383" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path fillRule="evenodd" clipRule="evenodd" d="M443.716 1.29473C428.451 4.34118 413.078 16.024 406.695 29.4286L403.655 35.8116L403.029 32.3989C402.684 30.5217 401.421 23.4169 400.219 16.6102L398.036 4.23425H359.568L359.075 33.9364C358.803 50.2726 358.699 90.4824 358.843 123.29L359.105 182.942H404.48L404.519 142.597C404.557 102.513 404.57 102.275 406.404 105.957C413.345 119.896 427.296 130.823 442.729 134.412C449.045 135.88 462.266 135.916 469.626 134.484C486.059 131.287 500.475 118.339 507.56 100.41C511.967 89.2597 513.374 79.4006 512.739 64.1336C512.12 49.2311 510.034 39.7333 505.258 30.0652C493.927 7.12526 470.165 -3.98335 443.716 1.29473ZM753.659 0.732362C740.044 3.23527 725.217 11.2351 717.576 20.2021C705.367 34.5275 698.643 54.0111 697.116 79.4797C696.167 95.2981 698.648 121.604 702.122 132.587C702.687 134.369 700.706 134.429 640.992 134.429H579.279L578.988 127.746C578.827 124.071 578.84 117.388 579.015 112.895L579.334 104.727H690.727V69.084H579.189V42.352H700.598V2.74915H516.007L516.511 174.527H703.066L703.635 137.894L706.638 144.131C711.215 153.638 719.925 162.357 729.597 167.114C739.608 172.037 749.327 174.083 763.276 174.206C776.938 174.327 783.807 172.93 794.293 167.898C807.961 161.339 820.065 147.692 826.595 131.479C838.097 102.915 837.324 57.8704 824.882 31.7632C817.647 16.5795 805.339 6.73419 787.953 2.22144C780.953 0.404654 760.319 -0.491367 753.659 0.732362ZM0.318073 6.94508C0.0446573 8.17673 -0.0757373 49.2825 0.0496196 98.2911L0.277619 187.398L53.0687 187.925L53.579 77.9204L99.9965 187.398L147.631 187.927L151.022 179.742C152.886 175.24 163.039 150.476 173.583 124.71L192.755 77.863L193.265 187.925L246.056 187.398L246.559 4.70553L173.266 5.22433L148.463 65.3455C134.822 98.4119 123.438 125.474 123.167 125.482C122.895 125.491 111.343 98.4367 97.4943 65.3613L72.3164 5.22433L0.814587 4.70455L0.318073 6.94508ZM292.699 5.7451C286.61 7.27972 278.022 12.1608 271.546 17.7676C263.44 24.7852 252.264 38.9145 252.662 41.6402C252.889 43.1956 254.804 44.4599 260.299 46.6866C268.927 50.1815 275.811 56.1873 276.784 61.0684C277.415 64.2316 279.501 66.0613 280.892 64.6712C281.276 64.2881 281.861 57.6615 282.191 49.9459C282.889 33.6602 284.23 27.596 288.033 23.5119C291.94 19.317 297.659 19.3438 301.206 23.5714C304.377 27.3505 305.515 31.4098 306.887 43.8233C308.807 61.1832 306.48 71.4711 298.946 78.9501C296.144 81.7312 289.218 86.2657 280.748 90.8656C260.772 101.714 255.643 106.921 251.37 120.692C249.112 127.971 248.833 146.174 250.864 153.735C254.171 166.044 260.642 174.811 269.888 179.51C277.617 183.438 289.569 184.204 295.533 181.151C299.186 179.282 306.119 172.597 310.105 167.101C311.338 165.401 312.054 165.031 312.393 165.919C312.663 166.63 314.283 169.047 315.991 171.289C327.212 186.012 351.014 181.187 354.969 163.388C356.039 158.568 355.378 158.203 351.19 161.308C348.432 163.354 348.219 163.371 345.719 161.727C339.879 157.889 339.88 157.905 339.251 97.3011C338.75 49.0786 338.455 41.0838 336.983 35.9166C331.238 15.7359 320.495 5.71739 303.936 5.09661C299.789 4.94117 294.732 5.23225 292.699 5.7451ZM786.434 11.639C788.693 12.8518 790.169 16.8894 792.053 27.0059C794.083 37.8947 795.073 101.064 793.42 114.226C790.567 136.964 782.904 151.916 770.684 158.588C760.937 163.909 748.747 165.773 745.765 162.398C743.467 159.797 741.145 152.024 739.344 140.913C736.886 125.744 736.897 61.9327 739.36 50.7676C742.93 34.573 750.833 22.5516 761.739 16.721C770.357 12.1132 782.617 9.59055 786.434 11.639ZM447.57 41.8471C470.169 48.5786 474.801 78.6134 455.069 90.4755C440.417 99.2832 416.824 96.3932 408.424 84.7618C399.74 72.7374 401.258 56.4655 411.876 47.7569C420.061 41.0432 436.008 38.4036 447.57 41.8471ZM307.978 127.168L308.241 154.065L303.556 157.27C297.125 161.671 291.344 161.851 287.111 157.784C281.772 152.653 279.284 140.622 281 128.24C283.05 113.458 287.486 105.942 300.344 95.4655L307.254 89.8359L307.485 95.0536C307.611 97.9228 307.833 112.375 307.978 127.168Z" fill="#242424"/>
-          <path fillRule="evenodd" clipRule="evenodd" d="M516.233 234.766L513.344 230.765C511.48 228.184 508.415 225.76 504.707 223.934C499.548 221.392 497.95 221.103 489.089 221.103C480.253 221.103 478.65 221.392 473.79 223.858C470.804 225.372 467.293 227.976 465.988 229.644C462.257 234.412 459.199 243.134 458.058 252.265C456.783 262.47 456.722 332.054 457.976 345.852C460.269 371.077 468.807 381.375 488.532 382.706C499.577 383.451 503.743 381.996 510.558 375.01L516.233 369.192V381.039L558.184 380.505L558.687 194.866H516.233V234.766ZM682.553 195.476C655.215 198.323 629.661 205.484 612.505 215.107C587.187 229.309 571.011 249.57 566.032 273.315C564.204 282.03 564.199 295.801 566.021 304.452C573.558 340.241 607.234 366.619 659.328 377.539C689.861 383.939 730.682 384.654 764.479 379.382C781.246 376.766 806.284 370.247 813.339 366.66C814.696 365.97 819.283 363.738 823.532 361.699C827.781 359.662 831.461 357.464 831.709 356.814C832.068 355.878 812.014 319.937 810.014 317.93C809.729 317.647 805.809 319.001 801.301 320.942C784.989 327.969 762.115 332.76 736.558 334.502C709.074 336.376 685.098 332.996 669.17 325.002C662.978 321.895 655.276 315.571 653.132 311.833L651.349 308.725H832.846L833.95 304.326C835.49 298.194 835.299 278.858 833.621 270.918C830.612 256.673 824.398 245.044 813.624 233.491C796.343 214.961 770.222 202.661 736.805 197.32C727.342 195.808 691.174 194.578 682.553 195.476ZM0 201.183C0 202.636 5.97568 223.33 33.2758 316.408L52.8078 383L94.0157 382.485L113.942 314.665C136.822 236.795 147.072 201.514 147.072 200.629C147.072 200.289 137.35 199.999 125.465 199.985L103.859 199.958L96.3096 226.867C92.157 241.667 85.5368 265.272 81.5974 279.323L74.4353 304.87L44.779 200.312L22.3895 200.114C4.75765 199.958 0 200.185 0 201.183ZM298.242 200.715C297.475 201.19 297.228 226.732 297.382 289.458L297.599 377.535L341.523 378.067V319.615H356.017C368.668 319.615 371.05 319.877 374.742 321.669C380.454 324.443 384.908 330.831 389.89 343.397C398.154 364.238 405.694 375.159 415.167 380.013C419.204 382.08 422.185 382.487 427.769 382.485C433.536 382.485 437.497 382.178 444.233 378.834C448.274 376.828 453.084 373.626 454.922 371.72L458.263 368.254L450.831 341.438L447.922 343.893C443.823 347.352 439.188 347.495 435.713 344.268C434.586 343.222 430.889 336.167 427.498 328.592C423.704 320.119 420.061 313.508 418.03 311.41L414.728 308L418.502 306.865C423.201 305.453 432.96 298.328 436.39 293.805C444.291 283.386 447.446 272.494 447.409 255.756C447.343 226.587 435.813 208.63 413.011 202.19C407.929 200.754 400.097 200.506 353.241 200.293C323.583 200.158 298.833 200.347 298.242 200.715ZM193.464 202.231C168.115 207.529 153.578 220.25 148.038 241.979C146.248 248.997 146.086 252.992 146.102 289.824C146.121 333.101 146.587 338.306 151.387 348.823C161.211 370.347 180.931 381.412 211.725 382.679C245.133 384.053 268.496 373.059 279.422 350.82C283.725 342.063 286.205 332.05 286.231 323.328L286.248 317.635H245.158L244.034 328.279C243.416 334.133 242.023 341.493 240.936 344.636C235.439 360.538 221.951 369.45 201.361 370.784C193.203 371.313 192.903 371.254 190.503 368.66L188.035 365.992L187.466 302.27L285.754 266.324L286.041 258.938C286.645 243.335 281.094 228.056 271.33 218.453C265.068 212.292 253.449 205.948 243.311 203.154C235.232 200.928 202.592 200.324 193.464 202.231ZM241.316 214.062C244.596 217.352 244.915 220.247 244.586 243.794L244.298 264.503L216.186 275.228C200.726 281.126 187.955 285.953 187.808 285.953C187.662 285.953 187.542 279.328 187.542 271.232C187.542 254.081 189.417 241.52 193.105 233.966C199.746 220.362 214.493 212.004 232.251 211.782C238.068 211.708 239.272 212.011 241.316 214.062ZM394.461 241.275C400.694 244.847 403.215 250.606 403.215 261.273C403.215 268.807 402.92 270.209 400.588 273.742C395.824 280.964 393.726 281.453 365.953 281.821L341.523 282.145V238.229L365.953 238.584C389.489 238.925 390.532 239.023 394.461 241.275ZM717.389 240.996C725.226 242.618 730.43 244.436 732.625 246.316C733.315 246.908 736.001 248.766 738.591 250.444C744.425 254.225 749.668 260.522 751.635 266.115C752.456 268.449 753.128 270.75 753.128 271.227C753.128 271.71 730.221 272.092 701.289 272.092H649.449L650.112 269.369C651.83 262.32 659.915 253.081 667.994 248.935C669.759 248.03 671.202 246.892 671.202 246.405C671.202 245.346 681.577 241.831 688.476 240.554C696.359 239.095 709.157 239.29 717.389 240.996ZM512.744 253.651C514.15 255.061 515.341 257.737 515.719 260.334C516.067 262.717 516.213 283.255 516.045 305.975C515.747 346.352 515.693 347.331 513.677 349.353C508.579 354.464 501.178 350.585 499.952 342.158C499.613 339.834 499.474 319.291 499.642 296.508L499.947 255.084L502.277 253.192C505.484 250.589 509.883 250.781 512.744 253.651Z" fill="#7FB800"/>
-        </svg>
-      </div>
-      {tabs.map((tab) => (
-        <button
-          key={tab.id}
-          onClick={() => onNavigate(tab.id)}
-          className={`
-            flex-1 min-w-[100px] px-4 py-3 border-r border-black text-left transition-colors duration-200
-            ${activeTab === tab.id ? tab.color : `bg-white ${tab.hoverColor}`}
-          `}
+    <>
+      {/* Mobile Navbar - Fixed (only visible on mobile) */}
+      <nav 
+        className={`
+          md:hidden
+          fixed top-0 left-0 right-0
+          z-50 bg-white border-b border-black
+          transition-transform duration-300 ease-in-out
+          ${isNavbarVisible ? 'translate-y-0' : '-translate-y-full'}
+        `}
+      >
+        <div className="flex items-center justify-between h-16 px-4">
+          <div 
+            className="flex items-center cursor-pointer"
+            onClick={() => handleTabClick('HOME')}
+          >
+            <Logo />
+          </div>
+          <button
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="p-2 -mr-2"
+            aria-label="Toggle menu"
+          >
+            {isMenuOpen ? <X size={24} className="text-black" /> : <Menu size={24} className="text-black" />}
+          </button>
+        </div>
+      </nav>
+
+      {/* Desktop Navbar - Sticky (only visible on desktop) */}
+      <div className="hidden md:block sticky top-0 z-50" style={{ position: 'sticky', top: 0, zIndex: 50 }}>
+        <nav 
+          className="w-full border-b border-black bg-white text-xs md:text-sm font-mono tracking-wider uppercase overflow-x-auto scrollbar-hide flex"
+          style={{ backgroundColor: 'white' }}
         >
-          {tab.label}
-        </button>
-      ))}
-      <div className="flex-1 min-w-[100px] border-r border-black bg-white md:hidden"></div>
-    </nav>
+          <div className="flex-shrink-0 w-32 h-16 border-r border-black flex items-center justify-center bg-white cursor-pointer" onClick={() => onNavigate('HOME')}>
+            <Logo />
+          </div>
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => onNavigate(tab.id)}
+              className={`
+                flex-1 min-w-[100px] px-4 py-3 border-r border-black text-left transition-colors duration-200
+                ${activeTab === tab.id ? tab.color : `bg-white ${tab.hoverColor}`}
+              `}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </nav>
+      </div>
+
+      {/* Mobile Menu Overlay */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/50 z-40 md:hidden"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            <motion.div
+              initial={{ y: '-100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '-100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="absolute top-0 left-0 right-0 bg-white border-b border-black w-full"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between p-4 border-b border-black bg-white">
+                <div className="cursor-pointer" onClick={() => handleTabClick('HOME')}>
+                  <Logo />
+                </div>
+                <button
+                  onClick={() => setIsMenuOpen(false)}
+                  className="p-2"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* Menu Items */}
+              <nav className="flex flex-col">
+                {tabs.map((tab, index) => (
+                  <motion.button
+                    key={tab.id}
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    onClick={() => handleTabClick(tab.id)}
+                    className={`
+                      w-full px-6 py-4 text-left border-b border-black
+                      font-mono text-sm uppercase tracking-wider
+                      transition-colors duration-200
+                      ${activeTab === tab.id 
+                        ? `${tab.color} text-black font-bold` 
+                        : 'bg-white text-black hover:bg-gray-50'
+                      }
+                    `}
+                  >
+                    {tab.label}
+                  </motion.button>
+                ))}
+              </nav>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 };
 
 const HeroSection = () => {
+  const navigate = useNavigate();
+  
   return (
     <section className="relative min-h-[85vh] bg-[#f3f4f0] text-black overflow-hidden flex flex-col justify-between pt-32 pb-12 border-b border-black">
       {/* Background - Dot Pattern */}
@@ -332,9 +472,9 @@ const HeroSection = () => {
                <span className="inline-block px-3 py-1 border border-black bg-black text-white text-xs font-mono uppercase tracking-widest mb-4">Plataforma Ciudadana v2.0</span>
              </motion.div>
              
-             <div className="mb-6 w-[800px]">
-               <LogoMap className="w-full h-auto" />
-             </div>
+            <div className="mb-6 w-full">
+              <LogoMap className="w-64 h-auto" />
+            </div>
 
              <motion.p 
                initial={{ opacity: 0, y: 20 }}
@@ -342,7 +482,7 @@ const HeroSection = () => {
                transition={{ delay: 0.3 }}
                className="text-xl md:text-2xl font-serif max-w-lg leading-relaxed text-gray-800"
              >
-               Combatimos la desigualdad ambiental con datos abiertos. Una herramienta para visibilizar, proteger y expandir el bosque urbano.
+               Combatimos la desigualdad ambiental con datos abiertos. Una herramienta para visibilizar, proteger y expandir nuestras áreas verdes.
              </motion.p>
            </div>
 
@@ -355,16 +495,10 @@ const HeroSection = () => {
               <motion.button 
                 whileHover={{ scale: 1.05, backgroundColor: "#b4ff6f", color: "#000" }}
                 whileTap={{ scale: 0.95 }}
+                onClick={() => navigate('/manifiesto')}
                 className="px-6 py-3 bg-black text-white font-bold uppercase text-sm tracking-wider transition-colors border border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none"
               >
-                 Explorar Mapa
-              </motion.button>
-              <motion.button 
-                whileHover={{ scale: 1.05, backgroundColor: "#fff" }}
-                whileTap={{ scale: 0.95 }}
-                className="px-6 py-3 border border-black text-black font-bold uppercase text-sm tracking-wider transition-colors"
-              >
-                 Leer Manifiesto
+                 Leer manifiesto
               </motion.button>
            </motion.div>
         </div>
@@ -416,7 +550,7 @@ const TextContentSection = () => {
            </div>
            <p className="font-bold uppercase text-sm mb-2">Transparencia Total</p>
            <p className="text-xs font-mono text-gray-500">
-              Cada árbol registrado, cada reporte y cada dato es de acceso público. Sin cajas negras.
+              Cada parque registrado, cada reporte y cada dato es de acceso público. Sin cajas negras.
            </p>
         </div>
       </div>
@@ -638,7 +772,7 @@ const NewslettersPage = () => {
       </div>
 
       {/* Toolbar - Sticky Top */}
-      <div className="sticky top-[110px] md:top-[64px] z-40 shadow-sm p-4 border-b border-black bg-white flex flex-col md:flex-row gap-4 items-center justify-between">
+      <div className="sticky top-[110px] md:top-16 z-40 shadow-sm p-4 border-b border-black bg-white flex flex-col md:flex-row gap-4 items-center justify-between">
             <div className="flex gap-4 w-full md:max-w-2xl">
                {/* Year Filter */}
                <div className="relative w-32 shrink-0">
@@ -898,7 +1032,7 @@ const NewslettersPage = () => {
 
         {/* CTA Section - Restored Previous Design in Bottom Position */}
         <div className="bg-[#f3f4f0] p-6 md:p-12 border-b border-black">
-           <div className="border-2 border-black bg-black text-white p-6 md:p-8 relative z-10 max-w-5xl mx-auto shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+           <div className="border-2 border-black bg-black text-white p-6 md:p-8 relative z-10 max-w-5xl mx-auto shadow-[8px_8px_0px_0px_#d4d4d8]" style={{ boxShadow: '8px 8px 0px 0px #d4d4d8' }}>
              <h3 className="text-2xl font-bold mb-4 flex items-center gap-2">
                 <AlertCircle className="text-[#ff9d9d]" />
                 ALERTAS CIUDADANAS
@@ -1007,7 +1141,7 @@ const GazettesPage = () => {
       </div>
 
       {/* Toolbar - Sticky Top */}
-      <div className="sticky top-[110px] md:top-[64px] z-40 shadow-sm p-4 border-b border-black bg-white flex flex-col md:flex-row gap-4 items-center justify-between">
+      <div className="sticky top-[110px] md:top-16 z-40 shadow-sm p-4 border-b border-black bg-white flex flex-col md:flex-row gap-4 items-center justify-between">
             <div className="flex gap-4 w-full md:max-w-2xl">
                <div className="relative w-32 shrink-0">
                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
@@ -1369,7 +1503,7 @@ const GreenAreasPage = ({ onSelectArea }) => {
           {/* RIGHT: List Section (40%) */}
           <div className="w-full lg:w-2/5 overflow-y-auto bg-white flex flex-col">
              {/* Header & Filters */}
-             <div className="p-6 border-b border-black sticky top-0 bg-white z-20">
+             <div className="p-6 border-b border-black sticky top-0 md:top-16 bg-white z-20">
                 <div className="mb-4">
                    <h2 className="font-black text-xl uppercase tracking-tighter">Filtros</h2>
                    <p className="font-mono text-xs text-gray-500 mt-1">
@@ -1421,8 +1555,22 @@ const GreenAreasPage = ({ onSelectArea }) => {
                      `}
                    >
                       {/* Compact Image */}
-                      <div className="w-20 shrink-0 border-r border-black overflow-hidden relative grayscale group-hover:grayscale-0 transition-all">
-                         <img src={item.image} className="w-full h-full object-cover" />
+                      <div className="w-20 shrink-0 border-r border-black overflow-hidden relative grayscale group-hover:grayscale-0 transition-all bg-gray-100">
+                         {item.image ? (
+                           <img 
+                             src={item.image} 
+                             alt={item.name}
+                             className="w-full h-full object-cover"
+                             onError={(e) => {
+                               e.target.style.display = 'none';
+                             }}
+                           />
+                         ) : null}
+                         {(!item.image || item.image === '') && (
+                           <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                             <TreePine size={24} className="opacity-30" />
+                           </div>
+                         )}
                       </div>
 
                       {/* Compact Content */}
@@ -1456,49 +1604,49 @@ const EVENTS_DATA = [
   {
     id: 1,
     title: "Reforestación Urbana: Corredor Oriente",
-    date: "2025-02-14", // Viernes
+    date: "2025-12-14", // Viernes
     time: "08:00 AM - 12:00 PM",
-    isoStart: "20250214T080000",
-    isoEnd: "20250214T120000",
+    isoStart: "20251214T080000",
+    isoEnd: "20251214T120000",
     location: "Av. Tecnológico esq. Poliducto",
     category: "Voluntariado",
-    image: "https://images.unsplash.com/photo-1542601906990-b4d3fb7d5763?q=80&w=1000&auto=format&fit=crop",
+    image: getRandomUnsplashImage('reforestacion-1', 1000, 1000),
     description: "Únete a la brigada para plantar 50 mezquites nativos. Trae ropa cómoda, gorra y tu botella de agua. Nosotros ponemos la herramienta."
   },
   {
     id: 2,
     title: "Taller: Huertos en Espacios Pequeños",
-    date: "2025-02-15", // Sábado
+    date: "2025-12-15", // Sábado
     time: "10:00 AM - 02:00 PM",
-    isoStart: "20250215T100000",
-    isoEnd: "20250215T140000",
+    isoStart: "20251215T100000",
+    isoEnd: "20251215T140000",
     location: "Casa de la Cultura (Centro)",
     category: "Educación",
-    image: "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?q=80&w=1000&auto=format&fit=crop",
+    image: getRandomUnsplashImage('huerto-2', 1000, 1000),
     description: "Aprende a cultivar tus propios alimentos en macetas y balcones. Incluye kit de semillas de temporada."
   },
   {
     id: 3,
     title: "Avistamiento de Aves: Bosque de los Cobos",
-    date: "2025-02-16", // Domingo
+    date: "2025-12-16", // Domingo
     time: "07:00 AM - 11:00 AM",
-    isoStart: "20250216T070000",
-    isoEnd: "20250216T110000",
+    isoStart: "20251216T070000",
+    isoEnd: "20251216T110000",
     location: "Entrada Principal Bosque de los Cobos",
     category: "Recorrido",
-    image: "https://images.unsplash.com/photo-1452570053594-1b985d6ea890?q=80&w=1000&auto=format&fit=crop",
+    image: getRandomUnsplashImage('aves-3', 1000, 1000),
     description: "Caminata guiada por ornitólogos locales. Identificaremos especies migratorias que visitan nuestra ciudad en invierno."
   },
   {
     id: 4,
     title: "Mercado de Trueque y Reciclaje",
-    date: "2025-02-16", // Domingo
+    date: "2025-12-16", // Domingo
     time: "11:00 AM - 04:00 PM",
-    isoStart: "20250216T110000",
-    isoEnd: "20250216T160000",
+    isoStart: "20251216T110000",
+    isoEnd: "20251216T160000",
     location: "Parque Rodolfo Landeros",
     category: "Comunidad",
-    image: "https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?q=80&w=1000&auto=format&fit=crop",
+    image: getRandomUnsplashImage('reciclaje-4', 1000, 1000),
     description: "Trae tus residuos separados (vidrio, cartón, electrónicos) y cámbialos por productos locales o plantas."
   }
 ];
@@ -1507,7 +1655,7 @@ const PAST_EVENTS_DATA = [
   {
     id: 1,
     title: "Limpieza Masiva: Río San Pedro",
-    date: "2025-02-08",
+    date: "2025-12-08",
     category: "Resultados",
     stats: "350kg Recolectados",
     summary: "Gracias a los 45 voluntarios que asistieron, logramos retirar más de media tonelada de residuos sólidos del cauce del río."
@@ -1515,7 +1663,7 @@ const PAST_EVENTS_DATA = [
   {
     id: 2,
     title: "Reforestación: Parque México",
-    date: "2025-02-02",
+    date: "2025-12-02",
     category: "Misión Cumplida",
     stats: "120 Árboles Plantados",
     summary: "Se plantaron especies nativas (Mezquite y Huizache) con una tasa de supervivencia esperada del 90% gracias al sistema de riego instalado."
@@ -1523,7 +1671,7 @@ const PAST_EVENTS_DATA = [
   {
     id: 3,
     title: "Censo Ciudadano: Centro Histórico",
-    date: "2025-01-25",
+    date: "2025-11-25",
     category: "Data",
     stats: "450 Árboles Catalogados",
     summary: "La brigada de datos completó el mapeo de 12 manzanas, identificando 3 árboles patrimoniales en riesgo que ya fueron reportados."
@@ -1564,27 +1712,102 @@ END:VCALENDAR`;
   document.body.removeChild(link);
 };
 
+// Component to handle event image with error fallback
+const EventImage = ({ event }) => {
+  const [imageError, setImageError] = useState(false);
+
+  return (
+    <div className="w-full md:w-64 h-48 md:h-auto border-t-2 md:border-t-0 md:border-l-2 border-black relative overflow-hidden bg-gray-100">
+      {event.image && !imageError ? (
+        <img 
+          src={event.image} 
+          alt={event.title} 
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 grayscale group-hover:grayscale-0" 
+          onError={() => setImageError(true)}
+        />
+      ) : (
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-400">
+          <div className="text-center p-4">
+            <TreePine size={48} className="mx-auto mb-2 opacity-30" />
+            <p className="text-xs font-mono uppercase opacity-50 line-clamp-2 px-2">{event.title}</p>
+          </div>
+        </div>
+      )}
+      {event.image && !imageError && (
+        <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors pointer-events-none" />
+      )}
+    </div>
+  );
+};
+
 const EventsPage = ({ onSelectImpact }) => {
   const { events: EVENTS_DATA, pastEvents: PAST_EVENTS_DATA } = React.useContext(DataContext);
   const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
-  const [selectedDate, setSelectedDate] = useState("2025-02-14"); // Default to a date with events
+  const [selectedDate, setSelectedDate] = useState("2025-12-13"); // Default to a date with events
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const selectedDayRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
   
-  // Helper to get days of current week (Mocking a specific week for demo)
-  const weekDays = [
-    { label: "LUN", date: "2025-02-10", num: "10" },
-    { label: "MAR", date: "2025-02-11", num: "11" },
-    { label: "MIE", date: "2025-02-12", num: "12" },
-    { label: "JUE", date: "2025-02-13", num: "13" },
-    { label: "VIE", date: "2025-02-14", num: "14" },
-    { label: "SAB", date: "2025-02-15", num: "15" },
-    { label: "DOM", date: "2025-02-16", num: "16" },
-  ];
+  // Get current month in Spanish
+  const getCurrentMonthYear = () => {
+    const now = new Date();
+    const months = [
+      'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
+      'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'
+    ];
+    return `${months[now.getMonth()]} ${now.getFullYear()}`;
+  };
+  
+  // Helper to generate days with scrollable range (4 weeks before and after)
+  const generateScrollableDays = (): Array<{ label: string; date: string; num: string; fullDate: Date }> => {
+    const days: Array<{ label: string; date: string; num: string; fullDate: Date }> = [];
+    const startDate = new Date('2025-11-18'); // 4 weeks before current week
+    const endDate = new Date('2026-01-12'); // 4 weeks after current week
+    
+    const dayLabels = ['DOM', 'LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB'];
+    
+    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+      const dateStr = d.toISOString().split('T')[0];
+      const dayNum = d.getDate().toString().padStart(2, '0');
+      const dayOfWeek = d.getDay();
+      const label = dayLabels[dayOfWeek];
+      
+      days.push({
+        label,
+        date: dateStr,
+        num: dayNum,
+        fullDate: new Date(d)
+      });
+    }
+    
+    return days;
+  };
+  
+  const scrollableDays = generateScrollableDays();
+
+  // Auto-scroll to selected date when it changes
+  useEffect(() => {
+    if (viewMode === 'week' && selectedDate && scrollContainerRef.current) {
+      const selectedButton = selectedDayRefs.current[selectedDate];
+      if (selectedButton) {
+        const container = scrollContainerRef.current;
+        const buttonLeft = selectedButton.offsetLeft;
+        const buttonWidth = selectedButton.offsetWidth;
+        const containerWidth = container.offsetWidth;
+        const scrollLeft = buttonLeft - (containerWidth / 2) + (buttonWidth / 2);
+        
+        container.scrollTo({
+          left: scrollLeft,
+          behavior: 'smooth'
+        });
+      }
+    }
+  }, [selectedDate, viewMode]);
 
   // Helper for Month View (February 2025)
   // Feb 1st 2025 is Saturday
   const monthDays = Array.from({ length: 28 }, (_, i) => {
      const dayNum = i + 1;
-     const dateStr = `2025-02-${dayNum.toString().padStart(2, '0')}`;
+     const dateStr = `2025-12-${dayNum.toString().padStart(2, '0')}`;
      return { num: dayNum, date: dateStr };
   });
   const monthOffset = 5; // Empty slots for Mon-Fri before Feb 1st
@@ -1592,63 +1815,93 @@ const EventsPage = ({ onSelectImpact }) => {
   const filteredEvents = EVENTS_DATA.filter(e => e.date === selectedDate);
 
   return (
-    <div className="min-h-screen bg-[#f3f4f0] flex flex-col">
-       
-       {/* Header Section */}
-       <div className="bg-[#ff7e67] border-b border-black p-8 md:p-12 relative overflow-hidden">
-          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-             <div>
-                <div className="inline-flex items-center gap-2 border border-black bg-white px-3 py-1 mb-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                   <Calendar size={14} />
-                   <span className="font-mono text-xs uppercase tracking-widest font-bold">Febrero 2025</span>
+    <div className="flex flex-col min-h-screen bg-[#f3f4f0]">
+       {/* Introduction Section */}
+       <div className="bg-[#ff7e67] border-b border-black p-8 md:p-12 shrink-0 relative">
+          <div className="max-w-7xl mx-auto relative flex flex-col h-full">
+             {/* Top section with date badge */}
+             <div className="mb-6 inline-block">
+                {/* Date badge - top left */}
+                <div className="bg-white border border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] px-4 py-2 inline-flex items-center gap-2">
+                   <Calendar size={16} className="text-black flex-shrink-0" />
+                   <span className="font-mono text-xs uppercase tracking-widest font-bold text-black whitespace-nowrap">{getCurrentMonthYear()}</span>
                 </div>
-                <h1 className="text-5xl md:text-7xl font-black leading-none tracking-tighter text-black">
+             </div>
+
+             {/* Title - below date badge */}
+             <div className="mb-6">
+                <h1 className="text-4xl md:text-6xl font-black uppercase leading-[0.9] tracking-tighter text-black">
                    AGENDA<br/>AMBIENTAL
                 </h1>
              </div>
-             
-             <div className="flex flex-col items-end gap-4">
+
+             {/* Description text - below title */}
+             <div className="mb-6">
+                <p className="font-serif text-lg text-black max-w-2xl leading-relaxed">
+                   Encuentra actividades, talleres y voluntariados cerca de ti.
+                </p>
+             </div>
+
+             {/* View Mode Toggle - bottom right */}
+             <div className="flex justify-end mt-auto">
                 <div className="flex bg-white border border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                    <button 
                      onClick={() => setViewMode('week')}
                      className={`px-4 py-2 font-mono text-sm uppercase font-bold border-r border-black hover:bg-gray-100 ${viewMode === 'week' ? 'bg-black text-white hover:bg-black' : ''}`}
                    >
-                      Semanal
+                      SEMANAL
                    </button>
                    <button 
                      onClick={() => setViewMode('month')}
                      className={`px-4 py-2 font-mono text-sm uppercase font-bold hover:bg-gray-100 ${viewMode === 'month' ? 'bg-black text-white hover:bg-black' : ''}`}
                    >
-                      Mensual
+                      MENSUAL
                    </button>
                 </div>
-                <p className="font-serif text-lg max-w-md text-right font-medium hidden md:block">
-                   Encuentra actividades, talleres y voluntariados cerca de ti.
-                </p>
              </div>
           </div>
        </div>
 
        {/* VIEW MODE: WEEKLY STRIP */}
        {viewMode === 'week' && (
-           <div className="bg-black text-white border-b border-black sticky top-0 z-30 overflow-x-auto scrollbar-hide">
-              <div className="flex min-w-full">
-                 {weekDays.map((day) => (
-                    <button 
-                      key={day.date}
-                      onClick={() => setSelectedDate(day.date)}
-                      className={`
-                        flex-1 min-w-[80px] py-4 flex flex-col items-center justify-center border-r border-white/20 transition-colors relative
-                        ${selectedDate === day.date ? 'bg-white text-black' : 'hover:bg-zinc-800'}
-                      `}
-                    >
-                       <span className="text-[10px] font-mono tracking-widest mb-1 opacity-60">{day.label}</span>
-                       <span className="text-2xl font-bold">{day.num}</span>
-                       {EVENTS_DATA.some(e => e.date === day.date) && (
-                          <div className={`absolute bottom-2 w-1.5 h-1.5 rounded-full ${selectedDate === day.date ? 'bg-[#ff7e67]' : 'bg-[#ff7e67]'}`} />
-                       )}
-                    </button>
-                 ))}
+           <div className="bg-black text-white border-b border-black sticky top-0 md:top-16 z-30 w-full">
+              <div 
+                ref={scrollContainerRef}
+                className="overflow-x-auto scrollbar-hide"
+                style={{ 
+                  scrollBehavior: 'smooth', 
+                  width: '100%',
+                  scrollbarWidth: 'none', /* Firefox */
+                  msOverflowStyle: 'none', /* IE and Edge */
+                }}
+              >
+                 <div className="flex" style={{ width: 'max-content' }}>
+                    {scrollableDays.map((day) => {
+                      const hasEvent = EVENTS_DATA.some(e => e.date === day.date);
+                      const isSelected = selectedDate === day.date;
+                      
+                      return (
+                         <button 
+                           key={day.date}
+                           ref={(el) => {
+                             if (el) selectedDayRefs.current[day.date] = el;
+                           }}
+                           onClick={() => setSelectedDate(day.date)}
+                           className={`
+                             flex-shrink-0 py-4 px-2 flex flex-col items-center justify-center border-r border-white/20 transition-colors relative
+                             ${isSelected ? 'bg-white text-black' : 'hover:bg-zinc-800'}
+                           `}
+                           style={{ width: 'calc(100vw / 7)', minWidth: 'calc(100vw / 7)' }}
+                         >
+                            <span className="text-[10px] font-mono tracking-widest mb-1 opacity-60">{day.label}</span>
+                            <span className="text-2xl font-bold">{day.num}</span>
+                            {hasEvent && (
+                               <div className={`absolute bottom-2 w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-[#ff7e67]' : 'bg-[#ff7e67]'}`} />
+                            )}
+                         </button>
+                      );
+                    })}
+                 </div>
               </div>
            </div>
        )}
@@ -1771,14 +2024,7 @@ const EventsPage = ({ onSelectImpact }) => {
                       </div>
 
                       {/* Image (Right Desktop / Bottom Mobile) */}
-                      <div className="w-full md:w-64 h-48 md:h-auto border-t-2 md:border-t-0 md:border-l-2 border-black relative overflow-hidden hidden md:block">
-                         <img 
-                           src={event.image} 
-                           alt={event.title} 
-                           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 grayscale group-hover:grayscale-0" 
-                         />
-                         <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />
-                      </div>
+                      <EventImage event={event} />
                    </motion.div>
                 ))}
              </div>
@@ -1895,7 +2141,18 @@ const ImpactDetailPage = ({ eventId, onBack }) => {
       {/* Header Image */}
       <div className="w-full h-[40vh] bg-black relative overflow-hidden border-b-4 border-black">
         <div className="absolute inset-0 opacity-60">
-           <img src="https://images.unsplash.com/photo-1596276122653-651a3898309f?q=80&w=2000&auto=format&fit=crop" className="w-full h-full object-cover" />
+           <img 
+             src={getRandomUnsplashImage('impact-detail', 2000, 800)} 
+             className="w-full h-full object-cover"
+             onError={(e) => {
+               e.target.style.display = 'none';
+               const fallback = e.target.nextElementSibling;
+               if (fallback) fallback.style.display = 'flex';
+             }}
+           />
+           <div className="absolute inset-0 bg-gray-800 flex items-center justify-center" style={{ display: 'none' }}>
+             <TreePine size={64} className="opacity-30 text-white" />
+           </div>
         </div>
         <div className="absolute bottom-0 left-0 w-full p-6 md:p-12 bg-gradient-to-t from-black to-transparent">
            <button onClick={onBack} className="mb-6 flex items-center gap-2 text-white font-mono uppercase text-xs hover:underline">
@@ -1968,8 +2225,22 @@ const GreenAreaDetailPage = ({ areaId, onBack }) => {
   return (
     <div className="min-h-screen bg-[#f3f4f0] flex flex-col items-center pb-24">
       {/* Header Image */}
-      <div className="w-full h-[45vh] relative border-b-4 border-black">
-        <img src={area.image} className="w-full h-full object-cover grayscale" />
+      <div className="w-full h-[45vh] relative border-b-4 border-black bg-gray-800">
+        {area.image ? (
+          <img 
+            src={area.image} 
+            alt={area.name}
+            className="w-full h-full object-cover grayscale"
+            onError={(e) => {
+              e.target.style.display = 'none';
+            }}
+          />
+        ) : null}
+        {(!area.image || area.image === '') && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-800">
+            <TreePine size={64} className="opacity-30 text-white" />
+          </div>
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
         
         <div className="absolute top-6 left-6">
@@ -2227,14 +2498,221 @@ const PlaceholderPage = ({ title }) => {
   );
 };
 
+const ManifestoPageWrapper = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const activeTab = pathToTab(location.pathname);
+  
+  const handleNavigate = (tab) => {
+    navigate(TAB_ROUTES[tab] || '/');
+  };
+  
+  return (
+    <div className="min-h-screen bg-[#f3f4f0] font-sans selection:bg-[#b4ff6f] selection:text-black flex flex-col">
+      <NavBar activeTab={activeTab} onNavigate={handleNavigate} />
+      <main className="flex-grow">
+        <ManifestoPage />
+      </main>
+      <Footer />
+    </div>
+  );
+};
+
+const ManifestoPage = () => {
+  const navigate = useNavigate();
+  
+  return (
+    <div className="min-h-screen bg-[#f3f4f0] flex flex-col">
+      {/* Header */}
+      <div className="bg-[#b4ff6f] border-b border-black p-12 md:p-24 text-center relative overflow-hidden">
+        <div className="relative z-10 max-w-4xl mx-auto">
+          <div className="inline-block border border-black bg-white px-4 py-1 mb-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <span className="font-mono text-xs uppercase tracking-widest font-bold">Manifiesto</span>
+          </div>
+          <h1 className="text-5xl md:text-8xl font-black mb-8 leading-[0.9] tracking-tighter">
+            MANIFIESTO<br/>MAPEO VERDE
+          </h1>
+          <p className="font-serif text-xl md:text-2xl max-w-2xl mx-auto leading-relaxed text-black/80">
+            Nuestros principios, valores y compromisos en la lucha por la justicia ambiental urbana.
+          </p>
+        </div>
+        {/* Background decoration */}
+        <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+          <svg width="100%" height="100%">
+            <pattern id="p-grid-manifiesto" width="40" height="40" patternUnits="userSpaceOnUse">
+              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="black" strokeWidth="1"/>
+            </pattern>
+            <rect width="100%" height="100%" fill="url(#p-grid-manifiesto)" />
+          </svg>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="max-w-4xl mx-auto px-6 py-20">
+        <div className="space-y-12">
+          {/* Section 1 */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="border-2 border-black bg-white p-8 md:p-12 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
+          >
+            <h2 className="text-3xl md:text-4xl font-bold mb-6 uppercase tracking-tight">
+              1. El Problema es Real
+            </h2>
+            <div className="space-y-4 font-serif text-lg leading-relaxed text-gray-800">
+              <p>
+                Nuestras ciudades se están calentando. La falta de arbolado y la expansión descontrolada de superficies de concreto generan islas de calor que afectan desproporcionadamente a las zonas marginadas.
+              </p>
+              <p>
+                Mientras las colonias más privilegiadas disfrutan de parques y áreas verdes, las comunidades vulnerables enfrentan temperaturas extremas, falta de sombra y espacios públicos degradados.
+              </p>
+              <p className="font-bold text-black">
+                Esta desigualdad ambiental no es casualidad. Es el resultado de décadas de planificación urbana que prioriza el desarrollo inmobiliario sobre el bienestar comunitario.
+              </p>
+            </div>
+          </motion.div>
+
+          {/* Section 2 */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="border-2 border-black bg-white p-8 md:p-12 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
+          >
+            <h2 className="text-3xl md:text-4xl font-bold mb-6 uppercase tracking-tight">
+              2. Los Datos son Poder
+            </h2>
+            <div className="space-y-4 font-serif text-lg leading-relaxed text-gray-800">
+              <p>
+                No podemos combatir lo que no podemos medir. Mapeo Verde nace de la convicción de que los datos abiertos y accesibles son la herramienta más poderosa para la justicia ambiental.
+              </p>
+              <p>
+                Cada árbol mapeado, cada área verde documentada, cada alerta ciudadana registrada se convierte en evidencia irrefutable de la necesidad de acción.
+              </p>
+              <p className="font-bold text-black">
+                Creemos en la transparencia radical. Todos nuestros datos son públicos, verificables y utilizables bajo licencia CC-BY-SA 4.0.
+              </p>
+            </div>
+          </motion.div>
+
+          {/* Section 3 */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="border-2 border-black bg-white p-8 md:p-12 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
+          >
+            <h2 className="text-3xl md:text-4xl font-bold mb-6 uppercase tracking-tight">
+              3. La Inteligencia es Colectiva
+            </h2>
+            <div className="space-y-4 font-serif text-lg leading-relaxed text-gray-800">
+              <p>
+                No somos una empresa. No somos una ONG tradicional. Somos una red descentralizada de ciudadanos que han decidido tomar acción directa.
+              </p>
+              <p>
+                Cada persona que sale a mapear, cada analista que valida datos, cada investigador que genera reportes, cada vecino que reporta una alerta, es parte de esta inteligencia colectiva.
+              </p>
+              <p className="font-bold text-black">
+                No esperamos a que otros resuelvan nuestros problemas. Los resolvemos juntos, desde abajo, con nuestras propias manos y herramientas.
+              </p>
+            </div>
+          </motion.div>
+
+          {/* Section 4 */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="border-2 border-black bg-white p-8 md:p-12 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
+          >
+            <h2 className="text-3xl md:text-4xl font-bold mb-6 uppercase tracking-tight">
+              4. La Acción es Local
+            </h2>
+            <div className="space-y-4 font-serif text-lg leading-relaxed text-gray-800">
+              <p>
+                Empezamos en Aguascalientes, pero nuestra visión es replicable en cualquier ciudad del mundo. Cada comunidad puede adaptar estas herramientas y metodologías a su contexto específico.
+              </p>
+              <p>
+                Creemos en el poder de lo local: los vecinos conocen mejor que nadie sus espacios, sus necesidades y sus historias.
+              </p>
+              <p className="font-bold text-black">
+                El cambio global comienza con acción local. Cada ciudad que se mapea, cada comunidad que se organiza, es un paso hacia un futuro más justo y sostenible.
+              </p>
+            </div>
+          </motion.div>
+
+          {/* Section 5 */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="border-2 border-black bg-[#b4ff6f] p-8 md:p-12 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
+          >
+            <h2 className="text-3xl md:text-4xl font-bold mb-6 uppercase tracking-tight">
+              5. Nuestro Compromiso
+            </h2>
+            <div className="space-y-4 font-serif text-lg leading-relaxed text-black">
+              <p className="font-bold">
+                Nos comprometemos a:
+              </p>
+              <ul className="space-y-3 list-none">
+                <li className="flex items-start gap-3">
+                  <span className="text-2xl">●</span>
+                  <span>Mantener todos los datos abiertos y accesibles, sin restricciones comerciales.</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-2xl">●</span>
+                  <span>Priorizar la participación ciudadana sobre intereses corporativos o políticos.</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-2xl">●</span>
+                  <span>Documentar y compartir nuestras metodologías para que otros puedan replicarlas.</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-2xl">●</span>
+                  <span>Escuchar activamente a las comunidades y adaptar nuestras herramientas a sus necesidades reales.</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-2xl">●</span>
+                  <span>Mantenernos independientes y no aceptar financiamiento que comprometa nuestros principios.</span>
+                </li>
+              </ul>
+            </div>
+          </motion.div>
+
+          {/* Call to Action */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="text-center pt-8"
+          >
+            <p className="font-serif text-xl mb-6 text-gray-700">
+              ¿Compartes estos valores? Únete a la red.
+            </p>
+            <motion.button
+              whileHover={{ scale: 1.05, backgroundColor: "#000", color: "#b4ff6f" }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate('/participacion')}
+              className="px-8 py-4 bg-[#b4ff6f] text-black font-bold uppercase text-sm tracking-wider transition-colors border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none"
+            >
+              Participar Ahora
+            </motion.button>
+          </motion.div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const Footer = () => {
   return (
     <footer className="bg-[#f3f4f0] text-black pt-20 pb-10 px-6">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8 border-b border-black pb-16 mb-8">
         <div className="col-span-1 md:col-span-2">
-           <h4 className="text-2xl font-bold mb-6">OpenSci Platform</h4>
+           <h4 className="text-2xl font-bold mb-6">Mapeo Verde</h4>
            <p className="max-w-sm font-serif text-lg">
-             Una iniciativa global para democratizar el acceso a la información científica y empoderar a las comunidades locales.
+             Una plataforma ciudadana para visibilizar, proteger y expandir las áreas verdes de Aguascalientes. Datos abiertos para la justicia ambiental.
            </p>
         </div>
         
@@ -2259,7 +2737,7 @@ const Footer = () => {
       </div>
       
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center text-xs font-mono uppercase text-gray-500">
-        <p>© 2025 OPENSCI PLATFORM. TODOS LOS DERECHOS RESERVADOS.</p>
+        <p>© 2025 MAPEO VERDE. TODOS LOS DERECHOS RESERVADOS.</p>
         <p className="mt-2 md:mt-0">DISEÑADO CON ♥ POR ORÉGANO STUDIO</p>
       </div>
     </footer>
@@ -2308,9 +2786,9 @@ const MainApp = () => {
   // Override content if a detail view is active
   if (selectedImpactId) {
      return (
-        <div className="min-h-screen bg-[#f3f4f0] font-sans selection:bg-[#b4ff6f] selection:text-black flex flex-col">
+        <div className="min-h-screen bg-[#f3f4f0] font-sans selection:bg-[#b4ff6f] selection:text-black">
            <NavBar activeTab={activeTab} onNavigate={handleNavigate} />
-           <main className="flex-grow">
+           <main className="pt-16 md:pt-0">
               <ImpactDetailPage eventId={selectedImpactId} onBack={() => setSelectedImpactId(null)} />
            </main>
            <Footer />
@@ -2320,9 +2798,9 @@ const MainApp = () => {
 
   if (selectedGreenAreaId) {
      return (
-        <div className="min-h-screen bg-[#f3f4f0] font-sans selection:bg-[#b4ff6f] selection:text-black flex flex-col">
+        <div className="min-h-screen bg-[#f3f4f0] font-sans selection:bg-[#b4ff6f] selection:text-black">
            <NavBar activeTab={activeTab} onNavigate={handleNavigate} />
-           <main className="flex-grow">
+           <main className="pt-16 md:pt-0">
               <GreenAreaDetailPage areaId={selectedGreenAreaId} onBack={() => setSelectedGreenAreaId(null)} />
            </main>
            <Footer />
@@ -2385,11 +2863,20 @@ const MainApp = () => {
                                   {/* Image or Icon Section */}
                                   <div className="h-48 overflow-hidden border-b-2 border-black relative bg-gray-100 flex items-center justify-center">
                                      {item.image ? (
-                                        <img src={item.image} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" />
-                                     ) : (
+                                        <img 
+                                          src={item.image} 
+                                          alt={item.name || item.project || item.title}
+                                          className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
+                                          onError={(e) => {
+                                            e.target.style.display = 'none';
+                                          }}
+                                        />
+                                     ) : null}
+                                     {(!item.image || item.image === '') && (
                                         <div className="p-8 opacity-50 group-hover:opacity-100 transition-opacity">
                                            {hoveredFeature === 'Boletines' && <LayoutGrid size={64} strokeWidth={1} />}
                                            {hoveredFeature === 'Gacetas' && <FileText size={64} strokeWidth={1} />}
+                                           {!hoveredFeature && <TreePine size={64} strokeWidth={1} />}
                                         </div>
                                      )}
                                      
@@ -2443,9 +2930,9 @@ const MainApp = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f3f4f0] font-sans selection:bg-[#b4ff6f] selection:text-black flex flex-col">
+    <div className="min-h-screen bg-[#f3f4f0] font-sans selection:bg-[#b4ff6f] selection:text-black" style={{ overflow: 'visible' }}>
       <NavBar activeTab={activeTab} onNavigate={handleNavigate} />
-      <main className="flex-grow">
+      <main>
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -2468,11 +2955,13 @@ export default function App() {
     <DataProvider>
       <Routes>
         <Route path="/" element={<MainApp />} />
+        <Route path="/inicio" element={<MainApp />} />
         <Route path="/agenda" element={<MainApp />} />
         <Route path="/areas-verdes" element={<MainApp />} />
         <Route path="/boletines" element={<MainApp />} />
         <Route path="/gacetas" element={<MainApp />} />
         <Route path="/participacion" element={<MainApp />} />
+        <Route path="/manifiesto" element={<ManifestoPageWrapper />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </DataProvider>

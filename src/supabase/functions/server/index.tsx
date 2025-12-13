@@ -156,5 +156,4 @@ app.post("/make-server-183eaf28/subscribe", async (c) => {
   }
 });
 
-console.log("Server starting...");
 Deno.serve(app.fetch);
