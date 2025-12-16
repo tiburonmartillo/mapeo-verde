@@ -16,18 +16,85 @@ const GreenAreasPage = ({ onSelectArea }: GreenAreasPageProps) => {
   const [viewMode, setViewMode] = useState('table');
   const [searchQuery, setSearchQuery] = useState('');
   const [navbarHeight, setNavbarHeight] = useState(64);
-  
+  const [isNavbarVisible, setIsNavbarVisible] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+  const lastScrollYRef = useRef(0);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+    };
+  }, []);
+
   useEffect(() => {
     const updateNavbarHeight = () => {
       setNavbarHeight(getNavbarHeight());
     };
     
+    const handleScroll = () => {
+      // Solo en móvil: detectar si el navbar está oculto
+      if (window.innerWidth < 768) {
+        const currentScrollY = window.scrollY;
+        const navbarMobile = document.querySelector('[data-navbar-mobile]') as HTMLElement;
+        
+        if (navbarMobile) {
+          // Verificar si el navbar tiene la clase translate-y-full (oculto)
+          const isHidden = navbarMobile.classList.contains('-translate-y-full');
+          setIsNavbarVisible(!isHidden);
+          
+          // Si el navbar está oculto, el sticky debe estar en top: 0
+          if (isHidden) {
+            setNavbarHeight(0);
+          } else {
+            updateNavbarHeight();
+          }
+        }
+        lastScrollYRef.current = currentScrollY;
+      } else {
+        // En desktop, siempre usar la altura del navbar
+        updateNavbarHeight();
+      }
+    };
+    
     updateNavbarHeight();
     window.addEventListener('resize', updateNavbarHeight);
-    window.addEventListener('scroll', updateNavbarHeight, { passive: true });
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    
+    // Observar cambios en el navbar móvil usando MutationObserver
+    const navbarMobile = document.querySelector('[data-navbar-mobile]');
+    if (navbarMobile && window.innerWidth < 768) {
+      const observer = new MutationObserver(() => {
+        const isHidden = navbarMobile.classList.contains('-translate-y-full');
+        setIsNavbarVisible(!isHidden);
+        if (isHidden) {
+          setNavbarHeight(0);
+        } else {
+          updateNavbarHeight();
+        }
+      });
+      
+      observer.observe(navbarMobile, {
+        attributes: true,
+        attributeFilter: ['class']
+      });
+      
+      return () => {
+        window.removeEventListener('resize', updateNavbarHeight);
+        window.removeEventListener('scroll', handleScroll);
+        observer.disconnect();
+      };
+    }
+    
     return () => {
       window.removeEventListener('resize', updateNavbarHeight);
-      window.removeEventListener('scroll', updateNavbarHeight);
+      window.removeEventListener('scroll', handleScroll);
     };
   }, []);
   
@@ -96,13 +163,16 @@ const GreenAreasPage = ({ onSelectArea }: GreenAreasPageProps) => {
     }
   }, [navbarHeight]);
 
-  const mapTiler = useCallback((x: number, y: number, z: number, dpr?: number) => {
-    return `https://basemaps.cartocdn.com/light_all/${z}/${x}/${y}${dpr && dpr >= 2 ? '@2x' : ''}.png`;
+  const mapTiler = useCallback((x: number, y: number, z: number) => {
+    return `https://tile.openstreetmap.org/${z}/${x}/${y}.png`;
   }, []);
 
   return (
     <div className="flex flex-col min-h-screen bg-[#f3f4f0]">
-      <div className="bg-[#fccb4e] border-b border-black p-8 md:p-12">
+      <div 
+        className="bg-[#fccb4e] border-b border-black p-8 md:p-12 transition-[padding-top] duration-300 ease-in-out" 
+        style={{ paddingTop: isMobile ? `${navbarHeight + 32}px` : undefined }}
+      >
         <div className="max-w-4xl">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-3 h-3 bg-white border border-black rounded-full"></div>
@@ -177,7 +247,7 @@ const GreenAreasPage = ({ onSelectArea }: GreenAreasPageProps) => {
 
       <div 
         ref={toolbarRef}
-        className="sticky z-30 shadow-sm p-4 border-b border-black bg-white flex flex-col md:flex-row gap-4 items-center justify-between" 
+        className="sticky z-30 shadow-sm p-4 border-b border-black bg-white flex flex-col md:flex-row gap-4 items-center justify-between transition-[top] duration-300 ease-in-out" 
         style={{ 
           top: `${navbarHeight}px`,
           zIndex: 30,

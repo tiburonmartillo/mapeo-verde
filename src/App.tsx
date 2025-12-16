@@ -7,6 +7,7 @@ import { DataContext, DataProvider } from './context/DataContext';
 import { TAB_ROUTES } from './constants/routes';
 import { pathToTab, getAccentColor } from './utils/helpers';
 import { NavBar, Footer } from './components/layout';
+import { useSEO } from './hooks/useSEO';
 import {
   HeroSection,
   TextContentSection,
@@ -29,6 +30,9 @@ const MainApp = () => {
   const accentColor = getAccentColor(activeTab);
   const [hoveredFeature, setHoveredFeature] = useState<string | null>(null);
   const hoverTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  
+  // SEO dinámico según la ruta
+  useSEO();
 
   // Extract ID from URL if present
   const pathParts = location.pathname.split('/').filter(Boolean);
@@ -133,7 +137,22 @@ const MainApp = () => {
                              else if (hoveredFeature === 'Gacetas') data = GAZETTES_DATA;
                              else if (hoveredFeature === 'Agenda') data = EVENTS_DATA;
                              
-                             return data.slice(0, 4).map((item, idx) => (
+                             // Ordenar por fecha (más recientes primero) y tomar los 4 más recientes
+                             const sortedData = [...data].sort((a: any, b: any) => {
+                                if (hoveredFeature === 'Áreas Verdes') {
+                                   // Para áreas verdes: priorizar las que tienen denuncia (need), luego por ID descendente
+                                   if (a.need && !b.need) return -1;
+                                   if (!a.need && b.need) return 1;
+                                   return (b.id || 0) - (a.id || 0); // IDs más altos primero
+                                } else {
+                                   // Para otros: ordenar por fecha descendente (más reciente primero)
+                                   const dateA = a.date ? new Date(a.date).getTime() : 0;
+                                   const dateB = b.date ? new Date(b.date).getTime() : 0;
+                                   return dateB - dateA;
+                                }
+                             });
+                             
+                             return sortedData.slice(0, 4).map((item, idx) => (
                                <div 
                                  key={item.id || idx} 
                                  onClick={() => {
@@ -141,11 +160,11 @@ const MainApp = () => {
                                        handleSelectGreenArea(item.id);
                                        handleNavigate('GREEN_AREAS');
                                    } else if (hoveredFeature === 'Boletines') {
-                                       handleNavigate('NEWSLETTERS');
+                                       navigate(`/boletines?project=${item.id}`);
                                    } else if (hoveredFeature === 'Gacetas') {
-                                       handleNavigate('GAZETTES');
+                                       navigate(`/gacetas?project=${item.id}`);
                                    } else if (hoveredFeature === 'Agenda') {
-                                       handleNavigate('AGENDA');
+                                       handleSelectImpact(item.id);
                                    }
                                  }}
                                  className="border-2 border-black bg-white cursor-pointer hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all group h-full flex flex-col"

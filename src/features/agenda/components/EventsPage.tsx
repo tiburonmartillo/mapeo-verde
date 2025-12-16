@@ -49,18 +49,85 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const selectedDayRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
   const [navbarHeight, setNavbarHeight] = useState(64);
+  const [isNavbarVisible, setIsNavbarVisible] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+  const lastScrollYRef = useRef(0);
   
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+    };
+  }, []);
+
   useEffect(() => {
     const updateNavbarHeight = () => {
       setNavbarHeight(getNavbarHeight());
     };
     
+    const handleScroll = () => {
+      // Solo en móvil: detectar si el navbar está oculto
+      if (window.innerWidth < 768) {
+        const currentScrollY = window.scrollY;
+        const navbarMobile = document.querySelector('[data-navbar-mobile]') as HTMLElement;
+        
+        if (navbarMobile) {
+          // Verificar si el navbar tiene la clase translate-y-full (oculto)
+          const isHidden = navbarMobile.classList.contains('-translate-y-full');
+          setIsNavbarVisible(!isHidden);
+          
+          // Si el navbar está oculto, el sticky debe estar en top: 0
+          if (isHidden) {
+            setNavbarHeight(0);
+          } else {
+            updateNavbarHeight();
+          }
+        }
+        lastScrollYRef.current = currentScrollY;
+      } else {
+        // En desktop, siempre usar la altura del navbar
+        updateNavbarHeight();
+      }
+    };
+    
     updateNavbarHeight();
     window.addEventListener('resize', updateNavbarHeight);
-    window.addEventListener('scroll', updateNavbarHeight, { passive: true });
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    
+    // Observar cambios en el navbar móvil usando MutationObserver
+    const navbarMobile = document.querySelector('[data-navbar-mobile]');
+    if (navbarMobile && window.innerWidth < 768) {
+      const observer = new MutationObserver(() => {
+        const isHidden = navbarMobile.classList.contains('-translate-y-full');
+        setIsNavbarVisible(!isHidden);
+        if (isHidden) {
+          setNavbarHeight(0);
+        } else {
+          updateNavbarHeight();
+        }
+      });
+      
+      observer.observe(navbarMobile, {
+        attributes: true,
+        attributeFilter: ['class']
+      });
+      
+      return () => {
+        window.removeEventListener('resize', updateNavbarHeight);
+        window.removeEventListener('scroll', handleScroll);
+        observer.disconnect();
+      };
+    }
+    
     return () => {
       window.removeEventListener('resize', updateNavbarHeight);
-      window.removeEventListener('scroll', updateNavbarHeight);
+      window.removeEventListener('scroll', handleScroll);
     };
   }, []);
   
@@ -72,6 +139,12 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
   
   const getMonthName = (date: Date) => {
     const months = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
+    return months[date.getMonth()];
+  };
+
+  const getMonthAbbr = (dateString: string) => {
+    const months = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+    const date = new Date(dateString);
     return months[date.getMonth()];
   };
 
@@ -300,7 +373,10 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
 
   return (
     <div className="flex flex-col min-h-screen bg-[#f3f4f0]">
-       <div className="bg-[#ff7e67] border-b border-black p-8 md:p-12 shrink-0 relative">
+       <div 
+         className="bg-[#ff7e67] border-b border-black p-8 md:p-12 shrink-0 relative transition-[padding-top] duration-300 ease-in-out" 
+         style={{ paddingTop: isMobile ? `${navbarHeight + 32}px` : undefined }}
+       >
           <div className="max-w-7xl mx-auto relative flex flex-col h-full">
              <div className="mb-6 inline-block">
                 <div className="bg-white border border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] px-4 py-2 inline-flex items-center gap-2">
@@ -342,35 +418,34 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
 
        {viewMode === 'week' && (
            <div 
-             className="bg-black text-white border-b border-black sticky z-20 w-full" 
-             style={{ top: `${navbarHeight}px`, zIndex: 20, position: 'sticky' }}
+             className="bg-black text-white border-b border-black sticky z-20 w-full transition-[top] duration-300 ease-in-out" 
+             style={{ top: `${navbarHeight}px` }}
            >
-              <div className="relative flex items-center justify-between border-b border-white/20 w-full">
-                 <div className="bg-white/10 px-4 py-2 font-mono text-xs uppercase tracking-widest font-bold">
+              <div className="relative flex items-center justify-between border-b border-white/20 w-full px-4 py-2">
+                 <div className="bg-white/10 px-4 py-2 font-mono text-base uppercase tracking-widest font-bold">
                     {getMonthName(currentMonth)} {currentMonth.getFullYear()}
                  </div>
                  <div className="flex items-center gap-2">
                    <button onClick={goToPreviousMonth} className="px-3 py-2 hover:bg-white/10 transition-colors flex items-center justify-center flex-shrink-0">
-                     <ChevronLeft className="w-5 h-5" />
+                     <ChevronLeft className="w-[18px] h-[18px]" />
                    </button>
-                   <button onClick={goToToday} className="px-3 py-2 hover:bg-white/10 transition-colors flex items-center justify-center flex-shrink-0 font-mono text-xs uppercase">
+                   <button onClick={goToToday} className="px-3 py-2 hover:bg-white/10 transition-colors flex items-center justify-center flex-shrink-0 font-mono text-base uppercase">
                      HOY
                    </button>
                    <button onClick={goToNextMonth} className="px-3 py-2 hover:bg-white/10 transition-colors flex items-center justify-center flex-shrink-0">
-                     <ChevronRight className="w-5 h-5" />
+                     <ChevronRight className="w-[18px] h-[18px]" />
                    </button>
                  </div>
               </div>
               
-              <div ref={scrollContainerRef} className="overflow-x-auto scrollbar-hide" style={{ scrollBehavior: 'smooth', width: '100%', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                 <div className="flex" style={{ width: 'max-content' }}>
+              <div ref={scrollContainerRef} className="overflow-x-auto scrollbar-hide w-full scroll-smooth [scrollbar-width:none] [-ms-overflow-style:none]" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                 <div className="flex w-full">
                     {visibleDays.map((day, index) => {
                       if (!day.date) {
                         return (
                           <div 
                             key={`empty-${index}`}
-                            className="flex-shrink-0 py-4 px-2 flex flex-col items-center justify-center border-r border-white/20"
-                            style={{ width: 'calc(100vw / 7)', minWidth: 'calc(100vw / 7)' }}
+                            className="flex-1 py-4 px-2 flex flex-col items-center justify-center border-r border-white/20 min-w-0"
                           />
                         );
                       }
@@ -383,10 +458,9 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
                            key={day.date}
                            ref={(el) => { if (el) selectedDayRefs.current[day.date] = el; }}
                            onClick={() => setSelectedDate(day.date)}
-                           className={`flex-shrink-0 py-4 px-2 flex flex-col items-center justify-center border-r border-white/20 transition-colors relative
+                           className={`flex-1 py-4 px-2 flex flex-col items-center justify-center border-r border-white/20 transition-colors relative min-w-0
                              ${isSelected ? 'bg-white text-black' : day.isToday ? 'bg-white/10' : 'hover:bg-zinc-800'}
                            `}
-                           style={{ width: 'calc(100vw / 7)', minWidth: 'calc(100vw / 7)' }}
                          >
                             <span className="text-[10px] font-mono tracking-widest mb-1 opacity-60">{day.label}</span>
                             <span className="text-2xl font-bold">{day.num}</span>
@@ -395,10 +469,9 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
                             )}
                             {day.isToday && (
                                <div 
-                                 className="absolute bottom-0 left-0 right-0 z-50" 
+                                 className="absolute bottom-0 left-0 right-0 z-50 h-[3px]" 
                                  style={{ 
                                    backgroundColor: accentColor, 
-                                   height: '3px',
                                    boxShadow: `0 -2px 0 0 ${accentColor}`
                                  }} 
                                />
@@ -414,152 +487,242 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
        {viewMode === 'month' && (
           <>
             <div 
-              className="bg-black text-white border-b border-black sticky z-20 w-full" 
-              style={{ top: `${navbarHeight}px`, zIndex: 20, position: 'sticky' }}
+              className="bg-black text-white border-b border-black sticky z-20 w-full transition-[top] duration-300 ease-in-out" 
+              style={{ top: `${navbarHeight}px` }}
             >
               <div className="relative flex items-center justify-between border-b border-white/20 w-full px-4 py-2">
-                <div className="bg-white/10 px-4 py-2 font-mono text-xs uppercase tracking-widest font-bold">
+                <div className="bg-white/10 px-4 py-2 font-mono text-base uppercase tracking-widest font-bold">
                    {getMonthName(currentMonth)} {currentMonth.getFullYear()}
                 </div>
                 <div className="flex items-center gap-2">
                   <button onClick={goToPreviousMonth} className="px-3 py-2 hover:bg-white/10 transition-colors flex items-center justify-center flex-shrink-0">
-                    <ChevronLeft className="w-5 h-5" />
+                    <ChevronLeft className="w-[18px] h-[18px]" />
                   </button>
-                  <button onClick={goToToday} className="px-3 py-2 hover:bg-white/10 transition-colors flex items-center justify-center flex-shrink-0 font-mono text-xs uppercase">
+                  <button onClick={goToToday} className="px-3 py-2 hover:bg-white/10 transition-colors flex items-center justify-center flex-shrink-0 font-mono text-base uppercase">
                     HOY
                   </button>
                   <button onClick={goToNextMonth} className="px-3 py-2 hover:bg-white/10 transition-colors flex items-center justify-center flex-shrink-0">
-                    <ChevronRight className="w-5 h-5" />
+                    <ChevronRight className="w-[18px] h-[18px]" />
                   </button>
                 </div>
               </div>
             </div>
-            <div className="bg-[#f3f4f0] p-0 md:p-6 border-b border-black mt-6 mb-6">
-             <div className="max-w-5xl mx-auto w-full">
-                <div className="grid grid-cols-7 gap-px bg-black border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-                   {['LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB', 'DOM'].map(d => (
-                      <div key={d} className="bg-black text-white text-center py-1 md:py-2 font-mono text-[10px] md:text-xs font-bold uppercase min-w-[45px] md:min-w-0">{d}</div>
-                   ))}
-                   
-                   {Array.from({ length: monthOffset }).map((_, i) => (
-                      <div key={`empty-${i}`} className="bg-white h-20 md:h-32 opacity-50 relative min-w-[45px] md:min-w-0">
-                           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/diagonal-stripes.png')] opacity-20"></div>
-                      </div>
-                   ))}
+            <div className="bg-[#f3f4f0] pt-6 pb-6 md:p-6 border-b border-black mb-6 w-full" style={{ marginTop: '24px' }}>
+             <div className="max-w-7xl w-full px-4 md:px-6">
+                <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-stretch min-h-[672px] w-full">
+                   {/* Calendario */}
+                   <div className="flex-shrink-0 w-full lg:w-auto">
+                      <div className="grid grid-cols-7 gap-px bg-black border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+                         {['LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB', 'DOM'].map(d => (
+                            <div key={d} className="bg-black text-white text-center py-1 md:py-2 font-mono text-[10px] md:text-xs font-bold uppercase min-w-[45px] md:min-w-0">{d}</div>
+                         ))}
+                         
+                         {Array.from({ length: monthOffset }).map((_, i) => (
+                            <div key={`empty-${i}`} className="bg-white h-20 md:h-32 opacity-50 relative min-w-[45px] md:min-w-0">
+                                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/diagonal-stripes.png')] opacity-20"></div>
+                            </div>
+                         ))}
 
-                   {monthViewDays.map((day) => {
-                      const dayEvents = EVENTS_DATA.filter((e: any) => e.date === day.date);
-                      const isSelected = selectedDate === day.date;
-                      const isToday = day.date === todayStr;
-                      
-                      return (
-                         <button 
-                           key={day.date}
-                           onClick={() => { setSelectedDate(day.date); setViewMode('week'); }}
-                           className={`bg-white h-20 md:h-32 p-1 md:p-2 flex flex-col items-start hover:bg-[#ff7e67]/20 transition-colors relative text-left group min-w-[45px] md:min-w-0
-                              ${isSelected ? 'ring-inset ring-4 ring-[#ff7e67]' : ''}
-                           `}
-                         >
-                            <span className={`font-mono font-bold text-xs md:text-sm ${isSelected ? 'text-[#ff7e67]' : isToday ? 'text-black' : 'text-gray-400 group-hover:text-black'}`}>{day.num}</span>
-                            {isToday && (
-                               <div className="absolute bottom-0 left-0 right-0 h-1 z-10" style={{ backgroundColor: accentColor }} />
-                            )}
+                         {monthViewDays.map((day) => {
+                            const dayEvents = EVENTS_DATA.filter((e: any) => e.date === day.date);
+                            const isSelected = selectedDate === day.date;
+                            const isToday = day.date === todayStr;
                             
-                            <div className="mt-auto w-full space-y-0.5 md:space-y-1">
-                               {dayEvents.map((ev: any) => (
-                                  <div key={ev.id} className="w-full truncate text-[8px] md:text-[10px] bg-black text-white px-0.5 md:px-1 py-0.5 rounded-none font-medium">
-                                     {ev.title}
+                            return (
+                               <button 
+                                 key={day.date}
+                                 onClick={() => { setSelectedDate(day.date); }}
+                                 className={`bg-white h-20 md:h-32 p-1 md:p-2 flex flex-col items-start hover:bg-[#ff7e67]/20 transition-colors relative text-left group min-w-[45px] md:min-w-0
+                                    ${isSelected ? 'ring-inset ring-4 ring-[#ff7e67]' : ''}
+                                 `}
+                               >
+                                  <span className={`font-mono font-bold text-xs md:text-sm ${isSelected ? 'text-[#ff7e67]' : isToday ? 'text-black' : 'text-gray-400 group-hover:text-black'}`}>{day.num}</span>
+                                  {isToday && (
+                                     <div className="absolute bottom-0 left-0 right-0 h-1 z-10" style={{ backgroundColor: accentColor }} />
+                                  )}
+                                  
+                                  <div className="mt-auto w-full space-y-0.5 md:space-y-1">
+                                     {dayEvents.map((ev: any) => (
+                                        <div key={ev.id} className="w-full truncate text-[8px] md:text-[10px] bg-black text-white px-0.5 md:px-1 py-0.5 rounded-none font-medium">
+                                           {ev.title}
+                                        </div>
+                                     ))}
                                   </div>
+                               </button>
+                            );
+                         })}
+                      </div>
+                   </div>
+
+                   {/* Eventos del día seleccionado */}
+                   <div className="flex-1 min-w-0 flex flex-col min-h-full w-full">
+                      {filteredEvents.length > 0 ? (
+                         <div className="space-y-6">
+                            <div className="flex items-center gap-4 mb-6">
+                               <div className="w-3 h-3 bg-black rounded-full animate-pulse" />
+                               <h2 className="text-xl md:text-2xl font-bold uppercase tracking-tight">
+                                  {new Date(selectedDate).toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' })}
+                               </h2>
+                            </div>
+
+                            <div className="space-y-6">
+                               {filteredEvents.map((event: any) => (
+                                  <motion.div 
+                                     key={event.id}
+                                     initial={{ opacity: 0, y: 20 }}
+                                     animate={{ opacity: 1, y: 0 }}
+                                     className="group border-2 border-black bg-white p-0 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-[12px_12px_0px_0px_#ff7e67] transition-all flex flex-col md:flex-row overflow-hidden"
+                                  >
+                                     <div className="bg-[#ff7e67] text-black w-full md:w-32 flex flex-row md:flex-col items-center justify-center p-4 border-b-2 md:border-b-0 md:border-r-2 border-black shrink-0 gap-2 md:gap-0">
+                                        <span className="font-mono text-xs uppercase tracking-widest text-black/60">{getMonthAbbr(event.date)}</span>
+                                        <span className="text-4xl font-bold">{event.date.split('-')[2]}</span>
+                                     </div>
+
+                                     <div className="flex-1 p-6 flex flex-col justify-between">
+                                        <div>
+                                           <div className="flex justify-between items-start mb-2">
+                                              <span className="inline-block px-2 py-0.5 border border-black text-[10px] uppercase font-bold bg-gray-100">
+                                                 {event.category}
+                                              </span>
+                                              <span className="font-mono text-xs flex items-center gap-1">
+                                                 {event.time}
+                                              </span>
+                                           </div>
+                                           <h3 className="text-xl md:text-2xl font-bold mb-3 leading-tight group-hover:text-[#ff7e67] transition-colors">
+                                              {event.title}
+                                           </h3>
+                                           <p className="font-serif text-gray-600 mb-6 text-sm leading-relaxed">
+                                              {event.description}
+                                           </p>
+                                        </div>
+                                        
+                                        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-t border-dashed border-gray-300 pt-4">
+                                           <div className="flex items-center gap-2 text-xs font-mono uppercase font-bold text-gray-700">
+                                              <MapPin size={14} className="text-[#ff7e67]" />
+                                              {event.location}
+                                           </div>
+
+                                           <div className="flex gap-2 w-full md:w-auto">
+                                              <a 
+                                                 href={getGoogleCalendarUrl(event)}
+                                                 target="_blank"
+                                                 rel="noopener noreferrer"
+                                                 className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-black text-white text-xs font-bold uppercase hover:bg-[#ff7e67] transition-colors border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+                                              >
+                                                 <ExternalLink size={12} />
+                                                 Google
+                                              </a>
+                                              <button 
+                                                 onClick={() => downloadICS(event)}
+                                                 className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 border-2 border-black bg-white text-black text-xs font-bold uppercase hover:bg-[#ff7e67] hover:text-white transition-colors shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+                                              >
+                                                 <Download size={12} />
+                                                 .ICS
+                                              </button>
+                                           </div>
+                                        </div>
+                                     </div>
+
+                                     <EventImage event={event} />
+                                  </motion.div>
                                ))}
                             </div>
-                         </button>
-                      );
-                   })}
+                         </div>
+                      ) : (
+                         <div className="flex-1 flex flex-col items-center justify-center py-12 md:py-24 text-gray-400 opacity-50 w-full min-h-full">
+                            <Calendar size={48} strokeWidth={1} className="mb-4" />
+                            <p className="font-mono text-sm md:text-lg uppercase">No hay eventos programados</p>
+                            <p className="font-serif text-sm">Selecciona otro día en el calendario.</p>
+                         </div>
+                      )}
+                   </div>
                 </div>
              </div>
           </div>
           </>
        )}
 
-       <div className="flex-1 max-w-5xl mx-auto w-full p-6 md:p-12">
-          {filteredEvents.length > 0 ? (
-             <div className="space-y-8">
-                <div className="flex items-center gap-4 mb-8">
-                   <div className="w-3 h-3 bg-black rounded-full animate-pulse" />
-                   <h2 className="text-2xl font-bold uppercase tracking-tight">
-                      {new Date(selectedDate).toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' })}
-                   </h2>
+       {viewMode === 'week' && (
+          <div className="flex-1 max-w-5xl mx-auto w-full p-6 md:p-12">
+             {filteredEvents.length > 0 ? (
+                <div className="space-y-8">
+                   <div className="flex items-center gap-4 mb-8">
+                      <div className="w-3 h-3 bg-black rounded-full animate-pulse" />
+                      <h2 className="text-2xl font-bold uppercase tracking-tight">
+                         {new Date(selectedDate).toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' })}
+                      </h2>
+                   </div>
+
+                   {filteredEvents.map((event: any) => (
+                      <motion.div 
+                         key={event.id}
+                         initial={{ opacity: 0, y: 20 }}
+                         animate={{ opacity: 1, y: 0 }}
+                         className="group border-2 border-black bg-white p-0 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-[12px_12px_0px_0px_#ff7e67] transition-all flex flex-col md:flex-row overflow-hidden"
+                      >
+                         <div className="bg-[#ff7e67] text-black w-full md:w-32 flex flex-row md:flex-col items-center justify-center p-4 border-b-2 md:border-b-0 md:border-r-2 border-black shrink-0 gap-2 md:gap-0">
+                            <span className="font-mono text-xs uppercase tracking-widest text-black/60">{getMonthAbbr(event.date)}</span>
+                            <span className="text-4xl font-bold">{event.date.split('-')[2]}</span>
+                         </div>
+
+                         <div className="flex-1 p-6 flex flex-col justify-between">
+                            <div>
+                               <div className="flex justify-between items-start mb-2">
+                                  <span className="inline-block px-2 py-0.5 border border-black text-[10px] uppercase font-bold bg-gray-100">
+                                     {event.category}
+                                  </span>
+                                  <span className="font-mono text-xs flex items-center gap-1">
+                                     {event.time}
+                                  </span>
+                               </div>
+                               <h3 className="text-2xl font-bold mb-3 leading-tight group-hover:text-[#ff7e67] transition-colors">
+                                  {event.title}
+                               </h3>
+                               <p className="font-serif text-gray-600 mb-6 text-sm leading-relaxed">
+                                  {event.description}
+                               </p>
+                            </div>
+                            
+                            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-t border-dashed border-gray-300 pt-4">
+                               <div className="flex items-center gap-2 text-xs font-mono uppercase font-bold text-gray-700">
+                                  <MapPin size={14} className="text-[#ff7e67]" />
+                                  {event.location}
+                               </div>
+
+                               <div className="flex gap-2 w-full md:w-auto">
+                                  <a 
+                                     href={getGoogleCalendarUrl(event)}
+                                     target="_blank"
+                                     rel="noopener noreferrer"
+                                     className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-black text-white text-xs font-bold uppercase hover:bg-[#ff7e67] transition-colors border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+                                  >
+                                     <ExternalLink size={12} />
+                                     Google
+                                  </a>
+                                  <button 
+                                     onClick={() => downloadICS(event)}
+                                     className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 border-2 border-black bg-white text-black text-xs font-bold uppercase hover:bg-[#ff7e67] hover:text-white transition-colors shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+                                  >
+                                     <Download size={12} />
+                                     .ICS
+                                  </button>
+                               </div>
+                            </div>
+                         </div>
+
+                         <EventImage event={event} />
+                      </motion.div>
+                   ))}
                 </div>
-
-                {filteredEvents.map((event: any) => (
-                   <motion.div 
-                     key={event.id}
-                     initial={{ opacity: 0, y: 20 }}
-                     animate={{ opacity: 1, y: 0 }}
-                     className="group border-2 border-black bg-white p-0 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-[12px_12px_0px_0px_#ff7e67] transition-all flex flex-col md:flex-row overflow-hidden"
-                   >
-                      <div className="bg-[#ff7e67] text-black w-full md:w-32 flex flex-row md:flex-col items-center justify-center p-4 border-b-2 md:border-b-0 md:border-r-2 border-black shrink-0 gap-2 md:gap-0">
-                         <span className="font-mono text-xs uppercase tracking-widest text-black/60">FEB</span>
-                         <span className="text-4xl font-bold">{event.date.split('-')[2]}</span>
-                      </div>
-
-                      <div className="flex-1 p-6 flex flex-col justify-between">
-                         <div>
-                            <div className="flex justify-between items-start mb-2">
-                               <span className="inline-block px-2 py-0.5 border border-black text-[10px] uppercase font-bold bg-gray-100">
-                                  {event.category}
-                               </span>
-                               <span className="font-mono text-xs flex items-center gap-1">
-                                  {event.time}
-                               </span>
-                            </div>
-                            <h3 className="text-2xl font-bold mb-3 leading-tight group-hover:text-[#ff7e67] transition-colors">
-                               {event.title}
-                            </h3>
-                            <p className="font-serif text-gray-600 mb-6 text-sm leading-relaxed">
-                               {event.description}
-                            </p>
-                         </div>
-                         
-                         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-t border-dashed border-gray-300 pt-4">
-                            <div className="flex items-center gap-2 text-xs font-mono uppercase font-bold text-gray-700">
-                               <MapPin size={14} className="text-[#ff7e67]" />
-                               {event.location}
-                            </div>
-
-                            <div className="flex gap-2 w-full md:w-auto">
-                               <a 
-                                 href={getGoogleCalendarUrl(event)}
-                                 target="_blank"
-                                 rel="noopener noreferrer"
-                                 className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-black text-white text-xs font-bold uppercase hover:bg-[#ff7e67] transition-colors border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
-                               >
-                                  <ExternalLink size={12} />
-                                  Google
-                               </a>
-                               <button 
-                                 onClick={() => downloadICS(event)}
-                                 className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 border-2 border-black bg-white text-black text-xs font-bold uppercase hover:bg-[#ff7e67] hover:text-white transition-colors shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
-                               >
-                                  <Download size={12} />
-                                  .ICS
-                               </button>
-                            </div>
-                         </div>
-                      </div>
-
-                      <EventImage event={event} />
-                   </motion.div>
-                ))}
-             </div>
-          ) : (
-             <div className="h-full flex flex-col items-center justify-center py-24 text-gray-400 opacity-50">
-                <Calendar size={64} strokeWidth={1} className="mb-4" />
-                <p className="font-mono text-lg uppercase">No hay eventos programados</p>
-                <p className="font-serif">Selecciona otro día en el calendario.</p>
-             </div>
-          )}
-       </div>
+             ) : (
+                <div className="h-full flex flex-col items-center justify-center py-24 text-gray-400 opacity-50">
+                   <Calendar size={64} strokeWidth={1} className="mb-4" />
+                   <p className="font-mono text-lg uppercase">No hay eventos programados</p>
+                   <p className="font-serif">Selecciona otro día en el calendario.</p>
+                </div>
+             )}
+          </div>
+       )}
 
        <div className="border-t-4 border-black bg-white">
           <div className="max-w-6xl mx-auto px-6 py-20">

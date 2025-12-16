@@ -1,6 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
+import { getNavbarHeight } from '../../../utils/helpers/layoutHelpers';
 
 const MANIFESTO_SECTIONS = [
   {
@@ -48,10 +49,83 @@ const COMMITMENT_POINTS = [
 const ManifestoPage = () => {
   const navigate = useNavigate();
   const sections = useMemo(() => MANIFESTO_SECTIONS, []);
+  const [navbarHeight, setNavbarHeight] = useState(64);
+  const [isMobile, setIsMobile] = useState(false);
+  const lastScrollYRef = useRef(0);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+    };
+  }, []);
+
+  useEffect(() => {
+    const updateNavbarHeight = () => {
+      setNavbarHeight(getNavbarHeight());
+    };
+    
+    const handleScroll = () => {
+      if (window.innerWidth < 768) {
+        const navbarMobile = document.querySelector('[data-navbar-mobile]') as HTMLElement;
+        if (navbarMobile) {
+          const isHidden = navbarMobile.classList.contains('-translate-y-full');
+          if (isHidden) {
+            setNavbarHeight(0);
+          } else {
+            updateNavbarHeight();
+          }
+        }
+      } else {
+        updateNavbarHeight();
+      }
+    };
+    
+    updateNavbarHeight();
+    window.addEventListener('resize', updateNavbarHeight);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    
+    const navbarMobile = document.querySelector('[data-navbar-mobile]');
+    if (navbarMobile && window.innerWidth < 768) {
+      const observer = new MutationObserver(() => {
+        const isHidden = navbarMobile.classList.contains('-translate-y-full');
+        if (isHidden) {
+          setNavbarHeight(0);
+        } else {
+          updateNavbarHeight();
+        }
+      });
+      
+      observer.observe(navbarMobile, {
+        attributes: true,
+        attributeFilter: ['class']
+      });
+      
+      return () => {
+        window.removeEventListener('resize', updateNavbarHeight);
+        window.removeEventListener('scroll', handleScroll);
+        observer.disconnect();
+      };
+    }
+    
+    return () => {
+      window.removeEventListener('resize', updateNavbarHeight);
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
   
   return (
     <div className="min-h-screen bg-[#f3f4f0] flex flex-col">
-      <div className="bg-[#b4ff6f] border-b border-black p-12 md:p-24 text-center relative overflow-hidden">
+      <div 
+        className="bg-[#b4ff6f] border-b border-black p-12 md:p-24 text-center relative overflow-hidden transition-[padding-top] duration-300 ease-in-out" 
+        style={{ paddingTop: isMobile ? `${navbarHeight + 48}px` : undefined }}
+      >
         <div className="relative z-10 max-w-4xl mx-auto">
           <div className="inline-block border border-black bg-white px-4 py-1 mb-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
             <span className="font-mono text-xs uppercase tracking-widest font-bold">Manifiesto</span>

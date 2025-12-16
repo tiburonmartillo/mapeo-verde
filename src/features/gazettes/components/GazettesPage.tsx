@@ -1,28 +1,96 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Calendar, Search, List, LayoutGrid, ChevronLeft, ChevronRight, MapPin, Download, FileText, AlertCircle, Mail, ExternalLink } from 'lucide-react';
-import { Map, Marker, Overlay } from 'pigeon-maps';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { Calendar, Search, List, LayoutGrid, ChevronLeft, ChevronRight, Download, FileText, AlertCircle, Mail, ExternalLink } from 'lucide-react';
 import { useContext } from 'react';
 import { DataContext } from '../../../context/DataContext';
 import { getNavbarHeight } from '../../../utils/helpers/layoutHelpers';
 
 const GazettesPage = () => {
   const { gazettes: GAZETTES_DATA } = useContext(DataContext);
+  const [searchParams, setSearchParams] = useSearchParams();
   const [viewMode, setViewMode] = useState('table');
   const [searchQuery, setSearchQuery] = useState('');
   const [navbarHeight, setNavbarHeight] = useState(64);
-  
+  const [isNavbarVisible, setIsNavbarVisible] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+  const lastScrollYRef = useRef(0);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+    };
+  }, []);
+
   // Get navbar height on mount, resize, and scroll (for mobile navbar visibility)
   useEffect(() => {
     const updateNavbarHeight = () => {
       setNavbarHeight(getNavbarHeight());
     };
     
+    const handleScroll = () => {
+      // Solo en móvil: detectar si el navbar está oculto
+      if (window.innerWidth < 768) {
+        const currentScrollY = window.scrollY;
+        const navbarMobile = document.querySelector('[data-navbar-mobile]') as HTMLElement;
+        
+        if (navbarMobile) {
+          // Verificar si el navbar tiene la clase translate-y-full (oculto)
+          const isHidden = navbarMobile.classList.contains('-translate-y-full');
+          setIsNavbarVisible(!isHidden);
+          
+          // Si el navbar está oculto, el sticky debe estar en top: 0
+          if (isHidden) {
+            setNavbarHeight(0);
+          } else {
+            updateNavbarHeight();
+          }
+        }
+        lastScrollYRef.current = currentScrollY;
+      } else {
+        // En desktop, siempre usar la altura del navbar
+        updateNavbarHeight();
+      }
+    };
+    
     updateNavbarHeight();
     window.addEventListener('resize', updateNavbarHeight);
-    window.addEventListener('scroll', updateNavbarHeight, { passive: true });
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    
+    // Observar cambios en el navbar móvil usando MutationObserver
+    const navbarMobile = document.querySelector('[data-navbar-mobile]');
+    if (navbarMobile && window.innerWidth < 768) {
+      const observer = new MutationObserver(() => {
+        const isHidden = navbarMobile.classList.contains('-translate-y-full');
+        setIsNavbarVisible(!isHidden);
+        if (isHidden) {
+          setNavbarHeight(0);
+        } else {
+          updateNavbarHeight();
+        }
+      });
+      
+      observer.observe(navbarMobile, {
+        attributes: true,
+        attributeFilter: ['class']
+      });
+      
+      return () => {
+        window.removeEventListener('resize', updateNavbarHeight);
+        window.removeEventListener('scroll', handleScroll);
+        observer.disconnect();
+      };
+    }
+    
     return () => {
       window.removeEventListener('resize', updateNavbarHeight);
-      window.removeEventListener('scroll', updateNavbarHeight);
+      window.removeEventListener('scroll', handleScroll);
     };
   }, []);
   
@@ -32,8 +100,6 @@ const GazettesPage = () => {
     return unique.sort((a, b) => Number(b) - Number(a));
   }, [GAZETTES_DATA]);
   const [selectedYear, setSelectedYear] = useState(() => years[0] || 'all');
-  const [center, setCenter] = useState<[number, number]>([21.8853, -102.2916]);
-  const [zoom, setZoom] = useState(9); // More zoomed out for regional/federal view
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -57,14 +123,21 @@ const GazettesPage = () => {
 
   const selectedProject = GAZETTES_DATA.find(p => p.id === selectedProjectId);
 
-  const handleSelectProject = useCallback((id: string | number, lat: number, lng: number) => {
-    setSelectedProjectId(id as string);
-    setCenter([lat, lng] as [number, number]);
-    setZoom(12);
-  }, []);
+  // Read project ID from URL parameter and select it automatically
+  useEffect(() => {
+    const projectId = searchParams.get('project');
+    if (projectId && GAZETTES_DATA.length > 0) {
+      const project = GAZETTES_DATA.find(p => String(p.id) === projectId);
+      if (project) {
+        setSelectedProjectId(projectId);
+        // Remove the parameter from URL after selection
+        setSearchParams({}, { replace: true });
+      }
+    }
+  }, [searchParams, GAZETTES_DATA, setSearchParams]);
 
-  const mapTiler = useCallback((x: number, y: number, z: number, dpr?: number) => {
-    return `https://basemaps.cartocdn.com/light_all/${z}/${x}/${y}${dpr && dpr >= 2 ? '@2x' : ''}.png`;
+  const handleSelectProject = useCallback((id: string | number) => {
+    setSelectedProjectId(id as string);
   }, []);
 
   const GAZETTE_KPIS = [
@@ -77,7 +150,10 @@ const GazettesPage = () => {
     <div className="flex flex-col min-h-screen bg-[#f3f4f0]">
       
       {/* Introduction Section */}
-      <div className="bg-[#9dcdff] border-b border-black p-8 md:p-12">
+      <div 
+        className="bg-[#9dcdff] border-b border-black p-8 md:p-12 transition-[padding-top] duration-300 ease-in-out" 
+        style={{ paddingTop: isMobile ? `${navbarHeight + 32}px` : undefined }}
+      >
         <div className="max-w-4xl">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-3 h-3 bg-white border border-black rounded-full"></div>
@@ -106,7 +182,7 @@ const GazettesPage = () => {
 
       {/* Toolbar - Sticky Top */}
       <div 
-        className="sticky z-30 shadow-sm p-4 border-b border-black bg-white flex flex-col md:flex-row gap-4 items-center justify-between" 
+        className="sticky z-30 shadow-sm p-4 border-b border-black bg-white flex flex-col md:flex-row gap-4 items-center justify-between transition-[top] duration-300 ease-in-out" 
         style={{ 
           top: `${navbarHeight}px`,
           zIndex: 30,
@@ -156,7 +232,7 @@ const GazettesPage = () => {
             </div>
          </div>
 
-      <div className="flex flex-col flex-1">
+      <div className="flex flex-col flex-1 overflow-visible">
         
         {/* TOP SECTION: Data Table */}
         <div className="w-full border-b border-black bg-[#f3f4f0] p-6">
@@ -177,7 +253,7 @@ const GazettesPage = () => {
                       {currentData.map((row: any) => (
                         <tr 
                           key={row.id} 
-                          onClick={() => handleSelectProject(row.id, row.lat, row.lng)}
+                          onClick={() => handleSelectProject(row.id)}
                           className={`cursor-pointer hover:bg-[#9dcdff]/20 transition-colors ${selectedProjectId === row.id ? 'bg-[#9dcdff]/50' : ''}`}
                         >
                           <td className="p-3 border-r border-black font-bold whitespace-nowrap">{row.id}</td>
@@ -209,7 +285,7 @@ const GazettesPage = () => {
                    {currentData.map((card: any) => (
                       <div 
                         key={card.id}
-                        onClick={() => handleSelectProject(card.id, card.lat, card.lng)}
+                        onClick={() => handleSelectProject(card.id)}
                         className={`
                           border-2 border-black bg-white p-4 cursor-pointer hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all h-full
                           ${selectedProjectId === card.id ? 'shadow-[4px_4px_0px_0px_#9dcdff] border-[#9dcdff]' : 'shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'}
@@ -259,45 +335,10 @@ const GazettesPage = () => {
            </div>
         </div>
 
-        {/* BOTTOM SECTION: Split View (Map | Details) */}
-        <div className="flex flex-col md:flex-row h-[600px] border-b border-black">
+        {/* BOTTOM SECTION: Details Only (No Map - No coordinates in data) */}
+        <div className="border-b border-black">
            
-           <div className="w-full md:w-1/2 relative border-b md:border-b-0 md:border-r border-black bg-gray-100">
-               <Map 
-                 center={center} 
-                 zoom={zoom} 
-                 provider={mapTiler}
-                 onBoundsChanged={({ center, zoom }: any) => { 
-                   setCenter(center); 
-                   setZoom(zoom); 
-                 }}
-               >
-                 {filteredByYear.map((point: any) => (
-                   <Overlay key={point.id} anchor={[point.lat, point.lng]} offset={[15, 30]}>
-                     <div 
-                       onClick={() => handleSelectProject(point.id, point.lat, point.lng)}
-                       className={`
-                         cursor-pointer transform -translate-x-1/2 -translate-y-full transition-all duration-300 group
-                         ${selectedProjectId === point.id ? 'z-50 scale-125' : 'z-10 hover:z-40 hover:scale-110'}
-                       `}
-                     >
-                       <MapPin 
-                         fill={selectedProjectId === point.id ? "#9dcdff" : "#000"} 
-                         color="white" 
-                         size={40} 
-                         strokeWidth={1.5}
-                         className="drop-shadow-md"
-                       />
-                     </div>
-                   </Overlay>
-                 ))}
-               </Map>
-               <div className="absolute top-4 right-4 bg-white border border-black p-2 shadow-sm pointer-events-none opacity-90 z-20">
-                  <p className="text-[10px] font-mono uppercase font-bold mb-1">Mapa Federal {selectedYear}</p>
-               </div>
-           </div>
-           
-           <div className="w-full md:w-1/2 overflow-y-auto bg-white p-8 md:p-12 flex flex-col">
+           <div className="w-full overflow-y-auto bg-white p-6 md:p-8 lg:p-12 flex flex-col">
               {selectedProject ? (
                  <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                     <div className="flex justify-between items-start mb-6">

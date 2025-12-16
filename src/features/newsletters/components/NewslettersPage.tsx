@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Calendar, Search, List, LayoutGrid, ChevronLeft, ChevronRight, MapPin, Download, FileText, AlertCircle, Mail, MessageCircle } from 'lucide-react';
 import { Map, Marker, Overlay } from 'pigeon-maps';
 import { useContext } from 'react';
@@ -13,22 +14,90 @@ const KPI_DATA = [
 
 const NewslettersPage = () => {
   const { projects: PROJECTS_DATA } = useContext(DataContext);
+  const [searchParams, setSearchParams] = useSearchParams();
   const [viewMode, setViewMode] = useState('table'); // 'table' or 'grid'
   const [searchQuery, setSearchQuery] = useState('');
   const [navbarHeight, setNavbarHeight] = useState(64);
-  
+  const [isNavbarVisible, setIsNavbarVisible] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+  const lastScrollYRef = useRef(0);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+    };
+  }, []);
+
   // Get navbar height on mount, resize, and scroll (for mobile navbar visibility)
   useEffect(() => {
     const updateNavbarHeight = () => {
       setNavbarHeight(getNavbarHeight());
     };
     
+    const handleScroll = () => {
+      // Solo en móvil: detectar si el navbar está oculto
+      if (window.innerWidth < 768) {
+        const currentScrollY = window.scrollY;
+        const navbarMobile = document.querySelector('[data-navbar-mobile]') as HTMLElement;
+        
+        if (navbarMobile) {
+          // Verificar si el navbar tiene la clase translate-y-full (oculto)
+          const isHidden = navbarMobile.classList.contains('-translate-y-full');
+          setIsNavbarVisible(!isHidden);
+          
+          // Si el navbar está oculto, el sticky debe estar en top: 0
+          if (isHidden) {
+            setNavbarHeight(0);
+          } else {
+            updateNavbarHeight();
+          }
+        }
+        lastScrollYRef.current = currentScrollY;
+      } else {
+        // En desktop, siempre usar la altura del navbar
+        updateNavbarHeight();
+      }
+    };
+    
     updateNavbarHeight();
     window.addEventListener('resize', updateNavbarHeight);
-    window.addEventListener('scroll', updateNavbarHeight, { passive: true });
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    
+    // Observar cambios en el navbar móvil usando MutationObserver
+    const navbarMobile = document.querySelector('[data-navbar-mobile]');
+    if (navbarMobile && window.innerWidth < 768) {
+      const observer = new MutationObserver(() => {
+        const isHidden = navbarMobile.classList.contains('-translate-y-full');
+        setIsNavbarVisible(!isHidden);
+        if (isHidden) {
+          setNavbarHeight(0);
+        } else {
+          updateNavbarHeight();
+        }
+      });
+      
+      observer.observe(navbarMobile, {
+        attributes: true,
+        attributeFilter: ['class']
+      });
+      
+      return () => {
+        window.removeEventListener('resize', updateNavbarHeight);
+        window.removeEventListener('scroll', handleScroll);
+        observer.disconnect();
+      };
+    }
+    
     return () => {
       window.removeEventListener('resize', updateNavbarHeight);
-      window.removeEventListener('scroll', updateNavbarHeight);
+      window.removeEventListener('scroll', handleScroll);
     };
   }, []);
   
@@ -38,11 +107,12 @@ const NewslettersPage = () => {
     return unique.sort((a, b) => Number(b) - Number(a));
   }, [PROJECTS_DATA]);
   const [selectedYear, setSelectedYear] = useState(() => years[0] || 'all');
-  const [center, setCenter] = useState([21.8853, -102.2916]);
+  const [center, setCenter] = useState<[number, number]>([21.8853, -102.2916]);
   const [zoom, setZoom] = useState(12);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const isProgrammaticChange = useRef(false);
 
   // Filter projects logic
   const filteredByYear = selectedYear === 'all'
@@ -63,23 +133,51 @@ const NewslettersPage = () => {
 
   const selectedProject = PROJECTS_DATA.find(p => p.id === selectedProjectId);
 
+  // Read project ID from URL parameter and select it automatically
+  useEffect(() => {
+    const projectId = searchParams.get('project');
+    if (projectId && PROJECTS_DATA.length > 0) {
+      const project = PROJECTS_DATA.find(p => String(p.id) === projectId);
+      if (project && project.lat && project.lng) {
+        isProgrammaticChange.current = true;
+        setSelectedProjectId(projectId);
+        setCenter([project.lat, project.lng] as [number, number]);
+        setZoom(14);
+        // Remove the parameter from URL after selection
+        setSearchParams({}, { replace: true });
+        // Reset flag after a short delay
+        setTimeout(() => {
+          isProgrammaticChange.current = false;
+        }, 100);
+      }
+    }
+  }, [searchParams, PROJECTS_DATA, setSearchParams]);
+
   // Handle map selection
   const handleSelectProject = useCallback((id: string | number, lat: number, lng: number) => {
+    isProgrammaticChange.current = true;
     setSelectedProjectId(id as string);
     setCenter([lat, lng] as [number, number]);
     setZoom(14);
+    // Reset flag after a short delay
+    setTimeout(() => {
+      isProgrammaticChange.current = false;
+    }, 100);
   }, []);
 
-  // Custom tile provider for a cleaner, brutalist look (CartoDB Positron)
-  const mapTiler = useCallback((x: number, y: number, z: number, dpr?: number) => {
-    return `https://basemaps.cartocdn.com/light_all/${z}/${x}/${y}${dpr && dpr >= 2 ? '@2x' : ''}.png`;
+  // OpenStreetMap tile provider
+  const mapTiler = useCallback((x: number, y: number, z: number) => {
+    return `https://tile.openstreetmap.org/${z}/${x}/${y}.png`;
   }, []);
 
   return (
     <div className="flex flex-col min-h-screen bg-[#f3f4f0]">
       
       {/* Introduction Section */}
-      <div className="bg-[#ff9d9d] border-b border-black p-8 md:p-12">
+      <div 
+        className="bg-[#ff9d9d] border-b border-black p-8 md:p-12 transition-[padding-top] duration-300 ease-in-out" 
+        style={{ paddingTop: isMobile ? `${navbarHeight + 32}px` : undefined }}
+      >
         <div className="max-w-4xl">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-3 h-3 bg-white border border-black rounded-full"></div>
@@ -108,7 +206,7 @@ const NewslettersPage = () => {
 
       {/* Toolbar - Sticky Top */}
       <div 
-        className="sticky z-30 shadow-sm p-4 border-b border-black bg-white flex flex-col md:flex-row gap-4 items-center justify-between" 
+        className="sticky z-30 shadow-sm p-4 border-b border-black bg-white flex flex-col md:flex-row gap-4 items-center justify-between transition-[top] duration-300 ease-in-out" 
         style={{ 
           top: `${navbarHeight}px`,
           zIndex: 30,
@@ -162,7 +260,7 @@ const NewslettersPage = () => {
          </div>
 
       {/* Main Content Area */}
-      <div className="flex flex-col flex-1">
+      <div className="flex flex-col flex-1 overflow-visible">
         
         {/* TOP SECTION: Data Table (100vw) */}
         <div className="w-full border-b border-black bg-[#f3f4f0] p-6">
@@ -268,19 +366,23 @@ const NewslettersPage = () => {
         </div>
 
         {/* BOTTOM SECTION: Split View (Map | Details) */}
-        <div className="flex flex-col md:flex-row h-[600px] border-b border-black">
+        <div className="flex flex-col md:flex-row border-b border-black relative" style={{ minHeight: '400px' }}>
            
            {/* LEFT HALF: Map */}
-           <div className="w-full md:w-1/2 relative border-b md:border-b-0 md:border-r border-black bg-gray-100">
+           <div className="w-full md:w-1/2 relative border-b md:border-b-0 md:border-r border-black bg-gray-100 z-10" style={{ height: '400px', minHeight: '400px' }}>
                <Map 
                  center={center} 
                  zoom={zoom} 
                  provider={mapTiler}
                  onBoundsChanged={({ center, zoom }) => { 
-                   setCenter(center); 
-                   setZoom(zoom); 
+                   // Solo actualizar si el cambio viene del usuario (no programático)
+                   if (!isProgrammaticChange.current) {
+                     setCenter(center as [number, number]); 
+                     setZoom(zoom); 
+                   }
                  }}
-                 style={{ filter: 'grayscale(100%) contrast(1.2)' }}
+                 height={400}
+                 defaultWidth={typeof window !== 'undefined' ? window.innerWidth : 400}
                >
                  {filteredByYear.map(point => (
                    <Overlay key={point.id} anchor={[point.lat, point.lng]} offset={[15, 30]}>
@@ -308,7 +410,7 @@ const NewslettersPage = () => {
            </div>
            
            {/* RIGHT HALF: Details */}
-           <div className="w-full md:w-1/2 overflow-y-auto bg-white p-8 md:p-12 flex flex-col">
+           <div className="w-full md:w-1/2 md:overflow-y-auto bg-white p-6 md:p-8 lg:p-12 flex flex-col">
               {selectedProject ? (
                  <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                     <div className="flex justify-between items-start mb-6">

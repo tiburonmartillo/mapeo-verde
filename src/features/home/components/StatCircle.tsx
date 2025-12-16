@@ -32,7 +32,7 @@ const StatCircle = ({ value, label, description }: StatCircleProps) => {
           <h4 className="text-xl font-bold leading-tight">{label}</h4>
           <div className="w-2 h-2 rounded-full bg-black md:hidden" />
         </div>
-        <p className="font-serif text-sm leading-relaxed text-gray-800">
+        <p className="font-serif text-lg leading-relaxed text-gray-800">
           {description}
         </p>
       </motion.div>

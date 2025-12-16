@@ -1,12 +1,87 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
+import { useState, useEffect, useRef } from 'react';
 import { LogoMap } from '../../../components/common/LogoMap';
+import { getNavbarHeight } from '../../../utils/helpers/layoutHelpers';
 
 const HeroSection = () => {
   const navigate = useNavigate();
+  const [navbarHeight, setNavbarHeight] = useState(64);
+  const [isMobile, setIsMobile] = useState(false);
+  const lastScrollYRef = useRef(0);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+    };
+  }, []);
+
+  useEffect(() => {
+    const updateNavbarHeight = () => {
+      setNavbarHeight(getNavbarHeight());
+    };
+    
+    const handleScroll = () => {
+      if (window.innerWidth < 768) {
+        const navbarMobile = document.querySelector('[data-navbar-mobile]') as HTMLElement;
+        if (navbarMobile) {
+          const isHidden = navbarMobile.classList.contains('-translate-y-full');
+          if (isHidden) {
+            setNavbarHeight(0);
+          } else {
+            updateNavbarHeight();
+          }
+        }
+      } else {
+        updateNavbarHeight();
+      }
+    };
+    
+    updateNavbarHeight();
+    window.addEventListener('resize', updateNavbarHeight);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    
+    const navbarMobile = document.querySelector('[data-navbar-mobile]');
+    if (navbarMobile && window.innerWidth < 768) {
+      const observer = new MutationObserver(() => {
+        const isHidden = navbarMobile.classList.contains('-translate-y-full');
+        if (isHidden) {
+          setNavbarHeight(0);
+        } else {
+          updateNavbarHeight();
+        }
+      });
+      
+      observer.observe(navbarMobile, {
+        attributes: true,
+        attributeFilter: ['class']
+      });
+      
+      return () => {
+        window.removeEventListener('resize', updateNavbarHeight);
+        window.removeEventListener('scroll', handleScroll);
+        observer.disconnect();
+      };
+    }
+    
+    return () => {
+      window.removeEventListener('resize', updateNavbarHeight);
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
   
   return (
-    <section className="relative min-h-[85vh] bg-[#f3f4f0] text-black overflow-hidden flex flex-col justify-between pt-32 pb-12 border-b border-black">
+    <section 
+      className="relative min-h-[85vh] bg-[#f3f4f0] text-black overflow-hidden flex flex-col justify-between pb-12 border-b border-black transition-[padding-top] duration-300 ease-in-out" 
+      style={{ paddingTop: isMobile ? `${navbarHeight + 128}px` : '128px' }}
+    >
       {/* Background - Dot Pattern */}
       <motion.div 
         initial={{ opacity: 0 }}
