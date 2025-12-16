@@ -1,6 +1,7 @@
 export const PROJECTS_DATA = [
   {
     id: "MIA-2025-001",
+    expediente: "SSMAA- DIRA-2828-2025",
     project: "Plaza Comercial 'Los Encinos'",
     promoter: "Desarrollos Inmobiliarios del Centro S.A.",
     type: "Ingreso de Proyecto",
@@ -10,10 +11,12 @@ export const PROJECTS_DATA = [
     lat: 21.9123,
     lng: -102.2916,
     description: "Construcción de plaza comercial de 2 niveles con estacionamiento subterráneo. Incluye la remoción de capa vegetal en 2000m2.",
-    impact: "Alto Impacto"
+    impact: "Alto Impacto",
+    url: "https://www.aguascalientes.gob.mx/SSMAA/BoletinesSMA/usuario_webexplorer.asp"
   },
   {
     id: "RES-2024-089",
+    expediente: "SSMAA- DIRA-2750-2024",
     project: "Gasolinera Servicio Norte",
     promoter: "Energéticos de Aguascalientes",
     type: "Resolutivo Emitido",
@@ -23,10 +26,12 @@ export const PROJECTS_DATA = [
     lat: 21.9300,
     lng: -102.2800,
     description: "Estación de servicio urbano con 4 dispensarios. Se condiciona a la instalación de sistemas de recuperación de vapores de última generación.",
-    impact: "Riesgo Ambiental"
+    impact: "Riesgo Ambiental",
+    url: "https://www.aguascalientes.gob.mx/SSMAA/BoletinesSMA/usuario_webexplorer.asp"
   },
   {
     id: "MIA-2025-002",
+    expediente: "SSMAA- DIRA-2835-2025",
     project: "Fraccionamiento Residencial 'Vista Verde'",
     promoter: "Grupo Constructor Alfa",
     type: "Ingreso de Proyecto",
@@ -36,10 +41,12 @@ export const PROJECTS_DATA = [
     lat: 21.8500,
     lng: -102.3200,
     description: "Desarrollo habitacional de 500 viviendas unifamiliares. Requiere cambio de uso de suelo de agrícola a habitacional densidad media.",
-    impact: "Cambio de Uso de Suelo"
+    impact: "Cambio de Uso de Suelo",
+    url: "https://www.aguascalientes.gob.mx/SSMAA/BoletinesSMA/usuario_webexplorer.asp"
   },
   {
     id: "RES-2024-085",
+    expediente: "SSMAA- DIRA-2700-2024",
     project: "Ampliación Nave Industrial Nissan",
     promoter: "Nissan Mexicana S.A. de C.V.",
     type: "Resolutivo Emitido",
@@ -49,10 +56,12 @@ export const PROJECTS_DATA = [
     lat: 21.8200,
     lng: -102.2950,
     description: "Ampliación de línea de producción A2. No requiere desmonte de vegetación nativa. Cumple con normatividad de emisiones.",
-    impact: "Industrial"
+    impact: "Industrial",
+    url: "https://www.aguascalientes.gob.mx/SSMAA/BoletinesSMA/usuario_webexplorer.asp"
   },
   {
     id: "MIA-2025-003",
+    expediente: "SSMAA- DIRA-2840-2025",
     project: "Tala de Arbolado Urbano Av. Universidad",
     promoter: "Municipio de Aguascalientes",
     type: "Ingreso de Proyecto",
@@ -62,10 +71,12 @@ export const PROJECTS_DATA = [
     lat: 21.9000,
     lng: -102.3100,
     description: "Solicitud de derribo de 15 especímenes (Ficus benjamina) por conflicto con infraestructura vial y riesgo de caída.",
-    impact: "Pérdida de Cubierta Vegetal"
+    impact: "Pérdida de Cubierta Vegetal",
+    url: "https://www.aguascalientes.gob.mx/SSMAA/BoletinesSMA/usuario_webexplorer.asp"
   },
   {
     id: "RES-2024-070",
+    expediente: "SSMAA- DIRA-2650-2024",
     project: "Relleno Sanitario 'San Nicolás' Etapa IV",
     promoter: "Proactiva Medio Ambiente",
     type: "Resolutivo Emitido",
@@ -75,13 +86,15 @@ export const PROJECTS_DATA = [
     lat: 21.8000,
     lng: -102.2500,
     description: "Expansión de celdas de confinamiento. Denegado por proximidad a mantos acuíferos superficiales.",
-    impact: "Alto Riesgo"
+    impact: "Alto Riesgo",
+    url: "https://www.aguascalientes.gob.mx/SSMAA/BoletinesSMA/usuario_webexplorer.asp"
   }
 ];
 
 export const GAZETTES_DATA = [
   {
     id: "GACETA-05/25",
+    clave: "21AG2025E0001",
     project: "Parque Fotovoltaico 'Soles de Aguascalientes II'",
     promoter: "Energía Renovable del Centro S.A. de C.V.",
     type: "MIA Particular",
@@ -91,10 +104,12 @@ export const GAZETTES_DATA = [
     lat: 22.0123,
     lng: -102.1500,
     description: "Instalación de 50,000 paneles solares en predio rústico. Competencia Federal por cambio de uso de suelo en terreno forestal.",
-    impact: "Federal"
+    impact: "Federal",
+    url: "https://www.semarnat.gob.mx/gobmx/transparencia/gaceta.html"
   },
   {
     id: "GACETA-03/25",
+    clave: "21AG2025E0002",
     project: "Modernización Carretera Federal 45 Tramo Norte",
     promoter: "Secretaría de Infraestructura, Comunicaciones y Transportes",
     type: "MIA Regional",
@@ -104,10 +119,12 @@ export const GAZETTES_DATA = [
     lat: 22.1500,
     lng: -102.2800,
     description: "Ampliación a 4 carriles y rectificación de curvas peligrosas. Afectación a zona federal de cauces.",
-    impact: "Infraestructura"
+    impact: "Infraestructura",
+    url: "https://www.semarnat.gob.mx/gobmx/transparencia/gaceta.html"
   },
   {
     id: "GACETA-52/24",
+    clave: "21AG2024E0052",
     project: "Gasoducto Villa de Reyes - Aguascalientes (Ramal)",
     promoter: "Gasoductos del Bajío",
     type: "MIA Regional",
@@ -117,10 +134,12 @@ export const GAZETTES_DATA = [
     lat: 21.9500,
     lng: -102.1000,
     description: "Construcción de ducto de transporte de gas natural de 24 pulgadas. Cruza 3 municipios del estado.",
-    impact: "Energético"
+    impact: "Energético",
+    url: "https://www.semarnat.gob.mx/gobmx/transparencia/gaceta.html"
   },
   {
     id: "GACETA-48/24",
+    clave: "21AG2024E0048",
     project: "Aprovechamiento Minero 'La Fortuna'",
     promoter: "Minera del Norte",
     type: "Informe Preventivo",
@@ -129,7 +148,8 @@ export const GAZETTES_DATA = [
     status: "Evaluación",
     lat: 22.2000,
     lng: -102.4000,
-    description: "Exploración minera para extracción de agregados pétreos en zona serrana."
+    description: "Exploración minera para extracción de agregados pétreos en zona serrana.",
+    url: "https://www.semarnat.gob.mx/gobmx/transparencia/gaceta.html"
   }
 ];
 

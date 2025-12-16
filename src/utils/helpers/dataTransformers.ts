@@ -12,22 +12,63 @@ export const mapBoletinesToProjects = (boletinesSource: any): any[] => {
   }
 
   return boletines.flatMap((boletin: any) => {
+    const projects: any[] = [];
+    
     // Si tiene proyectos_ingresados, mapear esos
     if (boletin.proyectos_ingresados && Array.isArray(boletin.proyectos_ingresados)) {
-      return boletin.proyectos_ingresados.map((p: any) => ({
-        id: `${boletin.id || 'B'}-${p.numero || '0'}`,
-        project: p.nombre_proyecto || boletin.title || 'Proyecto sin nombre',
-        promoter: p.promovente || boletin.entity || 'Promovente no especificado',
-        type: p.tipo_estudio || 'Sin tipo',
-        date: p.fecha_ingreso || boletin.fecha_publicacion || boletin.date || '2025-01-01',
-        year: (p.fecha_ingreso || boletin.fecha_publicacion || boletin.date || '2025').toString().slice(0, 4),
-        status: 'Ingreso',
-        lat: p.coordenadas_x || 21.8853,
-        lng: p.coordenadas_y || -102.2916,
-        description: p.naturaleza_proyecto || boletin.summary || '',
-        impact: p.giro || ''
-      }));
+      boletin.proyectos_ingresados.forEach((p: any) => {
+        projects.push({
+          id: `${boletin.id || 'B'}-${p.numero || '0'}`,
+          expediente: p.expediente || null,
+          project: p.nombre_proyecto || boletin.title || 'Proyecto sin nombre',
+          promoter: p.promovente || boletin.entity || 'Promovente no especificado',
+          type: p.tipo_estudio || 'Sin tipo',
+          date: p.fecha_ingreso || boletin.fecha_publicacion || boletin.date || '2025-01-01',
+          year: (p.fecha_ingreso || boletin.fecha_publicacion || boletin.date || '2025').toString().slice(0, 4),
+          status: 'Ingreso',
+          coordenadas_x: p.coordenadas_x || null,
+          coordenadas_y: p.coordenadas_y || null,
+          lat: p.coordenadas_x || 21.8853,
+          lng: p.coordenadas_y || -102.2916,
+          municipio: p.municipio || null,
+          naturaleza_proyecto: p.naturaleza_proyecto || boletin.summary || '',
+          description: p.naturaleza_proyecto || boletin.summary || '',
+          impact: p.giro || '',
+          url: boletin.url || boletin.filename || null,
+          filename: boletin.filename || boletin.url || null,
+          boletin_id: boletin.id || null
+        });
+      });
     }
+    
+    // Si tiene resolutivos_emitidos, mapear esos también
+    if (boletin.resolutivos_emitidos && Array.isArray(boletin.resolutivos_emitidos)) {
+      boletin.resolutivos_emitidos.forEach((r: any) => {
+        projects.push({
+          id: `${boletin.id || 'B'}-RES-${r.numero || '0'}`,
+          expediente: r.expediente || null,
+          project: r.nombre_proyecto || boletin.title || 'Proyecto sin nombre',
+          promoter: r.promovente || boletin.entity || 'Promovente no especificado',
+          type: r.tipo_estudio || 'Sin tipo',
+          date: r.fecha_resolutivo || r.fecha_ingreso || boletin.fecha_publicacion || boletin.date || '2025-01-01',
+          year: (r.fecha_resolutivo || r.fecha_ingreso || boletin.fecha_publicacion || boletin.date || '2025').toString().slice(0, 4),
+          status: 'Resolutivo Emitido',
+          coordenadas_x: r.coordenadas_x || null,
+          coordenadas_y: r.coordenadas_y || null,
+          lat: r.coordenadas_x || 21.8853,
+          lng: r.coordenadas_y || -102.2916,
+          municipio: r.municipio || null,
+          naturaleza_proyecto: r.naturaleza_proyecto || boletin.summary || '',
+          description: r.naturaleza_proyecto || boletin.summary || '',
+          impact: r.giro || '',
+          url: boletin.url || boletin.filename || null,
+          filename: boletin.filename || boletin.url || null,
+          boletin_id: boletin.id || null
+        });
+      });
+    }
+    
+    return projects;
     
     // Mapeo simple si no tiene proyectos_ingresados
     return {
@@ -62,7 +103,8 @@ export const mapGacetasToDataset = (gacetasSource: any): any[] => {
         const date = r.fecha_ingreso || r.fecha_resolucion || a.fecha_publicacion || '2025-01-01';
         const year = (r.fecha_ingreso || r.fecha_resolucion || a.año || a.analisis_completo?.gaceta?.anio || '2025').toString().slice(0, 4);
         items.push({
-          id: r.clave_proyecto || r.id || `GAC-${Math.random()}`,
+          id: r.clave_proyecto || r.clave || r.id || `GAC-${Math.random()}`,
+          clave: r.clave_proyecto || r.clave || null,
           project: r.proyecto_nombre || a.title || 'Proyecto sin nombre',
           promoter: r.promovente || a.entity || 'Promovente no especificado',
           type: r.modalidad || 'Sin modalidad',
@@ -72,7 +114,8 @@ export const mapGacetasToDataset = (gacetasSource: any): any[] => {
           lat: r.lat || 21.8853,
           lng: r.lng || -102.2916,
           description: r.tipo_proyecto || a.summary || '',
-          impact: r.seccion_documento || (a.secciones?.[0] || 'Federal')
+          impact: r.seccion_documento || (a.secciones?.[0] || 'Federal'),
+          url: a.url || null
         });
       });
     });

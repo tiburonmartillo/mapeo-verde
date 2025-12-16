@@ -4,6 +4,7 @@ import { Calendar, Search, List, LayoutGrid, ChevronLeft, ChevronRight, Download
 import { useContext } from 'react';
 import { DataContext } from '../../../context/DataContext';
 import { getNavbarHeight } from '../../../utils/helpers/layoutHelpers';
+import { GacetaModal } from '../../../components/gazettes/GacetaModal';
 
 const GazettesPage = () => {
   const { gazettes: GAZETTES_DATA } = useContext(DataContext);
@@ -103,6 +104,10 @@ const GazettesPage = () => {
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  
+  // Modal de gaceta
+  const [isGacetaModalOpen, setIsGacetaModalOpen] = useState(false);
+  const [selectedGaceta, setSelectedGaceta] = useState<any | null>(null);
 
   // Filter projects logic
   const filteredByYear = selectedYear === 'all'
@@ -242,21 +247,26 @@ const GazettesPage = () => {
                   <table className="w-full text-left font-mono text-xs md:text-sm">
                     <thead className="bg-black text-white uppercase tracking-wider">
                       <tr>
-                        <th className="p-3 border-r border-white/20 w-32">Gaceta</th>
+                        <th className="p-3 border-r border-white/20 w-32">Clave</th>
                         <th className="p-3 border-r border-white/20">Proyecto Federal</th>
                         <th className="p-3 border-r border-white/20 hidden md:table-cell">Promovente</th>
                         <th className="p-3 border-r border-white/20 w-32">Trámite</th>
-                        <th className="p-3 w-24">Fecha</th>
+                        <th className="p-3 border-r border-white/20 w-24">Fecha</th>
+                        <th className="p-3 w-24">Acción</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-black">
                       {currentData.map((row: any) => (
                         <tr 
                           key={row.id} 
-                          onClick={() => handleSelectProject(row.id)}
+                          onClick={() => {
+                            handleSelectProject(row.id);
+                            setSelectedGaceta(row);
+                            setIsGacetaModalOpen(true);
+                          }}
                           className={`cursor-pointer hover:bg-[#9dcdff]/20 transition-colors ${selectedProjectId === row.id ? 'bg-[#9dcdff]/50' : ''}`}
                         >
-                          <td className="p-3 border-r border-black font-bold whitespace-nowrap">{row.id}</td>
+                          <td className="p-3 border-r border-black font-bold whitespace-nowrap">{row.clave || row.id}</td>
                           <td className="p-3 border-r border-black">
                              <div className="font-bold truncate max-w-[200px] md:max-w-md">{row.project}</div>
                              <div className="text-[10px] text-gray-500 mt-1 uppercase">{row.impact}</div>
@@ -270,6 +280,19 @@ const GazettesPage = () => {
                              </span>
                           </td>
                           <td className="p-3 whitespace-nowrap">{row.date}</td>
+                          <td className="p-3 whitespace-nowrap">
+                            {row.url && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  window.open(row.url, '_blank', 'noopener,noreferrer');
+                                }}
+                                className="px-3 py-1 border-2 border-black bg-[#9dcdff] hover:bg-[#ff7e67] hover:text-white transition-colors font-mono text-xs uppercase font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px]"
+                              >
+                                INGR
+                              </button>
+                            )}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -285,23 +308,40 @@ const GazettesPage = () => {
                    {currentData.map((card: any) => (
                       <div 
                         key={card.id}
-                        onClick={() => handleSelectProject(card.id)}
+                        onClick={() => {
+                          handleSelectProject(card.id);
+                          setSelectedGaceta(card);
+                          setIsGacetaModalOpen(true);
+                        }}
                         className={`
                           border-2 border-black bg-white p-4 cursor-pointer hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all h-full
                           ${selectedProjectId === card.id ? 'shadow-[4px_4px_0px_0px_#9dcdff] border-[#9dcdff]' : 'shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'}
                         `}
                       >
                          <div className="flex justify-between items-start mb-2">
-                            <span className="font-mono text-[10px] bg-black text-white px-1">{card.id}</span>
+                            <span className="font-mono text-[10px] bg-black text-white px-1">{card.clave || card.id}</span>
                             <span className="text-[10px] font-bold text-gray-500">{card.date}</span>
                          </div>
                          <h4 className="font-bold text-lg leading-tight mb-2 line-clamp-2">{card.project}</h4>
                          <p className="text-xs font-mono text-gray-600 mb-4 line-clamp-1">{card.promoter}</p>
-                         <div className="pt-2 border-t border-dashed border-gray-300 flex justify-between items-center">
+                         <div className="pt-2 border-t border-dashed border-gray-300 flex justify-between items-center mb-2">
                             <span className="text-[10px] font-bold uppercase text-blue-600">
                               ● {card.status}
                             </span>
                          </div>
+                         {card.url && (
+                           <div className="pt-2 border-t border-dashed border-gray-300" onClick={(e) => e.stopPropagation()}>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  window.open(card.url, '_blank', 'noopener,noreferrer');
+                                }}
+                                className="w-full px-2 py-1.5 border-2 border-black bg-[#9dcdff] hover:bg-[#ff7e67] hover:text-white transition-colors font-mono text-xs uppercase font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px]"
+                              >
+                                INGR
+                              </button>
+                           </div>
+                         )}
                       </div>
                    ))}
                 </div>
@@ -424,6 +464,16 @@ const GazettesPage = () => {
         </div>
 
       </div>
+      
+      {/* Modal de Gaceta */}
+      <GacetaModal
+        gaceta={selectedGaceta}
+        isOpen={isGacetaModalOpen}
+        onClose={() => {
+          setIsGacetaModalOpen(false);
+          setSelectedGaceta(null);
+        }}
+      />
     </div>
   );
 };

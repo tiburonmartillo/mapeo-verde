@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Calendar, Search, List, LayoutGrid, ChevronLeft, ChevronRight, MapPin, Download, FileText, AlertCircle, Mail, MessageCircle } from 'lucide-react';
+import { Calendar, Search, List, LayoutGrid, ChevronLeft, ChevronRight, MapPin, Download, FileText, AlertCircle, Mail, MessageCircle, ExternalLink } from 'lucide-react';
 import { Map, Marker, Overlay } from 'pigeon-maps';
 import { useContext } from 'react';
 import { DataContext } from '../../../context/DataContext';
 import { getNavbarHeight } from '../../../utils/helpers/layoutHelpers';
+import { convertToLatLong } from '../../../utils/helpers/coordinateConverter';
 
 const KPI_DATA = [
   { label: "PROYECTOS ANALIZADOS", value: "285", change: "+12%" },
@@ -15,16 +16,29 @@ const KPI_DATA = [
 const NewslettersPage = () => {
   const { projects: PROJECTS_DATA } = useContext(DataContext);
   const [searchParams, setSearchParams] = useSearchParams();
-  const [viewMode, setViewMode] = useState('table'); // 'table' or 'grid'
+  const [isMobile, setIsMobile] = useState(false);
+  const [viewMode, setViewMode] = useState(() => {
+    // Default to grid on mobile, table on desktop
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 768 ? 'grid' : 'table';
+    }
+    return 'table';
+  });
   const [searchQuery, setSearchQuery] = useState('');
   const [navbarHeight, setNavbarHeight] = useState(64);
   const [isNavbarVisible, setIsNavbarVisible] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
   const lastScrollYRef = useRef(0);
 
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      // Switch to grid on mobile, table on desktop
+      if (mobile && viewMode === 'table') {
+        setViewMode('grid');
+      } else if (!mobile && viewMode === 'grid') {
+        setViewMode('table');
+      }
     };
     
     checkMobile();
@@ -33,7 +47,7 @@ const NewslettersPage = () => {
     return () => {
       window.removeEventListener('resize', checkMobile);
     };
-  }, []);
+  }, [viewMode]);
 
   // Get navbar height on mount, resize, and scroll (for mobile navbar visibility)
   useEffect(() => {
@@ -113,11 +127,25 @@ const NewslettersPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const isProgrammaticChange = useRef(false);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const [mapHeight, setMapHeight] = useState(400);
+  
+  // Filtros avanzados
+  
 
   // Filter projects logic
-  const filteredByYear = selectedYear === 'all'
-    ? PROJECTS_DATA
-    : PROJECTS_DATA.filter(p => p.year === selectedYear);
+  const filteredByYear = useMemo(() => {
+    let filtered = PROJECTS_DATA;
+    
+    // Filtro por año
+    const yearFilter = selectedYear === 'all' ? undefined : selectedYear;
+    if (yearFilter) {
+      filtered = filtered.filter(p => p.year === yearFilter);
+    }
+    
+    return filtered;
+  }, [PROJECTS_DATA, selectedYear]);
+  
   const filteredBySearch = filteredByYear.filter(p => 
     p.project.toLowerCase().includes(searchQuery.toLowerCase()) ||
     p.promoter.toLowerCase().includes(searchQuery.toLowerCase())
@@ -145,29 +173,71 @@ const NewslettersPage = () => {
         setZoom(14);
         // Remove the parameter from URL after selection
         setSearchParams({}, { replace: true });
-        // Reset flag after a short delay
+        // Reset flag after a short delay to allow map to update
         setTimeout(() => {
           isProgrammaticChange.current = false;
-        }, 100);
+        }, 300);
       }
     }
   }, [searchParams, PROJECTS_DATA, setSearchParams]);
 
   // Handle map selection
   const handleSelectProject = useCallback((id: string | number, lat: number, lng: number) => {
+    // Validate coordinates
+    if (!lat || !lng || isNaN(lat) || isNaN(lng)) {
+      console.warn('Invalid coordinates for project:', id, lat, lng);
+      return;
+    }
+    
     isProgrammaticChange.current = true;
     setSelectedProjectId(id as string);
     setCenter([lat, lng] as [number, number]);
     setZoom(14);
-    // Reset flag after a short delay
+    // Reset flag after a short delay to allow map to update
     setTimeout(() => {
       isProgrammaticChange.current = false;
-    }, 100);
+    }, 500);
   }, []);
 
   // OpenStreetMap tile provider
   const mapTiler = useCallback((x: number, y: number, z: number) => {
     return `https://tile.openstreetmap.org/${z}/${x}/${y}.png`;
+  }, []);
+
+  // Update map height based on container height (75% of available height)
+  useEffect(() => {
+    const updateMapHeight = () => {
+      if (mapContainerRef.current) {
+        if (window.innerWidth >= 768) {
+          // Desktop: use 75% of container height (25% reduction)
+          const height = mapContainerRef.current.offsetHeight;
+          if (height > 0) {
+            setMapHeight(Math.floor(height * 0.75));
+          }
+        } else {
+          // Mobile: use fixed height (75% of 400px = 300px)
+          setMapHeight(300);
+        }
+      }
+    };
+
+    updateMapHeight();
+    window.addEventListener('resize', updateMapHeight);
+    
+    // Use ResizeObserver for more accurate height tracking
+    if (mapContainerRef.current) {
+      const resizeObserver = new ResizeObserver(updateMapHeight);
+      resizeObserver.observe(mapContainerRef.current);
+      
+      return () => {
+        resizeObserver.disconnect();
+        window.removeEventListener('resize', updateMapHeight);
+      };
+    }
+    
+    return () => {
+      window.removeEventListener('resize', updateMapHeight);
+    };
   }, []);
 
   return (
@@ -270,21 +340,24 @@ const NewslettersPage = () => {
                   <table className="w-full text-left font-mono text-xs md:text-sm">
                     <thead className="bg-black text-white uppercase tracking-wider">
                       <tr>
-                        <th className="p-3 border-r border-white/20 w-32">ID</th>
+                        <th className="p-3 border-r border-white/20 w-32">Expediente</th>
                         <th className="p-3 border-r border-white/20">Proyecto</th>
                         <th className="p-3 border-r border-white/20 hidden md:table-cell">Promovente</th>
                         <th className="p-3 border-r border-white/20 w-32">Estado</th>
-                        <th className="p-3 w-24">Fecha</th>
+                        <th className="p-3 border-r border-white/20 w-24">Fecha</th>
+                        <th className="p-3 w-24">Acción</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-black">
                       {currentData.map((row) => (
                         <tr 
                           key={row.id} 
-                          onClick={() => handleSelectProject(row.id, row.lat, row.lng)}
+                          onClick={() => {
+                            handleSelectProject(row.id, row.lat, row.lng);
+                          }}
                           className={`cursor-pointer hover:bg-[#ff9d9d]/20 transition-colors ${selectedProjectId === row.id ? 'bg-[#ff9d9d]/50' : ''}`}
                         >
-                          <td className="p-3 border-r border-black font-bold whitespace-nowrap">{row.id}</td>
+                          <td className="p-3 border-r border-black font-bold whitespace-nowrap">{row.expediente || row.id}</td>
                           <td className="p-3 border-r border-black">
                              <div className="font-bold truncate max-w-[200px] md:max-w-md">{row.project}</div>
                              <div className="text-[10px] text-gray-500 mt-1 uppercase">{row.type}</div>
@@ -300,6 +373,21 @@ const NewslettersPage = () => {
                              </span>
                           </td>
                           <td className="p-3 whitespace-nowrap">{row.date}</td>
+                          <td className="p-3 whitespace-nowrap">
+                            {(row.filename || row.url) && (
+                              <a
+                                href={row.filename || row.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                }}
+                                className="inline-block px-3 py-1 border-2 border-black bg-[#fccb4e] hover:bg-[#ff9d9d] hover:text-white transition-colors font-mono text-xs uppercase font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] cursor-pointer"
+                              >
+                                VER PDF
+                              </a>
+                            )}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -322,16 +410,31 @@ const NewslettersPage = () => {
                         `}
                       >
                          <div className="flex justify-between items-start mb-2">
-                            <span className="font-mono text-[10px] bg-black text-white px-1">{card.id}</span>
+                            <span className="font-mono text-[10px] bg-black text-white px-1">{card.expediente || card.id}</span>
                             <span className="text-[10px] font-bold text-gray-500">{card.date}</span>
                          </div>
                          <h4 className="font-bold text-lg leading-tight mb-2 line-clamp-2">{card.project}</h4>
                          <p className="text-xs font-mono text-gray-600 mb-4 line-clamp-1">{card.promoter}</p>
-                         <div className="pt-2 border-t border-dashed border-gray-300 flex justify-between items-center">
+                         <div className="pt-2 border-t border-dashed border-gray-300 flex justify-between items-center mb-2">
                             <span className={`text-[10px] font-bold uppercase ${card.status.includes('Aprobado') ? 'text-green-600' : 'text-orange-600'}`}>
                               ● {card.status}
                             </span>
                          </div>
+                         {(card.filename || card.url) && (
+                           <div className="pt-2 border-t border-dashed border-gray-300" onClick={(e) => e.stopPropagation()}>
+                              <a
+                                href={card.filename || card.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                }}
+                                className="block w-full px-2 py-1.5 border-2 border-black bg-[#fccb4e] hover:bg-[#ff9d9d] hover:text-white transition-colors font-mono text-xs uppercase font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] text-center cursor-pointer"
+                              >
+                                VER PDF
+                              </a>
+                           </div>
+                         )}
                       </div>
                    ))}
                 </div>
@@ -365,23 +468,25 @@ const NewslettersPage = () => {
            </div>
         </div>
 
-        {/* BOTTOM SECTION: Split View (Map | Details) */}
+        {/* MAP AND DETAILS SECTION */}
         <div className="flex flex-col md:flex-row border-b border-black relative" style={{ minHeight: '400px' }}>
-           
-           {/* LEFT HALF: Map */}
-           <div className="w-full md:w-1/2 relative border-b md:border-b-0 md:border-r border-black bg-gray-100 z-10" style={{ height: '400px', minHeight: '400px' }}>
+           {/* MAP - First in mobile, left side in desktop */}
+           <div className="w-full md:w-1/2 relative border-b md:border-b-0 md:border-r border-black bg-gray-100 z-10 order-2 md:order-1 h-[400px] md:h-full" ref={mapContainerRef}>
                <Map 
-                 center={center} 
-                 zoom={zoom} 
+                 key={`map-${selectedProjectId || 'default'}-${center[0]}-${center[1]}-${zoom}-${mapHeight}`}
+                 defaultCenter={center} 
+                 defaultZoom={zoom} 
+                 center={center}
+                 zoom={zoom}
                  provider={mapTiler}
-                 onBoundsChanged={({ center, zoom }) => { 
+                 onBoundsChanged={({ center: newCenter, zoom: newZoom }) => { 
                    // Solo actualizar si el cambio viene del usuario (no programático)
                    if (!isProgrammaticChange.current) {
-                     setCenter(center as [number, number]); 
-                     setZoom(zoom); 
+                     setCenter(newCenter as [number, number]); 
+                     setZoom(newZoom); 
                    }
                  }}
-                 height={400}
+                 height={mapHeight}
                  defaultWidth={typeof window !== 'undefined' ? window.innerWidth : 400}
                >
                  {filteredByYear.map(point => (
@@ -409,61 +514,182 @@ const NewslettersPage = () => {
                </div>
            </div>
            
-           {/* RIGHT HALF: Details */}
-           <div className="w-full md:w-1/2 md:overflow-y-auto bg-white p-6 md:p-8 lg:p-12 flex flex-col">
-              {selectedProject ? (
-                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    <div className="flex justify-between items-start mb-6">
-                       <span className="px-3 py-1 bg-black text-white font-mono text-xs uppercase tracking-widest shadow-[4px_4px_0px_0px_#ff9d9d]">
-                          {selectedProject.id}
-                       </span>
-                       <span className="font-mono text-xs text-gray-500 border-b border-gray-300 pb-1">
-                          {selectedProject.date}
-                       </span>
-                    </div>
+           {/* DETAILS - Second in mobile, right side in desktop */}
+           <div className="w-full md:w-1/2 md:overflow-y-auto bg-white p-6 md:p-8 lg:p-12 flex flex-col order-1 md:order-2">
+              {selectedProject ? (() => {
+                 // Convertir coordenadas si están disponibles
+                 const coords = selectedProject.coordenadas_x && selectedProject.coordenadas_y 
+                   ? convertToLatLong(selectedProject.coordenadas_x, selectedProject.coordenadas_y)
+                   : null;
+                 const lat = coords?.lat || selectedProject.lat || 21.8853;
+                 const lng = coords?.lng || selectedProject.lng || -102.2916;
+                 
+                 // Formatear fecha
+                 const fechaFormateada = selectedProject.date 
+                   ? new Date(selectedProject.date).toLocaleDateString('es-ES', { 
+                       year: 'numeric', 
+                       month: 'long', 
+                       day: 'numeric' 
+                     })
+                   : 'No disponible';
+                 
+                 return (
+                   <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                      {/* Header */}
+                      <div className="mb-6 pb-4 border-b-4 border-black">
+                         <h2 className="text-xl md:text-2xl font-black uppercase tracking-tighter mb-2">
+                            {selectedProject.project}
+                         </h2>
+                         <div className="flex flex-wrap gap-2 items-center">
+                            <span className="inline-block px-3 py-1 bg-black text-white text-xs md:text-sm font-mono uppercase font-bold">
+                               {selectedProject.expediente || selectedProject.id}
+                            </span>
+                            {selectedProject.municipio && (
+                               <span className="inline-block px-3 py-1 bg-black text-white text-xs md:text-sm font-mono uppercase font-bold">
+                                  {selectedProject.municipio}
+                               </span>
+                            )}
+                            <span className="inline-block px-3 py-1 bg-black text-white text-xs md:text-sm font-mono uppercase font-bold">
+                               {fechaFormateada}
+                            </span>
+                         </div>
+                      </div>
 
-                    <h3 className="text-3xl font-bold leading-none mb-6 font-sans">
-                       {selectedProject.project}
-                    </h3>
-                    
-                    <div className="space-y-8">
-                       <div>
-                          <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">Promovente</p>
-                          <p className="font-mono text-lg border-l-4 border-[#ff9d9d] pl-4">
-                             {selectedProject.promoter}
-                          </p>
-                       </div>
+                      {/* Información del Proyecto */}
+                      <div className="space-y-4 mb-6">
+                         <div>
+                            <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">Promovente</p>
+                            <p className="font-mono text-lg border-l-4 border-[#ff9d9d] pl-4">
+                               {selectedProject.promoter || 'No disponible'}
+                            </p>
+                         </div>
 
-                       <div>
-                          <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">Descripción</p>
-                          <p className="font-serif text-xl text-gray-800 leading-relaxed font-light">
-                             {selectedProject.description}
-                          </p>
-                       </div>
+                         {/* Tipo de estudio y Giro */}
+                         {(selectedProject.type || selectedProject.impact) && (
+                            <div className="flex flex-wrap gap-4 items-start">
+                               {selectedProject.type && (
+                                  <div>
+                                     <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">Tipo de estudio</p>
+                                     <span className="inline-block px-3 py-1 border-2 border-black bg-gray-50 text-xs font-mono font-bold uppercase">
+                                        {selectedProject.type}
+                                     </span>
+                                  </div>
+                               )}
+                               {selectedProject.impact && (
+                                  <div>
+                                     <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">Giro</p>
+                                     <span className="inline-block px-3 py-1 border-2 border-black bg-gray-50 text-xs font-mono font-bold uppercase">
+                                        {selectedProject.impact}
+                                     </span>
+                                  </div>
+                               )}
+                            </div>
+                         )}
 
-                       <div className="grid grid-cols-2 gap-6">
-                          <div>
-                             <p className="text-[10px] uppercase font-bold text-gray-400 mb-2">Tipo de Trámite</p>
-                             <div className="border-2 border-black p-3 text-sm font-bold bg-gray-50 text-center">
-                                {selectedProject.type}
-                             </div>
-                          </div>
-                          <div>
-                             <p className="text-[10px] uppercase font-bold text-gray-400 mb-2">Impacto</p>
-                             <div className="border-2 border-black p-3 text-sm font-bold bg-gray-50 text-center">
-                                {selectedProject.impact}
-                             </div>
-                          </div>
-                       </div>
-                       
-                       <div className="pt-8 mt-8 border-t border-dashed border-gray-300">
-                          <button className="w-full flex items-center justify-center gap-2 bg-[#ff9d9d] hover:bg-[#ff7e67] hover:text-white transition-colors text-black font-bold uppercase py-4 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none text-lg">
-                             <Download size={20} /> Consultar Expediente PDF
-                          </button>
-                       </div>
-                    </div>
-                 </div>
-              ) : (
+                         {(selectedProject.naturaleza_proyecto || selectedProject.description) && (
+                            <div className="border-2 border-black p-4 md:p-6 bg-white">
+                               <span className="text-xs font-mono uppercase tracking-widest font-bold text-gray-600 block mb-3">
+                                  NATURALEZA DEL PROYECTO
+                               </span>
+                               <p className="font-serif text-lg text-gray-800 leading-relaxed">
+                                  {selectedProject.naturaleza_proyecto || selectedProject.description}
+                               </p>
+                            </div>
+                         )}
+
+                         {selectedProject.coordenadas_x && selectedProject.coordenadas_y && (
+                            <div className="flex flex-wrap gap-4 items-center">
+                               <div>
+                                  <span className="text-xs font-mono uppercase tracking-widest font-bold text-gray-600">COORDENADAS UTM: </span>
+                                  <span className="font-mono text-sm font-bold">
+                                     {selectedProject.coordenadas_x.toFixed(2)}, {selectedProject.coordenadas_y.toFixed(2)}
+                                  </span>
+                               </div>
+                               {coords && (
+                                  <div>
+                                     <span className="text-xs font-mono uppercase tracking-widest font-bold text-gray-600">COORDENADAS LAT/LNG: </span>
+                                     <span className="font-mono text-sm font-bold">
+                                        {lat.toFixed(6)}, {lng.toFixed(6)}
+                                     </span>
+                                  </div>
+                               )}
+                            </div>
+                         )}
+                      </div>
+
+                      {/* Botones de acción */}
+                      <div className="pt-4 border-t-2 border-dashed border-gray-300 space-y-3">
+                         {(selectedProject.filename || selectedProject.url) && (
+                            <a
+                               href={selectedProject.filename || selectedProject.url}
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               className="w-full flex items-center justify-center gap-2 bg-[#fccb4e] hover:bg-[#ff9d9d] hover:text-white transition-colors font-bold uppercase py-4 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none text-lg"
+                            >
+                               <FileText size={20} />
+                               CONSULTAR BOLETÍN
+                            </a>
+                         )}
+                         
+                         <div className="grid grid-cols-2 gap-3">
+                            <a
+                               href={`https://www.google.com/maps?q=${lat},${lng}`}
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-black bg-white hover:bg-gray-100 transition-colors font-bold uppercase text-sm shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+                            >
+                               <ExternalLink size={16} />
+                               Google Maps
+                            </a>
+                            <a
+                               href={(() => {
+                                  const googleMapsUrl = `https://www.google.com/maps?q=${lat},${lng}`;
+                                  const proyecto = selectedProject.project || 'Proyecto';
+                                  const promovente = selectedProject.promoter || 'No disponible';
+                                  const tipoEstudio = selectedProject.type || 'No disponible';
+                                  const giro = selectedProject.impact || 'No disponible';
+                                  const naturaleza = selectedProject.naturaleza_proyecto || selectedProject.description || 'No disponible';
+                                  const estado = selectedProject.status || '';
+                                  
+                                  // Determinar si es ingresado o resolutivo
+                                  const esResolutivo = estado.includes('Aprobado') || estado.includes('Denegado') || estado.includes('Resolutivo');
+                                  const tipoProyecto = esResolutivo ? 'resolutivo emitido' : 'proyecto ingresado';
+                                  
+                                  const mensaje = `📋 Nuevo ${tipoProyecto} del Boletín Ambiental de la SSMAA
+
+Este proyecto fue publicado en el boletín oficial de la Secretaría de Sustentabilidad, Medio Ambiente y Agua de Aguascalientes. ${esResolutivo ? 'Ya cuenta con una resolución emitida por las autoridades.' : 'Está en proceso de evaluación ambiental.'}
+
+*${proyecto}*
+
+*Promovente:* ${promovente}
+*Tipo de estudio:* ${tipoEstudio}
+*Giro:* ${giro}
+
+*Naturaleza del proyecto:*
+${naturaleza}
+
+*Ubicacion:*
+${googleMapsUrl}
+
+━━━━━━━━━━━━━━━━━━━━
+Compartido desde mapeoverde.org
+
+Mantente informado sobre los proyectos de construccion en tu ciudad y participa en la vigilancia ciudadana.`;
+                                  
+                                  return `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
+                               })()}
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-black bg-[#25D366] hover:bg-[#20ba5a] text-white transition-colors font-bold uppercase text-sm shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+                            >
+                               <MessageCircle size={16} />
+                               Compartir WhatsApp
+                            </a>
+                         </div>
+                      </div>
+                   </div>
+                 );
+              })() : (
                  <div className="h-full flex flex-col items-center justify-center text-gray-300 text-center space-y-6">
                     <FileText size={80} strokeWidth={0.5} />
                     <p className="font-mono text-lg max-w-[300px] text-gray-400">
@@ -496,6 +722,8 @@ const NewslettersPage = () => {
         </div>
 
       </div>
+      
+      {/* Modal de Boletin */}
     </div>
   );
 };
