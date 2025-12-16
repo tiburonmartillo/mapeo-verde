@@ -1,0 +1,78 @@
+import { useNavigate } from 'react-router-dom';
+import { motion } from 'motion/react';
+import { LogoMap } from '../../../components/common/LogoMap';
+
+const HeroSection = () => {
+  const navigate = useNavigate();
+  
+  return (
+    <section className="relative min-h-[85vh] bg-[#f3f4f0] text-black overflow-hidden flex flex-col justify-between pt-32 pb-12 border-b border-black">
+      {/* Background - Dot Pattern */}
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.1 }}
+        transition={{ duration: 1.5 }}
+        className="absolute inset-0 pointer-events-none" 
+        style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '24px 24px' }}
+      />
+
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 flex flex-col md:flex-row gap-12 items-end">
+        <div className="flex-1">
+           <div className="mb-8">
+             <motion.div 
+               initial={{ opacity: 0, y: 20 }}
+               animate={{ opacity: 1, y: 0 }}
+               transition={{ delay: 0.1 }}
+             >
+               <span className="inline-block px-3 py-1 border border-black bg-black text-white text-xs font-mono uppercase tracking-widest mb-4">Plataforma Ciudadana v2.0</span>
+             </motion.div>
+             
+            <div className="mb-6 w-full">
+              <LogoMap className="w-64 h-auto" />
+            </div>
+
+             <motion.p 
+               initial={{ opacity: 0, y: 20 }}
+               animate={{ opacity: 1, y: 0 }}
+               transition={{ delay: 0.3 }}
+               className="text-xl md:text-2xl font-serif max-w-lg leading-relaxed text-gray-800"
+             >
+               Combatimos la desigualdad ambiental con datos abiertos. Una herramienta para visibilizar, proteger y expandir nuestras áreas verdes.
+             </motion.p>
+           </div>
+
+           <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8, duration: 0.5 }}
+              className="flex flex-wrap gap-4"
+           >
+              <motion.button 
+                whileHover={{ scale: 1.05, backgroundColor: "#ff7e67", color: "#fff" }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => navigate('/manifiesto')}
+                className="px-6 py-3 bg-black text-white font-bold uppercase text-sm tracking-wider transition-colors border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none hover:bg-[#ff7e67]"
+              >
+                 Leer manifiesto
+              </motion.button>
+           </motion.div>
+        </div>
+      </div>
+
+      {/* Footer Ticker */}
+      <motion.div 
+         initial={{ opacity: 0 }}
+         animate={{ opacity: 1 }}
+         transition={{ delay: 1.2, duration: 1 }}
+         className="w-full max-w-7xl mx-auto px-6 mt-12"
+      >
+         <div className="border-t border-black pt-4 flex justify-between items-end text-xs font-mono uppercase tracking-widest text-gray-500">
+            <div>Aguascalientes, MX</div>
+            <div className="text-right">Datos Abiertos <br/> Licencia CC-BY-SA 4.0</div>
+         </div>
+      </motion.div>
+    </section>
+  );
+};
+
+export default HeroSection;
