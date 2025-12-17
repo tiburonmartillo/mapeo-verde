@@ -1,36 +1,42 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowRight, TreePine, FileText, LayoutGrid } from 'lucide-react';
-import { LogoMap } from './components/common';
-import { DataContext, DataProvider } from './context/DataContext';
+import { DataProvider } from './context/DataContext';
 import { TAB_ROUTES } from './constants/routes';
-import { pathToTab, getAccentColor } from './utils/helpers';
+import { pathToTab } from './utils/helpers';
 import { NavBar, Footer } from './components/layout';
 import { useSEO } from './hooks/useSEO';
-import {
-  HeroSection,
-  TextContentSection,
-  StatsSection,
-  FeatureList,
-  CtaSection
-} from './features/home/components';
-import { EventsPage, ImpactDetailPage } from './features/agenda/components';
-import { GreenAreasPage, GreenAreaDetailPage } from './features/green-areas/components';
-import { NewslettersPage } from './features/newsletters/components';
-import { GazettesPage } from './features/gazettes/components';
-import { ParticipationPage } from './features/participation/components';
-import { ManifestoPage } from './features/manifesto/components';
+const HeroSection = React.lazy(() => import('./features/home/components/HeroSection'));
+const TextContentSection = React.lazy(() => import('./features/home/components/TextContentSection'));
+const StatsSection = React.lazy(() => import('./features/home/components/StatsSection'));
+const FeatureList = React.lazy(() => import('./features/home/components/FeatureList'));
+const CtaSection = React.lazy(() => import('./features/home/components/CtaSection'));
+
+// Lazy load pages
+const EventsPage = React.lazy(() => import('./features/agenda/components/EventsPage'));
+const ImpactDetailPage = React.lazy(() => import('./features/agenda/components/ImpactDetailPage'));
+const GreenAreasPage = React.lazy(() => import('./features/green-areas/components/GreenAreasPage'));
+const GreenAreaDetailPage = React.lazy(() => import('./features/green-areas/components/GreenAreaDetailPage'));
+const NewslettersPage = React.lazy(() => import('./features/newsletters/components/NewslettersPage'));
+const GazettesPage = React.lazy(() => import('./features/gazettes/components/GazettesPage'));
+const ParticipationPage = React.lazy(() => import('./features/participation/components/ParticipationPage'));
+const ManifestoPage = React.lazy(() => import('./features/manifesto/components/ManifestoPage'));
+
+import { FeaturePreview } from './features/home/components';
+
+const PageLoader = () => (
+  <div className="flex items-center justify-center min-h-[50vh]">
+    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-black"></div>
+  </div>
+);
 
 const MainApp = () => {
-  const { greenAreas: GREEN_AREAS_DATA, projects: PROJECTS_DATA, gazettes: GAZETTES_DATA, events: EVENTS_DATA } = React.useContext(DataContext);
   const navigate = useNavigate();
   const location = useLocation();
   const activeTab = pathToTab(location.pathname);
-  const accentColor = getAccentColor(activeTab);
   const [hoveredFeature, setHoveredFeature] = useState<string | null>(null);
   const hoverTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
-  
+
   // SEO dinámico según la ruta
   useSEO();
 
@@ -55,192 +61,120 @@ const MainApp = () => {
     window.scrollTo(0, 0);
   }, [activeTab, location.pathname]);
 
-  const handleNavigate = (tab: string) => {
-    navigate(TAB_ROUTES[tab as keyof typeof TAB_ROUTES] || '/');
-  };
-
-  const handleSelectImpact = (id: string | number) => {
-     navigate(`/agenda/${id}`);
-  };
-
-  const handleSelectGreenArea = (id: string | number) => {
-     navigate(`/areas-verdes/${id}`);
+  const handleNavigate = (tab: string, id?: string | number) => {
+    if (id) {
+      if (tab === 'GREEN_AREAS') navigate(`/areas-verdes/${id}`);
+      else if (tab === 'AGENDA') navigate(`/agenda/${id}`);
+      else if (tab === 'NEWSLETTERS') navigate(`/boletines?project=${id}`);
+      else if (tab === 'GAZETTES') navigate(`/gacetas?project=${id}`);
+    } else {
+      navigate(TAB_ROUTES[tab as keyof typeof TAB_ROUTES] || '/');
+    }
   };
 
   // Override content if a detail view is active (based on URL)
   if (detailType === 'agenda' && detailId) {
-     return (
-        <div className="min-h-screen bg-[#f3f4f0] font-sans selection:bg-[#b4ff6f] selection:text-black">
-           <NavBar activeTab={activeTab} onNavigate={handleNavigate} />
-           <main className="pt-16 md:pt-0">
-              <ImpactDetailPage 
-                eventId={detailId} 
-                onBack={() => {
-                  navigate(TAB_ROUTES.AGENDA);
-                }} 
-              />
-           </main>
-           <Footer />
-        </div>
-     );
+    return (
+      <div className="min-h-screen bg-[#f3f4f0] font-sans selection:bg-[#b4ff6f] selection:text-black">
+        <NavBar activeTab={activeTab} onNavigate={(tab) => handleNavigate(tab)} />
+        <main className="pt-16 md:pt-0">
+          <Suspense fallback={<PageLoader />}>
+            <ImpactDetailPage
+              eventId={detailId}
+              onBack={() => {
+                navigate(TAB_ROUTES.AGENDA);
+              }}
+            />
+          </Suspense>
+        </main>
+        <Footer />
+      </div>
+    );
   }
 
   if (detailType === 'areas-verdes' && detailId) {
-     return (
-        <div className="min-h-screen bg-[#f3f4f0] font-sans selection:bg-[#b4ff6f] selection:text-black">
-           <NavBar activeTab={activeTab} onNavigate={handleNavigate} />
-           <main className="pt-16 md:pt-0">
-              <GreenAreaDetailPage 
-                areaId={detailId} 
-                onBack={() => {
-                  navigate(TAB_ROUTES.GREEN_AREAS);
-                }} 
-              />
-           </main>
-           <Footer />
-        </div>
-     );
+    return (
+      <div className="min-h-screen bg-[#f3f4f0] font-sans selection:bg-[#b4ff6f] selection:text-black">
+        <NavBar activeTab={activeTab} onNavigate={(tab) => handleNavigate(tab)} />
+        <main className="pt-16 md:pt-0">
+          <Suspense fallback={<PageLoader />}>
+            <GreenAreaDetailPage
+              areaId={detailId}
+              onBack={() => {
+                navigate(TAB_ROUTES.GREEN_AREAS);
+              }}
+            />
+          </Suspense>
+        </main>
+        <Footer />
+      </div>
+    );
   }
 
   const renderContent = () => {
     switch (activeTab) {
       case 'HOME':
         return (
-          <>
+          <Suspense fallback={<PageLoader />}>
             <HeroSection />
             <TextContentSection />
             <StatsSection />
             <FeatureList onFeatureEnter={handleFeatureEnter} onFeatureLeave={handleFeatureLeave} />
-            <AnimatePresence>
-            {hoveredFeature && (
-              <motion.div 
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                className="w-full bg-[#f3f4f0] border-b border-black overflow-hidden"
-                onMouseEnter={() => { if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current); }}
-                onMouseLeave={() => { hoverTimeoutRef.current = setTimeout(() => setHoveredFeature(null), 300); }}
-              >
-                  <div className="py-12 px-6">
-                    <div className="max-w-7xl mx-auto">
-                       <h2 className="text-3xl font-bold mb-8 text-center uppercase">
-                         {hoveredFeature === 'Áreas Verdes' && "Explora nuestras áreas verdes"}
-                         {hoveredFeature === 'Boletines' && "Boletines Recientes"}
-                         {hoveredFeature === 'Gacetas' && "Gacetas Ambientales"}
-                         {hoveredFeature === 'Agenda' && "Próximos Eventos"}
-                       </h2>
-                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                          {(() => {
-                             let data: any[] = [];
-                             if (hoveredFeature === 'Áreas Verdes') data = GREEN_AREAS_DATA;
-                             else if (hoveredFeature === 'Boletines') data = PROJECTS_DATA;
-                             else if (hoveredFeature === 'Gacetas') data = GAZETTES_DATA;
-                             else if (hoveredFeature === 'Agenda') data = EVENTS_DATA;
-                             
-                             // Ordenar por fecha (más recientes primero) y tomar los 4 más recientes
-                             const sortedData = [...data].sort((a: any, b: any) => {
-                                if (hoveredFeature === 'Áreas Verdes') {
-                                   // Para áreas verdes: priorizar las que tienen denuncia (need), luego por ID descendente
-                                   if (a.need && !b.need) return -1;
-                                   if (!a.need && b.need) return 1;
-                                   return (b.id || 0) - (a.id || 0); // IDs más altos primero
-                                } else {
-                                   // Para otros: ordenar por fecha descendente (más reciente primero)
-                                   const dateA = a.date ? new Date(a.date).getTime() : 0;
-                                   const dateB = b.date ? new Date(b.date).getTime() : 0;
-                                   return dateB - dateA;
-                                }
-                             });
-                             
-                             return sortedData.slice(0, 4).map((item, idx) => (
-                               <div 
-                                 key={item.id || idx} 
-                                 onClick={() => {
-                                   if (hoveredFeature === 'Áreas Verdes') {
-                                       handleSelectGreenArea(item.id);
-                                       handleNavigate('GREEN_AREAS');
-                                   } else if (hoveredFeature === 'Boletines') {
-                                       navigate(`/boletines?project=${item.id}`);
-                                   } else if (hoveredFeature === 'Gacetas') {
-                                       navigate(`/gacetas?project=${item.id}`);
-                                   } else if (hoveredFeature === 'Agenda') {
-                                       handleSelectImpact(item.id);
-                                   }
-                                 }}
-                                 className="border-2 border-black bg-white cursor-pointer hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all group h-full flex flex-col"
-                               >
-                                  {/* Image or Icon Section */}
-                                  <div className="h-48 overflow-hidden border-b-2 border-black relative bg-gray-100 flex items-center justify-center">
-                                     {item.image ? (
-                                        <img 
-                                          src={item.image} 
-                                          alt={item.name || item.project || item.title}
-                                          className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
-                                          onError={(e) => {
-                                            (e.target as HTMLImageElement).style.display = 'none';
-                                          }}
-                                        />
-                                     ) : null}
-                                     {(!item.image || item.image === '') && (
-                                        <div className="p-8 opacity-50 group-hover:opacity-100 transition-opacity">
-                                           {hoveredFeature === 'Boletines' && <LayoutGrid size={64} strokeWidth={1} />}
-                                           {hoveredFeature === 'Gacetas' && <FileText size={64} strokeWidth={1} />}
-                                           {!hoveredFeature && <TreePine size={64} strokeWidth={1} />}
-                                        </div>
-                                     )}
-                                     
-                                     <div className="absolute top-2 right-2 bg-white border border-black p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <ArrowRight size={16} />
-                                     </div>
-                                  </div>
-                                  
-                                  {/* Content Section */}
-                                  <div className="p-4 flex-grow">
-                                     <h3 className="font-bold text-lg mb-1 leading-tight line-clamp-2">
-                                       {item.name || item.project || item.title}
-                                     </h3>
-                                     <p className="text-xs font-mono text-gray-500 truncate">
-                                       {item.address || item.status || item.date}
-                                     </p>
-                                  </div>
-                               </div>
-                             ));
-                          })()}
-                       </div>
-                    </div>
-                  </div>
-              </motion.div>
-            )}
-            </AnimatePresence>
+            <FeaturePreview
+              hoveredFeature={hoveredFeature}
+              onMouseEnter={() => { if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current); }}
+              onMouseLeave={() => { hoverTimeoutRef.current = setTimeout(() => setHoveredFeature(null), 300); }}
+              onNavigate={handleNavigate}
+            />
             <CtaSection />
-          </>
+          </Suspense>
         );
       case 'GREEN_AREAS':
-        return <GreenAreasPage onSelectArea={handleSelectGreenArea} />;
+        return (
+          <Suspense fallback={<PageLoader />}>
+            <GreenAreasPage onSelectArea={(id) => handleNavigate('GREEN_AREAS', id)} />
+          </Suspense>
+        );
       case 'NEWSLETTERS':
-        return <NewslettersPage />;
+        return (
+          <Suspense fallback={<PageLoader />}>
+            <NewslettersPage />
+          </Suspense>
+        );
       case 'GAZETTES':
-        return <GazettesPage />;
+        return (
+          <Suspense fallback={<PageLoader />}>
+            <GazettesPage />
+          </Suspense>
+        );
       case 'AGENDA':
-        return <EventsPage onSelectImpact={handleSelectImpact} />;
+        return (
+          <Suspense fallback={<PageLoader />}>
+            <EventsPage onSelectImpact={(id) => handleNavigate('AGENDA', id)} />
+          </Suspense>
+        );
       case 'PARTICIPATION':
-        return <ParticipationPage />;
+        return (
+          <Suspense fallback={<PageLoader />}>
+            <ParticipationPage />
+          </Suspense>
+        );
       default:
         return (
-          <>
+          <Suspense fallback={<PageLoader />}>
             <HeroSection />
             <TextContentSection />
             <StatsSection />
             <FeatureList />
             <CtaSection />
-          </>
+          </Suspense>
         );
     }
   };
 
   return (
     <div className="min-h-screen bg-[#f3f4f0] font-sans selection:bg-[#b4ff6f] selection:text-black" style={{ overflow: 'visible' }}>
-      <NavBar activeTab={activeTab} onNavigate={handleNavigate} />
+      <NavBar activeTab={activeTab} onNavigate={(tab) => handleNavigate(tab)} />
       <main style={{ position: 'relative', zIndex: 0 }}>
         <AnimatePresence mode="wait">
           <motion.div
@@ -263,7 +197,9 @@ const MainApp = () => {
 const ManifestoPageWrapper = () => {
   return (
     <div className="min-h-screen bg-[#f3f4f0] font-sans">
-      <ManifestoPage />
+      <React.Suspense fallback={<PageLoader />}>
+        <ManifestoPage />
+      </React.Suspense>
     </div>
   );
 };
