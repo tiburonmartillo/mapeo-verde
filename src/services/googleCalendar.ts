@@ -314,16 +314,22 @@ function mapICalEventToAppEvent(event: ICAL.Event, index: number): GoogleCalenda
 export async function fetchGoogleCalendarEvents(): Promise<GoogleCalendarEvent[]> {
   try {
     // En desarrollo, usar el proxy de Vite para evitar CORS
-    // En producción, usar directamente la URL del calendario (funciona desde el servidor)
+    // En producción, usar un proxy público para evitar problemas de CORS
     const isDevelopment = import.meta.env.DEV;
-    const icalUrl = isDevelopment 
-      ? '/api/calendar' // Proxy de Vite en desarrollo
-      : (import.meta.env.VITE_GOOGLE_CALENDAR_ICAL_URL || GOOGLE_CALENDAR_ICAL_URL); // URL directa en producción
+    let icalUrl: string;
     
-    console.log('📅 Cargando eventos desde Google Calendar:', icalUrl);
-    console.log('🔧 Modo:', isDevelopment ? 'Desarrollo (usando proxy)' : 'Producción (URL directa)');
+    if (isDevelopment) {
+      icalUrl = '/api/calendar'; // Proxy de Vite en desarrollo
+      console.log('📅 Cargando eventos desde Google Calendar (desarrollo):', icalUrl);
+    } else {
+      // En producción, usar proxy público para evitar CORS
+      const calendarUrl = import.meta.env.VITE_GOOGLE_CALENDAR_ICAL_URL || GOOGLE_CALENDAR_ICAL_URL;
+      icalUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(calendarUrl)}`;
+      console.log('📅 Cargando eventos desde Google Calendar (producción con proxy):', calendarUrl);
+    }
     
     const response = await fetch(icalUrl, {
+      method: 'GET',
       headers: {
         'Accept': 'text/calendar',
       },
