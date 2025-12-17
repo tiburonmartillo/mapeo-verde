@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, JSX } from 'react';
 import { GREEN_AREAS_DATA, EVENTS_DATA, PAST_EVENTS_DATA } from '../data/static';
 import { mapBoletinesToProjects, mapGacetasToDataset } from '../utils/helpers';
+import { fetchGoogleCalendarEvents } from '../services/googleCalendar';
 
 export interface DataContextType {
   greenAreas: any[];
@@ -55,8 +56,8 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
       
       console.log('📡 Cargando datos desde:', { baseUrl, boletinesUrl, gacetasUrl });
       
-      // Cargar datos directamente desde public/data
-      const [boletinesResponse, gacetasResponse] = await Promise.allSettled([
+      // Cargar datos directamente desde public/data y Google Calendar
+      const [boletinesResponse, gacetasResponse, googleCalendarEvents] = await Promise.allSettled([
         fetch(boletinesUrl).then(res => {
           if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
           return res.json();
@@ -65,6 +66,7 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
           if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
           return res.json();
         }),
+        fetchGoogleCalendarEvents(),
       ]);
 
       // Procesar boletines a proyectos
@@ -103,12 +105,31 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         }
       }
 
-      // Usar datos estáticos para áreas verdes y eventos
+      // Procesar eventos de Google Calendar
+      let events: any[] = EVENTS_DATA; // Fallback a eventos estáticos
+      if (googleCalendarEvents.status === 'fulfilled' && googleCalendarEvents.value) {
+        const googleEvents = googleCalendarEvents.value;
+        if (googleEvents.length > 0) {
+          // Si hay eventos de Google Calendar, usarlos; si no, mantener los estáticos
+          events = googleEvents;
+          console.log(`✅ Eventos de Google Calendar cargados: ${events.length} eventos`);
+          console.log('📋 Eventos cargados:', events.map(e => ({ title: e.title, date: e.date })));
+        } else {
+          console.log('ℹ️ No hay eventos en Google Calendar, usando eventos estáticos');
+        }
+      } else {
+        console.warn('⚠️ Error cargando eventos de Google Calendar, usando eventos estáticos');
+        if (googleCalendarEvents.status === 'rejected') {
+          console.error('Error fetching Google Calendar events:', googleCalendarEvents.reason);
+        }
+      }
+
+      // Usar datos estáticos para áreas verdes
       setData({
         greenAreas: GREEN_AREAS_DATA,
         projects: projects.length > 0 ? projects : [],
         gazettes: gazettes.length > 0 ? gazettes : [],
-        events: EVENTS_DATA,
+        events: events,
         pastEvents: PAST_EVENTS_DATA
       });
     } catch (err) {

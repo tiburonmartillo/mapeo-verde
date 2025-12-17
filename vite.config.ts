@@ -60,5 +60,25 @@
     server: {
       port: 3000,
       open: true,
+      proxy: {
+        '/api/calendar': {
+          target: 'https://calendar.google.com',
+          changeOrigin: true,
+          rewrite: (path) => {
+            // URL completa del feed iCal del calendario
+            const calendarId = 'bce9da9cb33f280d49d3962f712747a07d9728d2954bac9d0c24db0c08f16470%40group.calendar.google.com';
+            return `/calendar/ical/${calendarId}/public/basic.ics`;
+          },
+          configure: (proxy, options) => {
+            proxy.on('proxyReq', (proxyReq, req, res) => {
+              proxyReq.setHeader('Accept', 'text/calendar');
+              proxyReq.setHeader('User-Agent', 'Mozilla/5.0');
+            });
+            proxy.on('error', (err, req, res) => {
+              console.error('Proxy error:', err);
+            });
+          }
+        }
+      }
     },
   });
