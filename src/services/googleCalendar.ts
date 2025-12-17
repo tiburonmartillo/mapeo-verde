@@ -313,38 +313,79 @@ function mapICalEventToAppEvent(event: ICAL.Event, index: number): GoogleCalenda
  */
 export async function fetchGoogleCalendarEvents(): Promise<GoogleCalendarEvent[]> {
   try {
-    // En desarrollo, usar el proxy de Vite para evitar CORS
-    // En producción, usar un proxy público para evitar problemas de CORS
-    const isDevelopment = import.meta.env.DEV;
-    let icalUrl: string;
+    const calendarUrl = import.meta.env.VITE_GOOGLE_CALENDAR_ICAL_URL || GOOGLE_CALENDAR_ICAL_URL;
+    // Detectar si estamos en desarrollo (localhost) o producción
+    const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    
+    console.log('🔧 Entorno detectado:', {
+      hostname: window.location.hostname,
+      isDevelopment,
+      DEV: import.meta.env.DEV,
+      MODE: import.meta.env.MODE,
+      PROD: import.meta.env.PROD
+    });
+    
+    let response: Response;
     
     if (isDevelopment) {
-      icalUrl = '/api/calendar'; // Proxy de Vite en desarrollo
+      // En desarrollo, usar el proxy de Vite
+      const icalUrl = '/api/calendar';
       console.log('📅 Cargando eventos desde Google Calendar (desarrollo):', icalUrl);
+      response = await fetch(icalUrl, {
+        method: 'GET',
+        headers: {
+          'Accept': 'text/calendar',
+        },
+      });
     } else {
       // En producción, usar proxy público para evitar CORS
-      const calendarUrl = import.meta.env.VITE_GOOGLE_CALENDAR_ICAL_URL || GOOGLE_CALENDAR_ICAL_URL;
-      icalUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(calendarUrl)}`;
-      console.log('📅 Cargando eventos desde Google Calendar (producción con proxy):', calendarUrl);
+      console.log('📅 Cargando eventos desde Google Calendar (producción):', calendarUrl);
+      
+      // Usar proxy público
+      const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(calendarUrl)}`;
+      console.log('🔄 Usando proxy público:', proxyUrl);
+      
+      try {
+        response = await fetch(proxyUrl, {
+          method: 'GET',
+          headers: {
+            'Accept': 'text/calendar',
+          },
+          mode: 'cors',
+        });
+        console.log('✅ Respuesta del proxy:', response.status, response.statusText);
+      } catch (fetchError: any) {
+        console.error('❌ Error al hacer fetch con proxy:', fetchError);
+        throw fetchError;
+      }
     }
+
+    if (!response || !response.ok) {
+      throw new Error(`HTTP error! status: ${response?.status || 'unknown'}`);
+    }
+
+    let icalData = await response.text();
     
-    const response = await fetch(icalUrl, {
-      method: 'GET',
-      headers: {
-        'Accept': 'text/calendar',
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    // Si estamos usando allorigins.win, puede devolver JSON con el contenido
+    if (!isDevelopment && icalData.trim().startsWith('{')) {
+      try {
+        const jsonData = JSON.parse(icalData);
+        if (jsonData.contents) {
+          icalData = jsonData.contents;
+          console.log('📦 Contenido extraído del JSON del proxy');
+        }
+      } catch (e) {
+        // Si no es JSON válido, usar el texto tal cual
+        console.log('ℹ️ Respuesta no es JSON, usando texto directo');
+      }
     }
-
-    const icalData = await response.text();
     
     if (!icalData || icalData.trim().length === 0) {
       console.warn('⚠️ Feed iCal vacío');
       return [];
     }
+    
+    console.log('📄 Tamaño del feed iCal:', icalData.length, 'caracteres');
 
     // Parsear el archivo iCal
     const jcalData = ICAL.parse(icalData);
