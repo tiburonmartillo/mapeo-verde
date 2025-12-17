@@ -41570,6 +41570,46 @@
       "resolutivos_emitidos": [],
       "cantidad_resolutivos": 0,
       "id": 459
+    },
+    {
+      "filename": "https://www.aguascalientes.gob.mx/SSMAA/BoletinesSMA/Repositorio/2025/12%20Diciembre/BOLETIN50-2025_16%20DE%20DICIEMBRE_DEL0812_1212.pdf",
+      "cantidad_resolutivos": 0,
+      "cantidad_ingresados": 2,
+      "proyectos_ingresados": [
+        {
+          "numero": 1,
+          "tipo_estudio": "IP",
+          "promovente": "MEIWAMOLD MEXICO, S.A. DE C.V.",
+          "nombre_proyecto": "MEIWAMOLD MEXICO",
+          "naturaleza_proyecto": "La fabricación, diseño, transformación, reparación, maquila, compra, venta, importación, exportación, ensamble, ingeniería, y comercio en general de toda clase de moldes, equipos, sistemas, autopartes, partes, componentes, accesorios y piezas, incluyendo autopartes fundidas o moldeadas en aluminio, acero y/u otros metales para la industria automotriz en general, tanto para el mercado doméstico como para el mercado global.",
+          "giro": "INDUSTRIAL",
+          "municipio": "AGUASCALIENTES",
+          "coordenadas_x": 780719.66,
+          "coordenadas_y": 2407291.15,
+          "expediente": "SSMAA-DIRA-2839-2026",
+          "fecha_ingreso": "2025-12-10",
+          "boletin_id": 460
+        },
+        {
+          "numero": 2,
+          "tipo_estudio": "MIA",
+          "promovente": "LUIS SALVADOR ALCALÁ ALBA",
+          "nombre_proyecto": "NAVES INDUSTRIALES PROVIDENCIA NORTE II",
+          "naturaleza_proyecto": "El proyecto estará ubicado en el Municipio de San Francisco de los Romo y consiste básicamente en la construcción de tres naves industriales (Módulos) para renta, en una superficie de 43,478.02 m2, que forman parte de la superficie total del predio, que es de 116,858.32 m2.",
+          "giro": "INDUSTRIAL",
+          "municipio": "San Francisco de los Romo",
+          "coordenadas_x": 780977.061,
+          "coordenadas_y": 2441238.722,
+          "expediente": "SSMAA-DIRA-2840-2026",
+          "fecha_ingreso": "2025-12-10",
+          "boletin_id": 460
+        }
+      ],
+      "director": "T.S.U. LUIS MEDINA HERNÁNDEZ",
+      "fecha_publicacion": "2025-12-16",
+      "secretario": "LIC. SARAHI MACIAS ALICEA",
+      "resolutivos_emitidos": [],
+      "id": 460
     }
   ],
   "metadata": {

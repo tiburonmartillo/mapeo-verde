@@ -65,106 +65,132 @@ const seoByRoute: Record<string, SEOData> = {
 export const useSEO = (customSEO?: Partial<SEOData>) => {
   const location = useLocation();
   const baseUrl = import.meta.env.BASE_URL || '/';
-  
+
   // Normalizar el pathname removiendo el base path si existe
   const normalizedPath = location.pathname.replace(baseUrl === '/' ? '' : baseUrl, '') || '/';
-  
-  const siteUrl = typeof window !== 'undefined' 
+
+  // Detect if we are on a detail page
+  const pathParts = normalizedPath.split('/').filter(Boolean);
+  const isDetailPage = pathParts.length === 2 && (pathParts[0] === 'areas-verdes' || pathParts[0] === 'agenda');
+  const detailType = isDetailPage ? pathParts[0] : null;
+
+  const siteUrl = typeof window !== 'undefined'
     ? `${window.location.protocol}//${window.location.host}${baseUrl === '/' ? '' : baseUrl}`
     : 'https://www.mapeoverde.org';
 
   useEffect(() => {
-    const routeSEO = seoByRoute[normalizedPath] || defaultSEO;
+    let routeSEO = seoByRoute[normalizedPath] || defaultSEO;
+
+    // Handle detail page titles/descriptions dynamically if needed
+    if (detailType === 'areas-verdes') {
+      routeSEO = {
+        ...routeSEO,
+        title: 'Detalle de Área Verde | Mapeo Verde',
+        description: 'Conoce a fondo esta área verde: su estado, servicios y valor para la comunidad.'
+      };
+    } else if (detailType === 'agenda') {
+      routeSEO = {
+        ...routeSEO,
+        title: 'Detalle de Evento | Mapeo Verde',
+        description: 'Infórmate sobre este evento y participa en las actividades ambientales de Aguascalientes.'
+      };
+    }
+
     const seo = { ...routeSEO, ...customSEO };
-    
+
     const fullTitle = seo.title.includes('Mapeo Verde') ? seo.title : `${seo.title} | Mapeo Verde`;
-    const fullImage = seo.image 
+    const fullImage = seo.image
       ? (seo.image.startsWith('http') ? seo.image : `${siteUrl}${seo.image}`)
       : `${siteUrl}/favicon.svg`;
-    
+
     // Construir URL completa con base path
     const fullUrl = `${siteUrl}${normalizedPath === '/' ? '' : normalizedPath}`;
 
     // Actualizar title
     document.title = fullTitle;
 
-    // Meta description
+    // Meta tags
     updateMetaTag('description', seo.description);
-    
-    // Meta keywords
+
     if (seo.keywords) {
       updateMetaTag('keywords', seo.keywords);
     }
 
-    // Open Graph tags
+    // Open Graph
     updateMetaTag('og:title', fullTitle, 'property');
     updateMetaTag('og:description', seo.description, 'property');
-    updateMetaTag('og:type', seo.type || 'website', 'property');
+    updateMetaTag('og:type', isDetailPage ? 'article' : (seo.type || 'website'), 'property');
     updateMetaTag('og:url', fullUrl, 'property');
     updateMetaTag('og:image', fullImage, 'property');
+    updateMetaTag('og:image:alt', fullTitle, 'property');
     updateMetaTag('og:site_name', 'Mapeo Verde', 'property');
     updateMetaTag('og:locale', 'es_MX', 'property');
 
-    // Twitter Card tags
+    // Twitter
     updateMetaTag('twitter:card', 'summary_large_image');
     updateMetaTag('twitter:title', fullTitle);
     updateMetaTag('twitter:description', seo.description);
     updateMetaTag('twitter:image', fullImage);
+    updateMetaTag('twitter:image:alt', fullTitle);
 
-    // Canonical URL
+    // Canonical
     updateLinkTag('canonical', fullUrl);
 
-    // Schema.org structured data - solo actualizar si no existe o es diferente
-    const existingScript = document.querySelector('script[type="application/ld+json"]');
+    // Structured Data
     const structuredData = {
       '@context': 'https://schema.org',
-      '@type': 'Organization',
-      name: 'Mapeo Verde',
-      url: siteUrl,
+      '@type': isDetailPage ? 'Article' : 'Organization',
+      name: isDetailPage ? fullTitle : 'Mapeo Verde',
+      url: fullUrl,
       description: seo.description,
-      logo: `${siteUrl}/favicon.svg`,
-      sameAs: []
+      image: fullImage,
+      publisher: {
+        '@type': 'Organization',
+        name: 'Mapeo Verde',
+        logo: {
+          '@type': 'ImageObject',
+          url: `${siteUrl}/favicon.svg`
+        }
+      }
     };
-    
-    if (!existingScript || existingScript.textContent !== JSON.stringify(structuredData)) {
-      updateStructuredData(structuredData);
-    }
-  }, [normalizedPath, customSEO, siteUrl]);
+
+    updateStructuredData(structuredData);
+  }, [normalizedPath, customSEO, siteUrl, detailType, isDetailPage]);
 };
 
 const updateMetaTag = (name: string, content: string, attribute: 'name' | 'property' = 'name') => {
   let element = document.querySelector(`meta[${attribute}="${name}"]`) as HTMLMetaElement;
-  
+
   if (!element) {
     element = document.createElement('meta');
     element.setAttribute(attribute, name);
     document.head.appendChild(element);
   }
-  
+
   element.setAttribute('content', content);
 };
 
 const updateLinkTag = (rel: string, href: string) => {
   let element = document.querySelector(`link[rel="${rel}"]`) as HTMLLinkElement;
-  
+
   if (!element) {
     element = document.createElement('link');
     element.setAttribute('rel', rel);
     document.head.appendChild(element);
   }
-  
+
   element.setAttribute('href', href);
 };
 
 const updateStructuredData = (data: any) => {
   let script = document.querySelector('script[type="application/ld+json"]') as HTMLScriptElement;
-  
+
   if (!script) {
     script = document.createElement('script');
     script.setAttribute('type', 'application/ld+json');
     document.head.appendChild(script);
   }
-  
+
   script.textContent = JSON.stringify(data);
 };
 

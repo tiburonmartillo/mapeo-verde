@@ -67,6 +67,7 @@ const NavBar = ({ activeTab, onNavigate }: NavBarProps) => {
       {/* Mobile Navbar - Fixed (only visible on mobile) */}
       <nav
         data-navbar-mobile
+        aria-label="Navegación móvil"
         className={`
           md:hidden
           fixed top-0 left-0 right-0
@@ -76,16 +77,18 @@ const NavBar = ({ activeTab, onNavigate }: NavBarProps) => {
         `}
       >
         <div className="flex items-center justify-between h-16 px-4">
-          <div
-            className="flex items-center cursor-pointer"
+          <button
+            className="flex items-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-black"
             onClick={() => handleTabClick('HOME')}
+            aria-label="Ir al inicio"
           >
             <Logo />
-          </div>
+          </button>
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="p-2 -mr-2"
-            aria-label="Toggle menu"
+            className="p-2 -mr-2 focus:outline-none focus:ring-2 focus:ring-black"
+            aria-label={isMenuOpen ? "Cerrar menú" : "Abrir menú"}
+            aria-expanded={isMenuOpen}
           >
             {isMenuOpen ? <X size={24} className="text-black" /> : <Menu size={24} className="text-black" />}
           </button>
@@ -93,28 +96,44 @@ const NavBar = ({ activeTab, onNavigate }: NavBarProps) => {
       </nav>
 
       {/* Desktop Navbar - Sticky (only visible on desktop) */}
-      <div className="hidden md:block sticky top-0 z-50" data-navbar-desktop style={{ position: 'sticky', top: 0, zIndex: 50 }}>
+      <motion.div
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ type: "spring", damping: 20, stiffness: 100 }}
+        className="hidden md:block sticky top-0 z-50"
+        data-navbar-desktop
+        style={{ position: 'sticky', top: 0, zIndex: 50 }}
+      >
         <nav
+          aria-label="Navegación principal"
           className="w-full border-b border-black bg-white text-xs md:text-sm font-mono tracking-wider uppercase overflow-x-auto scrollbar-hide flex"
           style={{ backgroundColor: 'white' }}
         >
-          <div className="flex-shrink-0 w-32 h-16 border-r border-black flex items-center justify-center bg-white cursor-pointer" onClick={() => onNavigate('HOME')}>
+          <button
+            className="flex-shrink-0 w-32 h-16 border-r border-black flex items-center justify-center bg-white cursor-pointer focus:outline-none focus:bg-gray-100"
+            onClick={() => onNavigate('HOME')}
+            aria-label="Ir al inicio"
+          >
             <Logo />
-          </div>
-          {tabs.map((tab) => (
-            <button
+          </button>
+          {tabs.map((tab, idx) => (
+            <motion.button
               key={tab.id}
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 + idx * 0.05 }}
               onClick={() => onNavigate(tab.id)}
+              aria-current={activeTab === tab.id ? "page" : undefined}
               className={`
-                flex-1 min-w-[100px] px-4 py-3 border-r border-black text-left transition-colors duration-200
+                flex-1 min-w-[100px] px-4 py-3 border-r border-black text-left transition-colors duration-200 outline-none focus:ring-inset focus:ring-2 focus:ring-black
                 ${activeTab === tab.id ? tab.color : `bg-white ${tab.hoverColor}`}
               `}
             >
               {tab.label}
-            </button>
+            </motion.button>
           ))}
         </nav>
-      </div>
+      </motion.div>
 
       {/* Mobile Menu Overlay */}
       <AnimatePresence>
@@ -128,46 +147,51 @@ const NavBar = ({ activeTab, onNavigate }: NavBarProps) => {
             onClick={() => setIsMenuOpen(false)}
           >
             <motion.div
-              initial={{ y: '-100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '-100%' }}
+              initial={{ y: '-100%', opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: '-100%', opacity: 0 }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="absolute top-0 left-0 right-0 bg-white border-b border-black w-full"
+              className="absolute top-0 left-0 right-0 bg-white border-b border-black w-full shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Header */}
               <div className="flex items-center justify-between p-4 border-b border-black bg-white">
-                <div className="cursor-pointer" onClick={() => handleTabClick('HOME')}>
+                <button
+                  className="cursor-pointer focus:outline-none focus:ring-2 focus:ring-black"
+                  onClick={() => handleTabClick('HOME')}
+                  aria-label="Ir al inicio"
+                >
                   <Logo />
-                </div>
+                </button>
                 <button
                   onClick={() => setIsMenuOpen(false)}
-                  className="p-2"
+                  className="p-2 bg-black text-white rounded-full hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-white"
+                  aria-label="Cerrar menú"
                 >
                   <X size={20} />
                 </button>
               </div>
 
               {/* Menu Items */}
-              <nav className="flex flex-col">
+              <nav className="flex flex-col bg-white">
                 {tabs.map((tab, index) => (
                   <motion.button
                     key={tab.id}
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.05 }}
                     onClick={() => handleTabClick(tab.id)}
                     className={`
-                      w-full px-6 py-4 text-left border-b border-black
+                      w-full px-6 py-5 text-left border-b border-black
                       font-mono text-sm uppercase tracking-wider
-                      transition-colors duration-200
+                      transition-all duration-200 flex items-center justify-between
                       ${activeTab === tab.id
-                        ? `${tab.color} text-black font-bold`
-                        : 'bg-white text-black hover:bg-gray-50'
+                        ? `${tab.color} text-black font-black`
+                        : 'bg-white text-black hover:bg-black hover:text-white'
                       }
                     `}
                   >
-                    {tab.label}
+                    <span>{tab.label}</span>
+                    {activeTab === tab.id && <motion.div layoutId="activeTabIcon" className="w-2 h-2 bg-black rounded-full" />}
                   </motion.button>
                 ))}
               </nav>

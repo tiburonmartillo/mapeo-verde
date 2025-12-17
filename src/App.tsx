@@ -25,8 +25,27 @@ const ManifestoPage = React.lazy(() => import('./features/manifesto/components/M
 import { FeaturePreview } from './features/home/components';
 
 const PageLoader = () => (
-  <div className="flex items-center justify-center min-h-[50vh]">
-    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-black"></div>
+  <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+    <motion.div
+      animate={{
+        scale: [1, 1.2, 1],
+        rotate: [0, 180, 360],
+      }}
+      transition={{
+        duration: 2,
+        repeat: Infinity,
+        ease: "easeInOut"
+      }}
+      className="w-16 h-16 border-4 border-[#b4ff6f] border-t-black rounded-full shadow-lg"
+    />
+    <motion.span
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5, repeat: Infinity, repeatType: "reverse" }}
+      className="font-mono text-xs uppercase tracking-widest font-bold"
+    >
+      Cargando...
+    </motion.span>
   </div>
 );
 
@@ -72,46 +91,34 @@ const MainApp = () => {
     }
   };
 
-  // Override content if a detail view is active (based on URL)
-  if (detailType === 'agenda' && detailId) {
-    return (
-      <div className="min-h-screen bg-[#f3f4f0] font-sans selection:bg-[#b4ff6f] selection:text-black">
-        <NavBar activeTab={activeTab} onNavigate={(tab) => handleNavigate(tab)} />
-        <main className="pt-16 md:pt-0">
-          <Suspense fallback={<PageLoader />}>
-            <ImpactDetailPage
-              eventId={detailId}
-              onBack={() => {
-                navigate(TAB_ROUTES.AGENDA);
-              }}
-            />
-          </Suspense>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
-
-  if (detailType === 'areas-verdes' && detailId) {
-    return (
-      <div className="min-h-screen bg-[#f3f4f0] font-sans selection:bg-[#b4ff6f] selection:text-black">
-        <NavBar activeTab={activeTab} onNavigate={(tab) => handleNavigate(tab)} />
-        <main className="pt-16 md:pt-0">
-          <Suspense fallback={<PageLoader />}>
-            <GreenAreaDetailPage
-              areaId={detailId}
-              onBack={() => {
-                navigate(TAB_ROUTES.GREEN_AREAS);
-              }}
-            />
-          </Suspense>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
-
   const renderContent = () => {
+    // Detail view overrides
+    if (detailType === 'agenda' && detailId) {
+      return (
+        <Suspense fallback={<PageLoader />}>
+          <ImpactDetailPage
+            eventId={detailId}
+            onBack={() => {
+              navigate(TAB_ROUTES.AGENDA);
+            }}
+          />
+        </Suspense>
+      );
+    }
+
+    if (detailType === 'areas-verdes' && detailId) {
+      return (
+        <Suspense fallback={<PageLoader />}>
+          <GreenAreaDetailPage
+            areaId={detailId}
+            onBack={() => {
+              navigate(TAB_ROUTES.GREEN_AREAS);
+            }}
+          />
+        </Suspense>
+      );
+    }
+
     switch (activeTab) {
       case 'HOME':
         return (
@@ -178,11 +185,11 @@ const MainApp = () => {
       <main style={{ position: 'relative', zIndex: 0 }}>
         <AnimatePresence mode="wait">
           <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.3 }}
+            key={location.pathname}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
             style={{ position: 'relative', zIndex: 0 }}
           >
             {renderContent()}
