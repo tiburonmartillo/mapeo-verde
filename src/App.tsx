@@ -165,13 +165,20 @@ const MainApp = () => {
             <HeroSection />
             <TextContentSection />
             <StatsSection />
-            <FeatureList onFeatureEnter={handleFeatureEnter} onFeatureLeave={handleFeatureLeave} />
-            <FeaturePreview
-              hoveredFeature={hoveredFeature}
-              onMouseEnter={() => { if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current); }}
-              onMouseLeave={() => { hoverTimeoutRef.current = setTimeout(() => setHoveredFeature(null), 300); }}
+            <FeatureList 
+              onFeatureEnter={handleFeatureEnter} 
+              onFeatureLeave={handleFeatureLeave}
               onNavigate={handleNavigate}
             />
+            {/* En desktop, mostrar FeaturePreview al final */}
+            <div className="hidden md:block">
+              <FeaturePreview
+                hoveredFeature={hoveredFeature}
+                onMouseEnter={() => { if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current); }}
+                onMouseLeave={() => { hoverTimeoutRef.current = setTimeout(() => setHoveredFeature(null), 300); }}
+                onNavigate={handleNavigate}
+              />
+            </div>
             <CtaSection />
           </Suspense>
         );

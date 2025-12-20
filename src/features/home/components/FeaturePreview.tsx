@@ -30,6 +30,7 @@ export const FeaturePreview = ({
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3 }}
                     className="w-full bg-[#f3f4f0] border-b border-black overflow-hidden"
                     onMouseEnter={onMouseEnter}
                     onMouseLeave={onMouseLeave}

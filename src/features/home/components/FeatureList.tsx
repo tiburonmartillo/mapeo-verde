@@ -1,4 +1,6 @@
+import { useState, useEffect, useRef } from 'react';
 import { ArrowRight } from 'lucide-react';
+import { FeaturePreview } from './FeaturePreview';
 
 interface Feature {
   title: string;
@@ -8,15 +10,68 @@ interface Feature {
 interface FeatureListProps {
   onFeatureEnter?: (title: string) => void;
   onFeatureLeave?: () => void;
+  onNavigate?: (path: string, id?: string | number) => void;
 }
 
-const FeatureList = ({ onFeatureEnter, onFeatureLeave }: FeatureListProps) => {
+const FeatureList = ({ onFeatureEnter, onFeatureLeave, onNavigate }: FeatureListProps) => {
+  const [expandedFeature, setExpandedFeature] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+  const expandedRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+  
+  // Scroll al bloque expandido cuando cambia expandedFeature
+  useEffect(() => {
+    if (isMobile && expandedFeature) {
+      const expandedElement = expandedRefs.current[expandedFeature];
+      if (expandedElement) {
+        setTimeout(() => {
+          expandedElement.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start',
+            inline: 'nearest'
+          });
+        }, 100); // Pequeño delay para asegurar que la animación haya comenzado
+      }
+    }
+  }, [expandedFeature, isMobile]);
+  
   const features: Feature[] = [
     { title: "Agenda", desc: "Actividades de voluntariado y educación." },
     { title: "Áreas Verdes", desc: "Inventario colaborativo de flora urbana." },
     { title: "Boletines", desc: "Monitor de proyectos locales y alertas ciudadanas." },
     { title: "Gacetas", desc: "Rastreo de impacto ambiental federal." }
   ];
+
+  const handleFeatureClick = (title: string) => {
+    // En móvil, toggle el estado expandido
+    if (isMobile) {
+      const newExpanded = expandedFeature === title ? null : title;
+      setExpandedFeature(newExpanded);
+    }
+  };
+
+  const handleMouseEnter = (title: string) => {
+    // En desktop, usar hover normal
+    if (!isMobile && onFeatureEnter) {
+      onFeatureEnter(title);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    // En desktop, limpiar hover
+    if (!isMobile && onFeatureLeave) {
+      onFeatureLeave();
+    }
+  };
 
   return (
     <section className="bg-[#0a0a0a] text-white py-24 px-6 border-b border-white/20">
@@ -28,20 +83,41 @@ const FeatureList = ({ onFeatureEnter, onFeatureLeave }: FeatureListProps) => {
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-0 border-t border-l border-white/20">
           {features.map((f, i) => (
-            <div 
-              key={i} 
-              className="group p-8 border-r border-b border-white/20 hover:bg-white/5 transition-colors cursor-pointer min-h-[250px] flex flex-col justify-between"
-              onMouseEnter={() => onFeatureEnter && onFeatureEnter(f.title)}
-              onMouseLeave={() => onFeatureLeave && onFeatureLeave()}
-            >
-              <div className="flex justify-between items-start">
-                <span className="font-mono text-xs text-white/50">0{i+1}</span>
-                <ArrowRight className="w-5 h-5 text-white/0 group-hover:text-[#b4ff6f] transition-all -translate-x-4 group-hover:translate-x-0" />
+            <div key={i} className="border-r border-b border-white/20">
+              <div 
+                className="group p-8 hover:bg-white/5 transition-colors cursor-pointer min-h-[250px] flex flex-col justify-between"
+                onMouseEnter={() => handleMouseEnter(f.title)}
+                onMouseLeave={handleMouseLeave}
+                onClick={() => handleFeatureClick(f.title)}
+              >
+                <div className="flex justify-between items-start">
+                  <span className="font-mono text-xs text-white/50">0{i+1}</span>
+                  <ArrowRight className={`w-5 h-5 transition-all ${
+                    expandedFeature === f.title 
+                      ? 'text-[#b4ff6f] translate-x-0' 
+                      : 'text-white/0 -translate-x-4 group-hover:text-[#b4ff6f] group-hover:translate-x-0'
+                  }`} />
+                </div>
+                <div>
+                  <h4 className="text-xl font-bold mb-2">{f.title}</h4>
+                  <p className="text-sm text-zinc-400">{f.desc}</p>
+                </div>
               </div>
-              <div>
-                <h4 className="text-xl font-bold mb-2">{f.title}</h4>
-                <p className="text-sm text-zinc-400">{f.desc}</p>
-              </div>
+              
+              {/* En móvil, mostrar el contenido expandido debajo de cada herramienta */}
+              {isMobile && expandedFeature === f.title && (
+                <div 
+                  ref={(el) => { expandedRefs.current[f.title] = el; }}
+                  className="md:hidden border-t border-white/20"
+                >
+                  <FeaturePreview
+                    hoveredFeature={f.title}
+                    onMouseEnter={() => {}}
+                    onMouseLeave={() => {}}
+                    onNavigate={onNavigate || (() => {})}
+                  />
+                </div>
+              )}
             </div>
           ))}
         </div>
