@@ -114,16 +114,18 @@ const MainApp = () => {
       else if (tab === 'GAZETTES') navigate(`/gacetas?project=${id}`);
     } else {
       const targetRoute = TAB_ROUTES[tab as keyof typeof TAB_ROUTES] || '/';
-      // Si navegamos fuera de agenda, asegurar que no haya parámetro date en la URL
-      if (tab !== 'AGENDA' && location.search) {
+      // Si navegamos fuera de agenda, limpiar el parámetro date de la URL
+      if (tab !== 'AGENDA') {
         const searchParams = new URLSearchParams(location.search);
         if (searchParams.has('date')) {
           searchParams.delete('date');
           const cleanSearch = searchParams.toString();
+          // Navegar sin el parámetro date
           navigate(targetRoute + (cleanSearch ? `?${cleanSearch}` : ''), { replace: true });
           return;
         }
       }
+      // Si estamos navegando a agenda, mantener otros parámetros pero no agregar date si no existe
       navigate(targetRoute);
     }
   };

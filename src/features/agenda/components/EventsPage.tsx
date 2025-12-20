@@ -325,8 +325,18 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
 
   // Sincronizar selectedDate con URL y localStorage
   // Solo agregar parámetro 'date' a la URL cuando el usuario selecciona explícitamente un día que no es hoy
+  // Y solo si estamos en la ruta de agenda
   useEffect(() => {
     if (!selectedDate) return;
+    
+    // Verificar que estamos en la ruta de agenda antes de actualizar la URL
+    const currentPath = window.location.pathname;
+    const isAgendaPage = currentPath === '/agenda' || currentPath.startsWith('/agenda/');
+    
+    // Si no estamos en agenda, no hacer nada (el App.tsx se encargará de limpiar el parámetro)
+    if (!isAgendaPage) {
+      return;
+    }
     
     const newSearchParams = new URLSearchParams(searchParams);
     const currentDateParam = newSearchParams.get('date');
