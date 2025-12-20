@@ -1,7 +1,7 @@
 
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import App from "./App.tsx";
 import "./index.css";
 
@@ -20,43 +20,47 @@ const getBasename = () => {
 // Component to handle redirect from 404.html
 const RedirectHandler = () => {
   const navigate = useNavigate();
+  const [hasRedirected, setHasRedirected] = useState(false);
   
   useEffect(() => {
+    // Only process redirect once and if we're coming from 404.html
+    if (hasRedirected) return;
+    
     const urlParams = new URLSearchParams(window.location.search);
     const redirectPath = urlParams.get('redirect');
     
     if (redirectPath) {
-      // Clean the redirect parameter from URL
-      const cleanPath = redirectPath.split('?')[0]; // Remove query params if any
-      const cleanURL = cleanPath.split('#')[0]; // Remove hash if any
+      setHasRedirected(true);
       
-      // Preserve query params and hash from redirectPath if they exist
-      const urlParts = redirectPath.split('?');
-      const queryPart = urlParts[1]?.split('#')[0] || '';
-      const hashPart = redirectPath.includes('#') ? redirectPath.split('#')[1] : '';
+      // Parse the redirect path properly, preserving query params and hash
+      let pathname = redirectPath;
+      let search = '';
+      let hash = '';
       
-      // Build the final URL
-      let finalPath = cleanURL;
-      if (queryPart) {
-        finalPath += '?' + queryPart;
-      }
-      if (hashPart) {
-        finalPath += '#' + hashPart;
+      // Extract hash first
+      const hashIndex = redirectPath.indexOf('#');
+      if (hashIndex !== -1) {
+        hash = redirectPath.substring(hashIndex);
+        pathname = redirectPath.substring(0, hashIndex);
       }
       
-      // Remove the redirect parameter from current URL and navigate
-      const currentPath = window.location.pathname;
-      const currentSearch = window.location.search.replace(/[?&]redirect=[^&]*/, '').replace(/^&/, '?');
-      const currentHash = window.location.hash;
-      const cleanCurrentURL = currentPath + (currentSearch || '') + currentHash;
+      // Extract query params
+      const queryIndex = pathname.indexOf('?');
+      if (queryIndex !== -1) {
+        search = pathname.substring(queryIndex);
+        pathname = pathname.substring(0, queryIndex);
+      }
       
-      // Update URL without redirect parameter
-      window.history.replaceState({}, '', cleanCurrentURL);
+      // Build the final path with all parts
+      const finalPath = pathname + search + hash;
       
-      // Navigate to the intended path
-      navigate(finalPath, { replace: true });
+      // Use requestAnimationFrame to ensure React Router is fully initialized
+      requestAnimationFrame(() => {
+        // Navigate to the intended path with replace to avoid adding to history
+        navigate(finalPath, { replace: true });
+      });
     }
-  }, [navigate]);
+  }, [navigate, hasRedirected]);
   
   return null;
 };

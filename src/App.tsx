@@ -66,6 +66,18 @@ const MainApp = () => {
   const detailId = isDetailPage ? parseInt(pathParts[1], 10) : null;
   const detailType = isDetailPage ? pathParts[0] : null;
 
+  // Debug: Log routing info (can be removed later)
+  useEffect(() => {
+    if (location.pathname === '/agenda' && location.search) {
+      console.log('Agenda route detected with query params:', {
+        pathname: location.pathname,
+        search: location.search,
+        activeTab,
+        fullLocation: location
+      });
+    }
+  }, [location.pathname, location.search, activeTab, location]);
+
   const handleFeatureEnter = (feature: string) => {
     if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
     setHoveredFeature(feature);
