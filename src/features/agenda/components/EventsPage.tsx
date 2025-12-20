@@ -481,8 +481,24 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
 
   const getMonthAbbr = (dateString: string) => {
     const months = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
-    const date = new Date(dateString);
+    // Parsear correctamente el formato YYYY-MM-DD para evitar problemas de zona horaria
+    const [year, month] = dateString.split('-').map(Number);
+    const date = new Date(year, month - 1, 1);
     return months[date.getMonth()];
+  };
+
+  // Función para formatear fecha con día de la semana correcto
+  const formatDateWithWeekday = (dateString: string) => {
+    const [year, month, day] = dateString.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    
+    const weekdays = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+    const months = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+    
+    const weekday = weekdays[date.getDay()];
+    const monthName = months[date.getMonth()];
+    
+    return `${weekday} ${day} de ${monthName} ${year}`;
   };
 
   const getDaysInMonth = (date: Date) => {
@@ -490,7 +506,11 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
   };
 
   const getFirstDayOfMonth = (date: Date) => {
-    return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+    // getDay() devuelve 0=domingo, 1=lunes, ..., 6=sábado
+    // Pero el calendario empieza en lunes, así que ajustamos:
+    // domingo (0) -> 6, lunes (1) -> 0, martes (2) -> 1, etc.
+    const dayOfWeek = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+    return dayOfWeek === 0 ? 6 : dayOfWeek - 1;
   };
 
   const monthDays = useMemo(() => {
@@ -525,7 +545,11 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
   const visibleDays = useMemo(() => {
     if (!selectedDate) return monthDays;
 
-    const selectedDateObj = new Date(selectedDate);
+    // Parsear la fecha correctamente usando el formato YYYY-MM-DD
+    // Usar el constructor de Date con año, mes, día para evitar problemas de zona horaria
+    const [year, month, day] = selectedDate.split('-').map(Number);
+    const selectedDateObj = new Date(year, month - 1, day);
+    
     const dayLabels = ['DOM', 'LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB'];
     const visibleDaysList: Array<{ label: string; date: string; num: string; fullDate: Date; isToday: boolean }> = [];
 
@@ -543,11 +567,11 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
       const currentDate = new Date(startDate);
       currentDate.setDate(startDate.getDate() + i);
       // Usar el mismo formato que todayStr (YYYY-MM-DD en zona horaria de CDMX)
-      const year = currentDate.getFullYear();
-      const month = String(currentDate.getMonth() + 1).padStart(2, '0');
-      const day = String(currentDate.getDate()).padStart(2, '0');
-      const dateStr = `${year}-${month}-${day}`;
-      const dayNum = day;
+      const currentYear = currentDate.getFullYear();
+      const currentMonth = String(currentDate.getMonth() + 1).padStart(2, '0');
+      const currentDay = String(currentDate.getDate()).padStart(2, '0');
+      const dateStr = `${currentYear}-${currentMonth}-${currentDay}`;
+      const dayNum = currentDay;
       const currentDayOfWeek = currentDate.getDay();
       const label = dayLabels[currentDayOfWeek];
       const isToday = dateStr === todayStr;
@@ -562,14 +586,20 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
   const goToNextMonth = useCallback(() => {
     if (viewMode === 'week') {
       // En vista semanal: avanzar 7 días (una semana completa)
-      const currentSelectedDate = new Date(selectedDate);
+      // Parsear correctamente el formato YYYY-MM-DD
+      const [year, month, day] = selectedDate.split('-').map(Number);
+      const currentSelectedDate = new Date(year, month - 1, day);
       const nextWeek = new Date(currentSelectedDate);
       nextWeek.setDate(currentSelectedDate.getDate() + 7);
 
       const nextMonth = new Date(nextWeek.getFullYear(), nextWeek.getMonth(), 1);
       setCurrentMonth(nextMonth);
 
-      const nextWeekStr = nextWeek.toISOString().split('T')[0];
+      // Formatear la fecha correctamente en formato YYYY-MM-DD
+      const nextYear = nextWeek.getFullYear();
+      const nextMonthNum = String(nextWeek.getMonth() + 1).padStart(2, '0');
+      const nextDay = String(nextWeek.getDate()).padStart(2, '0');
+      const nextWeekStr = `${nextYear}-${nextMonthNum}-${nextDay}`;
       setSelectedDate(nextWeekStr);
     } else {
       // En vista mensual: cambiar al mes siguiente completo y actualizar fecha al primer día
@@ -589,14 +619,20 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
   const goToPreviousMonth = useCallback(() => {
     if (viewMode === 'week') {
       // En vista semanal: retroceder 7 días (una semana completa)
-      const currentSelectedDate = new Date(selectedDate);
+      // Parsear correctamente el formato YYYY-MM-DD
+      const [year, month, day] = selectedDate.split('-').map(Number);
+      const currentSelectedDate = new Date(year, month - 1, day);
       const previousWeek = new Date(currentSelectedDate);
       previousWeek.setDate(currentSelectedDate.getDate() - 7);
 
       const prevMonth = new Date(previousWeek.getFullYear(), previousWeek.getMonth(), 1);
       setCurrentMonth(prevMonth);
 
-      const previousWeekStr = previousWeek.toISOString().split('T')[0];
+      // Formatear la fecha correctamente en formato YYYY-MM-DD
+      const prevYear = previousWeek.getFullYear();
+      const prevMonthNum = String(previousWeek.getMonth() + 1).padStart(2, '0');
+      const prevDay = String(previousWeek.getDate()).padStart(2, '0');
+      const previousWeekStr = `${prevYear}-${prevMonthNum}-${prevDay}`;
       setSelectedDate(previousWeekStr);
     } else {
       // En vista mensual: cambiar al mes anterior completo y actualizar fecha al primer día
@@ -931,7 +967,7 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
                       <div className="flex items-center gap-4 mb-6" style={{ width: '100%', maxWidth: '100%', overflow: 'hidden' }}>
                         <div className="w-3 h-3 bg-black rounded-full animate-pulse flex-shrink-0" />
                         <h2 className="text-xl md:text-2xl font-bold uppercase tracking-tight break-words" style={{ wordBreak: 'break-word', overflow: 'hidden', flex: 1, minWidth: 0 }}>
-                          {new Date(selectedDate + 'T00:00:00').toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' })}
+                          {formatDateWithWeekday(selectedDate)}
                         </h2>
                       </div>
 
@@ -1066,7 +1102,7 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
               <div className="flex items-center gap-4 mb-8">
                 <div className="w-3 h-3 bg-black rounded-full animate-pulse" />
                 <h2 className="text-2xl font-bold uppercase tracking-tight">
-                  {new Date(selectedDate).toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' })}
+                  {formatDateWithWeekday(selectedDate)}
                 </h2>
               </div>
 
