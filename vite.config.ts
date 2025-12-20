@@ -9,7 +9,10 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: './src/test/setup.ts',
   },
-  base: process.env.GITHUB_ACTIONS ? '/mapeo-verde/' : '/',
+  // Para GitHub Pages sin dominio personalizado: '/mapeo-verde/'
+  // Para dominio personalizado (mapeoverde.org): '/' (GitHub Pages lo maneja automáticamente)
+  // Usamos '/' porque con dominio personalizado GitHub Pages sirve desde la raíz
+  base: process.env.GITHUB_ACTIONS && !process.env.CUSTOM_DOMAIN ? '/mapeo-verde/' : '/',
   plugins: [react()],
   resolve: {
     extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
@@ -61,7 +64,9 @@ export default defineConfig({
   build: {
     target: 'esnext',
     outDir: 'build',
+    copyPublicDir: true,
   },
+  publicDir: 'public',
   server: {
     port: 3000,
     open: true,

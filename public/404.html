@@ -8,8 +8,22 @@
     <script>
       // Single Page Apps for GitHub Pages
       // This script redirects to index.html with the current path as a query parameter
+      // BUT only for application routes, not for static assets (JS, CSS, images, etc.)
       (function() {
         var path = window.location.pathname;
+        
+        // Don't redirect if this is a static asset request
+        // Check for common asset file extensions
+        var assetExtensions = ['.js', '.css', '.json', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.woff', '.woff2', '.ttf', '.eot', '.map'];
+        var isAsset = assetExtensions.some(function(ext) {
+          return path.toLowerCase().endsWith(ext);
+        });
+        
+        // Don't redirect if it's an asset or if it's already index.html
+        if (isAsset || path.endsWith('/index.html') || path.endsWith('index.html')) {
+          return;
+        }
+        
         var basePath = '/mapeo-verde';
         var isGitHubPages = path.includes(basePath);
         
