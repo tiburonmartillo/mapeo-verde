@@ -4,23 +4,34 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Mapeo Verde</title>
-    <link rel="icon" type="image/svg+xml" href="/mapeo-verde/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <script>
       // Single Page Apps for GitHub Pages
       // This script redirects to index.html with the current path as a query parameter
       (function() {
         var path = window.location.pathname;
-        var segments = path.split('/').filter(Boolean);
         var basePath = '/mapeo-verde';
+        var isGitHubPages = path.includes(basePath);
         
-        // Extract the path after /mapeo-verde
-        var appPath = path.replace(basePath, '') || '/';
+        // Determine the base path and app path
+        var appPath;
+        var indexPath;
+        
+        if (isGitHubPages) {
+          // Extract the path after /mapeo-verde
+          appPath = path.replace(basePath, '') || '/';
+          indexPath = basePath + '/index.html';
+        } else {
+          // For production domain (mapeoverde.org) or local development
+          appPath = path || '/';
+          indexPath = '/index.html';
+        }
+        
         var search = window.location.search;
         var hash = window.location.hash;
         
         // Redirect to index.html with the path as a query parameter
-        var redirect = basePath + '/index.html';
-        var newURL = redirect + '?redirect=' + encodeURIComponent(appPath + search + hash);
+        var newURL = indexPath + '?redirect=' + encodeURIComponent(appPath + search + hash);
         
         window.location.replace(newURL);
       })();

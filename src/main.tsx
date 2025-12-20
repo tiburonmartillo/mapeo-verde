@@ -26,11 +26,35 @@ const RedirectHandler = () => {
     const redirectPath = urlParams.get('redirect');
     
     if (redirectPath) {
-      // Remove the redirect parameter from URL
-      const newURL = window.location.pathname + window.location.hash;
-      window.history.replaceState({}, '', newURL);
+      // Clean the redirect parameter from URL
+      const cleanPath = redirectPath.split('?')[0]; // Remove query params if any
+      const cleanURL = cleanPath.split('#')[0]; // Remove hash if any
+      
+      // Preserve query params and hash from redirectPath if they exist
+      const urlParts = redirectPath.split('?');
+      const queryPart = urlParts[1]?.split('#')[0] || '';
+      const hashPart = redirectPath.includes('#') ? redirectPath.split('#')[1] : '';
+      
+      // Build the final URL
+      let finalPath = cleanURL;
+      if (queryPart) {
+        finalPath += '?' + queryPart;
+      }
+      if (hashPart) {
+        finalPath += '#' + hashPart;
+      }
+      
+      // Remove the redirect parameter from current URL and navigate
+      const currentPath = window.location.pathname;
+      const currentSearch = window.location.search.replace(/[?&]redirect=[^&]*/, '').replace(/^&/, '?');
+      const currentHash = window.location.hash;
+      const cleanCurrentURL = currentPath + (currentSearch || '') + currentHash;
+      
+      // Update URL without redirect parameter
+      window.history.replaceState({}, '', cleanCurrentURL);
+      
       // Navigate to the intended path
-      navigate(redirectPath, { replace: true });
+      navigate(finalPath, { replace: true });
     }
   }, [navigate]);
   

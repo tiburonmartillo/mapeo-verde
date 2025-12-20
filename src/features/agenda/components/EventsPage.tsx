@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo, useContext, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Calendar, ChevronLeft, ChevronRight, MapPin, Download, ExternalLink, ArrowRight, TreePine, MessageCircle, Image, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import * as Popover from '@radix-ui/react-popover';
@@ -246,6 +247,7 @@ const CalendarEventPopover = ({ event, baseUrl, handleShareToInstagram }: { even
 const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
   const { events: EVENTS_DATA = [], pastEvents: PAST_EVENTS_DATA = [] } = useContext(DataContext) as any;
   // const accentColor = useAccentColor();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
 
   // Obtener la fecha de hoy en zona horaria de CDMX en formato YYYY-MM-DD
@@ -282,10 +284,68 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
   }, []);
 
   const today = getTodayDate();
-  const [selectedDate, setSelectedDate] = useState(todayStr);
+  
+  // Inicializar selectedDate desde URL, localStorage o fecha de hoy
+  const getInitialSelectedDate = useCallback(() => {
+    // Primero intentar desde URL
+    const urlDate = searchParams.get('date');
+    if (urlDate && /^\d{4}-\d{2}-\d{2}$/.test(urlDate)) {
+      return urlDate;
+    }
+    // Luego intentar desde localStorage
+    const storedDate = localStorage.getItem('agenda-selected-date');
+    if (storedDate && /^\d{4}-\d{2}-\d{2}$/.test(storedDate)) {
+      return storedDate;
+    }
+    // Por defecto usar hoy
+    return todayStr;
+  }, [searchParams, todayStr]);
+
+  // Inicializar currentMonth desde URL, localStorage o mes actual
+  const getInitialCurrentMonth = useCallback(() => {
+    const urlDate = searchParams.get('date');
+    const storedDate = localStorage.getItem('agenda-selected-date');
+    const dateToUse = urlDate || storedDate || todayStr;
+    
+    if (dateToUse && /^\d{4}-\d{2}-\d{2}$/.test(dateToUse)) {
+      const [year, month] = dateToUse.split('-').map(Number);
+      return new Date(year, month - 1, 1);
+    }
+    return new Date(today.getFullYear(), today.getMonth(), 1);
+  }, [searchParams, today, todayStr]);
+
+  const [selectedDate, setSelectedDate] = useState(getInitialSelectedDate);
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const [expandedEventId, setExpandedEventId] = useState<string | null>(null);
-  const [currentMonth, setCurrentMonth] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
+  const [currentMonth, setCurrentMonth] = useState(getInitialCurrentMonth);
+
+  // Sincronizar selectedDate con URL y localStorage
+  useEffect(() => {
+    if (selectedDate) {
+      // Actualizar URL sin recargar la página
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.set('date', selectedDate);
+      setSearchParams(newSearchParams, { replace: true });
+      
+      // Guardar en localStorage
+      localStorage.setItem('agenda-selected-date', selectedDate);
+    }
+  }, [selectedDate, searchParams, setSearchParams]);
+
+  // Sincronizar currentMonth cuando cambia selectedDate (solo si la fecha está en un mes diferente)
+  useEffect(() => {
+    if (selectedDate && /^\d{4}-\d{2}-\d{2}$/.test(selectedDate)) {
+      const [year, month] = selectedDate.split('-').map(Number);
+      const selectedMonth = new Date(year, month - 1, 1);
+      const currentMonthTime = currentMonth.getTime();
+      const selectedMonthTime = selectedMonth.getTime();
+      
+      // Solo actualizar si el mes es diferente
+      if (selectedMonthTime !== currentMonthTime) {
+        setCurrentMonth(selectedMonth);
+      }
+    }
+  }, [selectedDate]); // Removido currentMonth de las dependencias para evitar loops
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const selectedDayRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
   const [navbarHeight, setNavbarHeight] = useState(64);
@@ -512,9 +572,16 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
       const nextWeekStr = nextWeek.toISOString().split('T')[0];
       setSelectedDate(nextWeekStr);
     } else {
-      // En vista mensual: cambiar al mes siguiente completo
+      // En vista mensual: cambiar al mes siguiente completo y actualizar fecha al primer día
       const nextMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1);
       setCurrentMonth(nextMonth);
+      
+      // Actualizar fecha seleccionada al primer día del nuevo mes
+      const year = nextMonth.getFullYear();
+      const month = String(nextMonth.getMonth() + 1).padStart(2, '0');
+      const day = '01';
+      const newDateStr = `${year}-${month}-${day}`;
+      setSelectedDate(newDateStr);
     }
   }, [selectedDate, viewMode, currentMonth]);
 
@@ -532,9 +599,16 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
       const previousWeekStr = previousWeek.toISOString().split('T')[0];
       setSelectedDate(previousWeekStr);
     } else {
-      // En vista mensual: cambiar al mes anterior completo
+      // En vista mensual: cambiar al mes anterior completo y actualizar fecha al primer día
       const prevMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1);
       setCurrentMonth(prevMonth);
+      
+      // Actualizar fecha seleccionada al primer día del nuevo mes
+      const year = prevMonth.getFullYear();
+      const month = String(prevMonth.getMonth() + 1).padStart(2, '0');
+      const day = '01';
+      const newDateStr = `${year}-${month}-${day}`;
+      setSelectedDate(newDateStr);
     }
   }, [selectedDate, viewMode, currentMonth]);
 
