@@ -21,6 +21,7 @@ const NewslettersPage = React.lazy(() => import('./features/newsletters/componen
 const GazettesPage = React.lazy(() => import('./features/gazettes/components/GazettesPage'));
 const ParticipationPage = React.lazy(() => import('./features/participation/components/ParticipationPage'));
 const ManifestoPage = React.lazy(() => import('./features/manifesto/components/ManifestoPage'));
+const LinktreePage = React.lazy(() => import('./features/linktree/components/LinktreePage'));
 
 import { FeaturePreview } from './features/home/components';
 
@@ -211,6 +212,16 @@ const ManifestoPageWrapper = () => {
   );
 };
 
+const LinktreePageWrapper = () => {
+  return (
+    <div className="min-h-screen bg-[#f3f4f0] font-sans">
+      <React.Suspense fallback={<PageLoader />}>
+        <LinktreePage />
+      </React.Suspense>
+    </div>
+  );
+};
+
 export default function App() {
   return (
     <DataProvider>
@@ -225,6 +236,7 @@ export default function App() {
         <Route path="/gacetas" element={<MainApp />} />
         <Route path="/participacion" element={<MainApp />} />
         <Route path="/manifiesto" element={<ManifestoPageWrapper />} />
+        <Route path="/links" element={<LinktreePageWrapper />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </DataProvider>
