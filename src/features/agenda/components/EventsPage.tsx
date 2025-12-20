@@ -287,17 +287,21 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
   
   // Inicializar selectedDate desde URL, localStorage o fecha de hoy
   const getInitialSelectedDate = useCallback(() => {
-    // Primero intentar desde URL
+    // Primero intentar desde URL (tiene prioridad)
     const urlDate = searchParams.get('date');
     if (urlDate && /^\d{4}-\d{2}-\d{2}$/.test(urlDate)) {
       return urlDate;
     }
-    // Luego intentar desde localStorage
+    // Si no hay parámetro en URL, verificar localStorage
     const storedDate = localStorage.getItem('agenda-selected-date');
     if (storedDate && /^\d{4}-\d{2}-\d{2}$/.test(storedDate)) {
-      return storedDate;
+      // Solo usar localStorage si la fecha almacenada no es hoy
+      // Si es hoy, ignorar localStorage y usar hoy (para evitar agregar parámetro date innecesariamente)
+      if (storedDate !== todayStr) {
+        return storedDate;
+      }
     }
-    // Por defecto usar hoy
+    // Por defecto usar hoy (sin parámetro en URL)
     return todayStr;
   }, [searchParams, todayStr]);
 
@@ -320,17 +324,33 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
   const [currentMonth, setCurrentMonth] = useState(getInitialCurrentMonth);
 
   // Sincronizar selectedDate con URL y localStorage
+  // Solo agregar parámetro 'date' a la URL cuando el usuario selecciona explícitamente un día que no es hoy
   useEffect(() => {
-    if (selectedDate) {
-      // Actualizar URL sin recargar la página
-      const newSearchParams = new URLSearchParams(searchParams);
-      newSearchParams.set('date', selectedDate);
-      setSearchParams(newSearchParams, { replace: true });
-      
-      // Guardar en localStorage
+    if (!selectedDate) return;
+    
+    const newSearchParams = new URLSearchParams(searchParams);
+    const currentDateParam = newSearchParams.get('date');
+    const isToday = selectedDate === getTodayInCdmx();
+    
+    // Si la fecha seleccionada es hoy, asegurar que no haya parámetro date en la URL
+    if (isToday) {
+      if (currentDateParam) {
+        // Remover el parámetro date si existe
+        newSearchParams.delete('date');
+        setSearchParams(newSearchParams, { replace: true });
+      }
+      // Limpiar localStorage si es hoy
+      localStorage.removeItem('agenda-selected-date');
+    } else {
+      // Si no es hoy, agregar/actualizar el parámetro date solo si es diferente al actual
+      if (currentDateParam !== selectedDate) {
+        newSearchParams.set('date', selectedDate);
+        setSearchParams(newSearchParams, { replace: true });
+      }
+      // Guardar en localStorage solo si no es hoy
       localStorage.setItem('agenda-selected-date', selectedDate);
     }
-  }, [selectedDate, searchParams, setSearchParams]);
+  }, [selectedDate, searchParams, setSearchParams, getTodayInCdmx]);
 
   // Sincronizar currentMonth cuando cambia selectedDate (solo si la fecha está en un mes diferente)
   useEffect(() => {

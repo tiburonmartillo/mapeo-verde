@@ -57,6 +57,19 @@ const MainApp = () => {
   const [hoveredFeature, setHoveredFeature] = useState<string | null>(null);
   const hoverTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
+  // Limpiar parámetro 'date' de la URL si no estás en agenda
+  useEffect(() => {
+    const isAgendaPage = location.pathname === '/agenda' || location.pathname.startsWith('/agenda/');
+    const searchParams = new URLSearchParams(location.search);
+    
+    if (!isAgendaPage && searchParams.has('date')) {
+      searchParams.delete('date');
+      const newSearch = searchParams.toString();
+      const newPath = location.pathname + (newSearch ? `?${newSearch}` : '') + location.hash;
+      navigate(newPath, { replace: true });
+    }
+  }, [location.pathname, location.search, location.hash, navigate]);
+
   // SEO dinámico según la ruta
   useSEO();
 
@@ -100,7 +113,18 @@ const MainApp = () => {
       else if (tab === 'NEWSLETTERS') navigate(`/boletines?project=${id}`);
       else if (tab === 'GAZETTES') navigate(`/gacetas?project=${id}`);
     } else {
-      navigate(TAB_ROUTES[tab as keyof typeof TAB_ROUTES] || '/');
+      const targetRoute = TAB_ROUTES[tab as keyof typeof TAB_ROUTES] || '/';
+      // Si navegamos fuera de agenda, asegurar que no haya parámetro date en la URL
+      if (tab !== 'AGENDA' && location.search) {
+        const searchParams = new URLSearchParams(location.search);
+        if (searchParams.has('date')) {
+          searchParams.delete('date');
+          const cleanSearch = searchParams.toString();
+          navigate(targetRoute + (cleanSearch ? `?${cleanSearch}` : ''), { replace: true });
+          return;
+        }
+      }
+      navigate(targetRoute);
     }
   };
 
