@@ -134,7 +134,7 @@ const HeroSection = () => {
                 hidden: { opacity: 0, y: 20 },
                 visible: { opacity: 1, y: 0 }
               }}
-              className="text-xl md:text-2xl font-serif max-w-lg leading-relaxed text-gray-800"
+              className="text-xl md:text-2xl font-serif max-w-2xl leading-relaxed text-gray-800"
             >
               Combatimos la desigualdad ambiental con datos abiertos. Una herramienta para visibilizar, proteger y expandir nuestras áreas verdes.
             </motion.p>

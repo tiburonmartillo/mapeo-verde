@@ -285,31 +285,23 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
 
   const today = getTodayDate();
   
-  // Inicializar selectedDate desde URL, localStorage o fecha de hoy
+  // Inicializar selectedDate solo desde URL o fecha de hoy
+  // No usar localStorage para que al volver a agenda se reinicie a hoy
   const getInitialSelectedDate = useCallback(() => {
-    // Primero intentar desde URL (tiene prioridad)
+    // Solo usar el parámetro de la URL si existe
     const urlDate = searchParams.get('date');
     if (urlDate && /^\d{4}-\d{2}-\d{2}$/.test(urlDate)) {
       return urlDate;
     }
-    // Si no hay parámetro en URL, verificar localStorage
-    const storedDate = localStorage.getItem('agenda-selected-date');
-    if (storedDate && /^\d{4}-\d{2}-\d{2}$/.test(storedDate)) {
-      // Solo usar localStorage si la fecha almacenada no es hoy
-      // Si es hoy, ignorar localStorage y usar hoy (para evitar agregar parámetro date innecesariamente)
-      if (storedDate !== todayStr) {
-        return storedDate;
-      }
-    }
-    // Por defecto usar hoy (sin parámetro en URL)
+    // Si no hay parámetro en URL, usar hoy (no usar localStorage)
     return todayStr;
   }, [searchParams, todayStr]);
 
-  // Inicializar currentMonth desde URL, localStorage o mes actual
+  // Inicializar currentMonth solo desde URL o mes actual
+  // No usar localStorage para que al volver a agenda se reinicie
   const getInitialCurrentMonth = useCallback(() => {
     const urlDate = searchParams.get('date');
-    const storedDate = localStorage.getItem('agenda-selected-date');
-    const dateToUse = urlDate || storedDate || todayStr;
+    const dateToUse = urlDate || todayStr;
     
     if (dateToUse && /^\d{4}-\d{2}-\d{2}$/.test(dateToUse)) {
       const [year, month] = dateToUse.split('-').map(Number);
@@ -323,9 +315,9 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
   const [expandedEventId, setExpandedEventId] = useState<string | null>(null);
   const [currentMonth, setCurrentMonth] = useState(getInitialCurrentMonth);
 
-  // Sincronizar selectedDate con URL y localStorage
-  // Solo agregar parámetro 'date' a la URL cuando el usuario selecciona explícitamente un día que no es hoy
-  // Y solo si estamos en la ruta de agenda
+  // Sincronizar selectedDate con URL (solo en agenda)
+  // Solo agregar parámetro 'date' a la URL cuando el usuario selecciona un día que no es hoy
+  // No usar localStorage para que al volver a agenda se reinicie
   useEffect(() => {
     if (!selectedDate) return;
     
@@ -349,17 +341,15 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
         newSearchParams.delete('date');
         setSearchParams(newSearchParams, { replace: true });
       }
-      // Limpiar localStorage si es hoy
-      localStorage.removeItem('agenda-selected-date');
     } else {
       // Si no es hoy, agregar/actualizar el parámetro date solo si es diferente al actual
+      // Esto permite que al recargar la página, se mantenga el día seleccionado
       if (currentDateParam !== selectedDate) {
         newSearchParams.set('date', selectedDate);
         setSearchParams(newSearchParams, { replace: true });
       }
-      // Guardar en localStorage solo si no es hoy
-      localStorage.setItem('agenda-selected-date', selectedDate);
     }
+    // No usar localStorage - solo la URL mantiene el estado durante la sesión en agenda
   }, [selectedDate, searchParams, setSearchParams, getTodayInCdmx]);
 
   // Sincronizar currentMonth cuando cambia selectedDate (solo si la fecha está en un mes diferente)
