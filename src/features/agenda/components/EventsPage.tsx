@@ -1201,6 +1201,32 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
         </div>
       )}
 
+      {/* Sección de suscripción al calendario */}
+      <div className="bg-white border-t-4 border-black py-16 px-6">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="inline-block bg-[#b4ff6f] border-2 border-black px-4 py-1 font-mono text-xs uppercase tracking-widest mb-6">
+            Calendario de Google
+          </div>
+          <h2 className="text-3xl md:text-5xl font-black mb-4 leading-[0.9] tracking-tighter text-black">
+            SUSCRÍBETE AL<br />CALENDARIO
+          </h2>
+          <p className="font-serif text-lg mb-8 max-w-2xl mx-auto leading-relaxed text-gray-700">
+            Agrega todos los eventos ambientales directamente a tu calendario de Google Calendar. 
+            Los eventos se actualizarán automáticamente.
+          </p>
+          <a
+            href="https://calendar.google.com/calendar/u/0/embed?src=bce9da9cb33f280d49d3962f712747a07d9728d2954bac9d0c24db0c08f16470@group.calendar.google.com&ctz=America%2FMexico_City"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 bg-black text-white px-8 py-4 text-base font-bold uppercase tracking-widest hover:bg-[#b4ff6f] hover:text-black border-2 border-black transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none"
+          >
+            <Calendar size={20} />
+            Agregar a Google Calendar
+            <ExternalLink size={16} />
+          </a>
+        </div>
+      </div>
+
       <div className="border-t-4 border-black bg-white">
         <div className="max-w-6xl mx-auto px-6 py-20">
           <div className="flex items-end justify-between mb-12 gap-4 border-b border-black pb-4">

@@ -97,12 +97,16 @@ const NavBar = ({ activeTab, onNavigate }: NavBarProps) => {
 
       {/* Desktop Navbar - Sticky (only visible on desktop) */}
       <motion.div
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        transition={{ type: "spring", damping: 20, stiffness: 100 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
         className="hidden md:block sticky top-0 z-50"
         data-navbar-desktop
-        style={{ position: 'sticky', top: 0, zIndex: 50 }}
+        style={{ 
+          position: 'sticky', 
+          top: 0, 
+          zIndex: 50
+        }}
       >
         <nav
           aria-label="Navegación principal"
@@ -119,9 +123,9 @@ const NavBar = ({ activeTab, onNavigate }: NavBarProps) => {
           {tabs.map((tab, idx) => (
             <motion.button
               key={tab.id}
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 + idx * 0.05 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.1 + idx * 0.05, duration: 0.2 }}
               onClick={() => onNavigate(tab.id)}
               aria-current={activeTab === tab.id ? "page" : undefined}
               className={`
