@@ -188,11 +188,12 @@ const GazettesPage = () => {
 
       {/* Toolbar - Sticky Top */}
       <div
-        className="sticky z-30 shadow-sm p-4 border-b border-black bg-white flex flex-col md:flex-row gap-4 items-center justify-between transition-[top] duration-300 ease-in-out"
+        className="sticky z-30 shadow-sm p-4 border-b border-black bg-white flex flex-col md:flex-row gap-4 items-center justify-between"
         style={{
-          top: `${navbarHeight}px`,
+          top: isMobile ? `${navbarHeight}px` : '64px', // En desktop usar altura fija del navbar
           zIndex: 30,
-          position: 'sticky'
+          position: 'sticky',
+          transition: isMobile ? 'top 0.3s ease-in-out' : 'none' // Solo transición en móvil
         }}
       >
         <div className="flex gap-4 w-full md:max-w-2xl">
