@@ -314,8 +314,8 @@ function mapICalEventToAppEvent(event: ICAL.Event, index: number): GoogleCalenda
 export async function fetchGoogleCalendarEvents(): Promise<GoogleCalendarEvent[]> {
   try {
     const calendarUrl = import.meta.env.VITE_GOOGLE_CALENDAR_ICAL_URL || GOOGLE_CALENDAR_ICAL_URL;
-    // Detectar si estamos en desarrollo (localhost) o producción
-    const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    // Usar import.meta.env.DEV para detectar el entorno correctamente
+    const isDevelopment = import.meta.env.DEV;
     
     console.log('🔧 Entorno detectado:', {
       hostname: window.location.hostname,
@@ -326,6 +326,7 @@ export async function fetchGoogleCalendarEvents(): Promise<GoogleCalendarEvent[]
     });
     
     let response: Response;
+    let icalData: string;
     
     if (isDevelopment) {
       // En desarrollo, usar el proxy de Vite
@@ -337,46 +338,98 @@ export async function fetchGoogleCalendarEvents(): Promise<GoogleCalendarEvent[]
           'Accept': 'text/calendar',
         },
       });
+      
+      if (!response || !response.ok) {
+        throw new Error(`HTTP error! status: ${response?.status || 'unknown'}`);
+      }
+      
+      icalData = await response.text();
     } else {
-      // En producción, usar proxy público para evitar CORS
+      // En producción, intentar múltiples estrategias
       console.log('📅 Cargando eventos desde Google Calendar (producción):', calendarUrl);
       
-      // Usar proxy público
-      const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(calendarUrl)}`;
-      console.log('🔄 Usando proxy público:', proxyUrl);
-      
+      // Estrategia 1: Intentar usar la URL directa primero (si el calendario es público, puede funcionar)
       try {
-        response = await fetch(proxyUrl, {
+        console.log('🔄 Intentando URL directa del calendario...');
+        response = await fetch(calendarUrl, {
           method: 'GET',
           headers: {
             'Accept': 'text/calendar',
           },
           mode: 'cors',
         });
-        console.log('✅ Respuesta del proxy:', response.status, response.statusText);
-      } catch (fetchError: any) {
-        console.error('❌ Error al hacer fetch con proxy:', fetchError);
-        throw fetchError;
-      }
-    }
-
-    if (!response || !response.ok) {
-      throw new Error(`HTTP error! status: ${response?.status || 'unknown'}`);
-    }
-
-    let icalData = await response.text();
-    
-    // Si estamos usando allorigins.win, puede devolver JSON con el contenido
-    if (!isDevelopment && icalData.trim().startsWith('{')) {
-      try {
-        const jsonData = JSON.parse(icalData);
-        if (jsonData.contents) {
-          icalData = jsonData.contents;
-          console.log('📦 Contenido extraído del JSON del proxy');
+        
+        if (response && response.ok) {
+          icalData = await response.text();
+          console.log('✅ URL directa funcionó');
+        } else {
+          throw new Error(`Direct URL failed: ${response?.status || 'unknown'}`);
         }
-      } catch (e) {
-        // Si no es JSON válido, usar el texto tal cual
-        console.log('ℹ️ Respuesta no es JSON, usando texto directo');
+      } catch (directError) {
+        console.log('⚠️ URL directa falló, intentando proxy público...', directError);
+        
+        // Estrategia 2: Usar proxy público allorigins.win
+        try {
+          const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(calendarUrl)}`;
+          console.log('🔄 Usando proxy público allorigins.win:', proxyUrl);
+          
+          response = await fetch(proxyUrl, {
+            method: 'GET',
+            headers: {
+              'Accept': 'text/calendar',
+            },
+            mode: 'cors',
+          });
+          
+          if (!response || !response.ok) {
+            throw new Error(`Proxy error! status: ${response?.status || 'unknown'}`);
+          }
+          
+          icalData = await response.text();
+          console.log('✅ Respuesta del proxy recibida:', response.status, response.statusText);
+          
+          // Si el proxy devuelve JSON con el contenido
+          if (icalData.trim().startsWith('{')) {
+            try {
+              const jsonData = JSON.parse(icalData);
+              if (jsonData.contents) {
+                icalData = jsonData.contents;
+                console.log('📦 Contenido extraído del JSON del proxy');
+              } else if (jsonData.status && jsonData.status.http_code !== 200) {
+                throw new Error(`Proxy returned error: ${jsonData.status.http_code}`);
+              }
+            } catch (jsonError) {
+              console.warn('⚠️ Error parseando JSON del proxy, intentando como texto directo');
+              // Si no es JSON válido, puede que sea texto directo
+            }
+          }
+        } catch (proxyError) {
+          console.error('❌ Error con proxy público:', proxyError);
+          
+          // Estrategia 3: Intentar con otro proxy alternativo (corsproxy.io)
+          try {
+            const altProxyUrl = `https://corsproxy.io/?${encodeURIComponent(calendarUrl)}`;
+            console.log('🔄 Intentando proxy alternativo corsproxy.io...');
+            
+            response = await fetch(altProxyUrl, {
+              method: 'GET',
+              headers: {
+                'Accept': 'text/calendar',
+              },
+              mode: 'cors',
+            });
+            
+            if (!response || !response.ok) {
+              throw new Error(`Alt proxy error! status: ${response?.status || 'unknown'}`);
+            }
+            
+            icalData = await response.text();
+            console.log('✅ Proxy alternativo funcionó');
+          } catch (altProxyError) {
+            console.error('❌ Todos los métodos fallaron:', altProxyError);
+            throw new Error('No se pudo cargar el calendario desde ninguna fuente');
+          }
+        }
       }
     }
     

@@ -41610,6 +41610,32 @@
       "secretario": "LIC. SARAHI MACIAS ALICEA",
       "resolutivos_emitidos": [],
       "id": 460
+    },
+    {
+      "proyectos_ingresados": [
+        {
+          "numero": 1,
+          "tipo_estudio": "MIA",
+          "promovente": "C. TALCO MIRELES ROMO. SINDICO MUNICIPAL DE SAN FRANCISCO DE LOS ROMO, AGS.",
+          "nombre_proyecto": "PANTEON SAN FRANCISCO DE ASIS",
+          "naturaleza_proyecto": "El proyecto consiste en la preparación del sitio y construcción para el establecimiento de un Panteón Municipal en el estado de Aguascalientes, particularmente en el Municipio de San Francisco de los Romo, el cual pretende ser ubicado en un predio de poco más de 2.4 hectáreas (24,978.79m2).",
+          "giro": "COMERCIAL Y DE SERVICIOS",
+          "municipio": "SAN FRANCISCO DE LOS ROMO",
+          "coordenadas_x": 779433.68,
+          "coordenadas_y": 2443357.83,
+          "expediente": "SSMAA-DIRA-2841-2025",
+          "fecha_ingreso": "2025-12-16",
+          "boletin_id": 461
+        }
+      ],
+      "cantidad_ingresados": 1,
+      "fecha_publicacion": "2025-12-16",
+      "cantidad_resolutivos": 0,
+      "resolutivos_emitidos": [],
+      "secretario": "LIC. SARAHI MACIAS ALICEA",
+      "filename": "https://www.aguascalientes.gob.mx/SSMAA/BoletinesSMA/Repositorio/2025/12%20Diciembre/BOLETIN51-2025_23%20DE%20DICIEMBRE_DEL01512_1912.pdf",
+      "director": "T.S.U. LUIS MEDINA HERNÁNDEZ",
+      "id": 461
     }
   ],
   "metadata": {
