@@ -247,12 +247,11 @@ const GreenAreasPage = ({ onSelectArea }: GreenAreasPageProps) => {
 
       <div 
         ref={toolbarRef}
-        className="sticky z-30 shadow-sm p-4 border-b border-black bg-white flex flex-col md:flex-row gap-4 items-center justify-between" 
+        className="sticky z-30 shadow-sm p-4 border-b border-black bg-white flex flex-col md:flex-row gap-4 items-center justify-between transition-[top] duration-300 ease-in-out" 
         style={{ 
-          top: isMobile ? `${navbarHeight}px` : '64px', // En desktop usar altura fija del navbar
+          top: `${navbarHeight}px`,
           zIndex: 30,
-          position: 'sticky',
-          transition: isMobile ? 'top 0.3s ease-in-out' : 'none' // Solo transición en móvil
+          position: 'sticky'
         }}
       >
         <div className="flex gap-4 w-full md:max-w-2xl">
