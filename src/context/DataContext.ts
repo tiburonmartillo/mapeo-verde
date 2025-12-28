@@ -134,6 +134,7 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
                   content = pageData.content;
                   images = pageData.images || [];
                 } catch (contentError: any) {
+                  // Error obteniendo contenido, continuar sin contenido
                 }
               }
               
@@ -153,8 +154,14 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
           );
           pastEvents = pastEventsWithContent;
         } else {
+          // Verificar si hay un error registrado
+          if (typeof window !== 'undefined' && (window as any).__NOTION_ERROR__) {
+            // Las variables de entorno no están configuradas o hay un error
+            // Usar datos estáticos como fallback
+          }
         }
       } catch (notionError: any) {
+        // Error cargando desde Notion, usar datos estáticos
       }
 
       // Usar datos estáticos para áreas verdes

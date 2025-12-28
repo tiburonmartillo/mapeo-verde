@@ -20,8 +20,12 @@ export async function fetchNotionPages(databaseId?: string): Promise<NotionPage[
     const isDevelopment = import.meta.env.DEV;
     const notionApiKey = import.meta.env.VITE_NOTION_API_KEY;
     
-    
+    // Verificar que las variables estén disponibles
     if (!notionDatabaseId) {
+      // En producción, registrar el error en window para debugging
+      if (!isDevelopment && typeof window !== 'undefined') {
+        (window as any).__NOTION_ERROR__ = 'VITE_NOTION_DATABASE_ID no está configurada';
+      }
       return [];
     }
     
@@ -30,13 +34,24 @@ export async function fetchNotionPages(databaseId?: string): Promise<NotionPage[
       if (notionApiKey) {
         return await fetchFromNotionAPI(notionDatabaseId, notionApiKey, '/api/notion');
       } else {
+        if (typeof window !== 'undefined') {
+          (window as any).__NOTION_ERROR__ = 'VITE_NOTION_API_KEY no está configurada en desarrollo';
+        }
         return [];
       }
     } else {
       // En producción, intentar múltiples estrategias
       if (notionApiKey) {
         // Estrategia 1: Usar API key directamente (sin servidor)
-        return await fetchFromNotionAPI(notionDatabaseId, notionApiKey);
+        try {
+          return await fetchFromNotionAPI(notionDatabaseId, notionApiKey);
+        } catch (apiError: any) {
+          // Registrar error para debugging
+          if (typeof window !== 'undefined') {
+            (window as any).__NOTION_ERROR__ = `Error de Notion API: ${apiError.message}`;
+          }
+          throw apiError;
+        }
       }
       
       // Estrategia 2: Usar servidor Supabase si está configurado
@@ -53,15 +68,29 @@ export async function fetchNotionPages(databaseId?: string): Promise<NotionPage[
       }
       
       if (serverUrl) {
-        return await fetchFromNotionAPI(notionDatabaseId, '', `${serverUrl}/make-server-183eaf28/notion`);
+        try {
+          return await fetchFromNotionAPI(notionDatabaseId, '', `${serverUrl}/make-server-183eaf28/notion`);
+        } catch (serverError: any) {
+          if (typeof window !== 'undefined') {
+            (window as any).__NOTION_ERROR__ = `Error con servidor Supabase: ${serverError.message}`;
+          }
+          throw serverError;
+        }
       }
       
-      // Si no hay API key ni servidor, mostrar error claro
+      // Si no hay API key ni servidor, registrar error
+      if (typeof window !== 'undefined') {
+        (window as any).__NOTION_ERROR__ = 'VITE_NOTION_API_KEY y VITE_SERVER_URL no están configuradas';
+      }
     }
     
     // Fallback: retornar array vacío
     return [];
-  } catch (error) {
+  } catch (error: any) {
+    // Registrar error para debugging
+    if (typeof window !== 'undefined') {
+      (window as any).__NOTION_ERROR__ = error?.message || 'Error desconocido obteniendo páginas de Notion';
+    }
     return [];
   }
 }
