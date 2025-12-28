@@ -76,7 +76,10 @@ const MainApp = () => {
   // Extract ID from URL if present
   const pathParts = location.pathname.split('/').filter(Boolean);
   const isDetailPage = pathParts.length === 2 && (pathParts[0] === 'areas-verdes' || pathParts[0] === 'agenda');
-  const detailId = isDetailPage ? parseInt(pathParts[1], 10) : null;
+  // Para agenda, el ID puede ser string (Notion UUID) o número; para áreas verdes, es número
+  const detailId = isDetailPage 
+    ? (pathParts[0] === 'agenda' ? pathParts[1] : parseInt(pathParts[1], 10))
+    : null;
   const detailType = isDetailPage ? pathParts[0] : null;
 
   // Debug: Log routing info (can be removed later)

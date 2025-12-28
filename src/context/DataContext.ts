@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback, JSX } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { GREEN_AREAS_DATA, EVENTS_DATA, PAST_EVENTS_DATA } from '../data/static';
 import { mapBoletinesToProjects, mapGacetasToDataset } from '../utils/helpers';
 import { fetchGoogleCalendarEvents } from '../services/googleCalendar';
+import { fetchNotionPages, fetchNotionPageContent, NotionPage } from '../services/notion';
 
 export interface DataContextType {
   greenAreas: any[];
@@ -26,7 +27,13 @@ export const DataContext = React.createContext<DataContextType>({
 });
 
 export const DataProvider = ({ children }: { children: React.ReactNode }) => {
-  const [data, setData] = useState({
+  const [data, setData] = useState<{
+    greenAreas: any[];
+    projects: any[];
+    gazettes: any[];
+    events: any[];
+    pastEvents: any[];
+  }>({
     greenAreas: [],
     projects: [],
     gazettes: [],
@@ -124,13 +131,62 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         }
       }
 
+      // Procesar Bitácora de Impacto desde Notion
+      let pastEvents: any[] = PAST_EVENTS_DATA; // Fallback a datos estáticos
+      try {
+        console.log('🔄 Intentando cargar Bitácora de Impacto desde Notion...');
+        const notionPages = await fetchNotionPages();
+        if (notionPages && notionPages.length > 0) {
+          console.log(`📋 Se encontraron ${notionPages.length} página(s) en Notion`);
+          // Obtener contenido completo de cada página desde los bloques
+          const pastEventsWithContent = await Promise.all(
+            notionPages.map(async (page: NotionPage) => {
+              // Siempre obtener el contenido completo desde los bloques de la página
+              let content = '';
+              let images: string[] = [];
+              if (page.id) {
+                try {
+                  const pageData = await fetchNotionPageContent(page.id);
+                  content = pageData.content;
+                  images = pageData.images || [];
+                  console.log(`   ✅ "${page.title}": ${content.length} caracteres de contenido, ${images.length} imagen(es)`);
+                } catch (contentError: any) {
+                  console.warn(`   ⚠️  Error obteniendo contenido de "${page.title}":`, contentError.message);
+                }
+              }
+              
+              return {
+                id: page.id,
+                title: page.title,
+                date: page.date,
+                category: page.category,
+                stats: page.stats,
+                portada: page.portada, // URL de la imagen de portada
+                summary: content.substring(0, 200) + (content.length > 200 ? '...' : ''), // Resumen para la tarjeta
+                content: content, // Contenido completo en markdown desde los bloques
+                images: images, // Array de URLs de imágenes
+                url: page.url,
+              };
+            })
+          );
+          pastEvents = pastEventsWithContent;
+          console.log(`✅ Bitácora de Impacto cargada desde Notion: ${pastEvents.length} eventos`);
+        } else {
+          console.log('ℹ️ No hay páginas en Notion, usando datos estáticos para Bitácora');
+        }
+      } catch (notionError: any) {
+        console.error('❌ Error cargando Bitácora desde Notion:', notionError);
+        console.error('   Mensaje:', notionError.message);
+        console.warn('⚠️ Usando datos estáticos como fallback');
+      }
+
       // Usar datos estáticos para áreas verdes
       setData({
         greenAreas: GREEN_AREAS_DATA,
         projects: projects.length > 0 ? projects : [],
         gazettes: gazettes.length > 0 ? gazettes : [],
         events: events,
-        pastEvents: PAST_EVENTS_DATA
+        pastEvents: pastEvents
       });
     } catch (err) {
       console.error('Error fetching data:', err);

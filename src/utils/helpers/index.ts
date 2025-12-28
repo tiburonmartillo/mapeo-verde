@@ -3,3 +3,4 @@ export { mapBoletinesToProjects, mapGacetasToDataset } from './dataTransformers'
 export { getRandomUnsplashImage } from './imageHelpers';
 export { getGoogleCalendarUrl, downloadICS } from './calendarHelpers';
 export { pathToTab, getAccentColor, useAccentColor } from './routingHelpers';
+export { generateSlug, findEventByIdentifier } from './slugHelpers';

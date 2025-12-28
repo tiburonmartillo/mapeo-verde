@@ -3,11 +3,14 @@ import { useSearchParams } from 'react-router-dom';
 import { Calendar, ChevronLeft, ChevronRight, MapPin, Download, ExternalLink, ArrowRight, TreePine, MessageCircle, Image, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import * as Popover from '@radix-ui/react-popover';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { DataContext } from '../../../context/DataContext';
 import { getNavbarHeight } from '../../../utils/helpers/layoutHelpers';
 import { getGoogleCalendarUrl, downloadICS } from '../../../utils/helpers/calendarHelpers';
 // import { useAccentColor } from '../../../utils/helpers/routingHelpers';
 import { shareToWhatsApp, shareToInstagram } from '../../../utils/helpers/shareHelpers';
+import { generateSlug } from '../../../utils/helpers/slugHelpers';
 
 interface EventsPageProps {
   onSelectImpact?: (impactId: string | number) => void;
@@ -1241,36 +1244,80 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {PAST_EVENTS_DATA.map((event: any) => (
-              <div key={event.id} className="flex flex-col border-2 border-black p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] bg-zinc-50 h-full relative overflow-hidden group">
-                <div className="absolute -right-4 -top-4 opacity-10 group-hover:opacity-20 transition-opacity rotate-12">
-                  <div className="border-4 border-black rounded-full p-4 w-32 h-32 flex items-center justify-center">
-                    <span className="font-black text-xs uppercase text-center rotate-[-12deg]">Misión<br />Completada</span>
+              <div 
+                key={event.id} 
+                onClick={() => {
+                  if (onSelectImpact && event.title) {
+                    const slug = generateSlug(event.title);
+                    onSelectImpact(slug);
+                  }
+                }}
+                className="flex flex-col border-2 border-black p-0 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-[12px_12px_0px_0px_#ff7e67] h-full relative overflow-hidden group transition-all cursor-pointer"
+              >
+                {/* Imagen de portada */}
+                {event.portada ? (
+                  <div className="w-full h-48 border-b-2 border-black relative overflow-hidden bg-gray-100">
+                    <img
+                      src={event.portada}
+                      alt={event.title}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                      }}
+                    />
+                    <div className="hidden absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-400">
+                      <div className="text-center p-4">
+                        <TreePine size={48} className="mx-auto mb-2 opacity-30" />
+                        <p className="text-xs font-mono uppercase opacity-50 line-clamp-2 px-2">{event.title}</p>
+                      </div>
+                    </div>
                   </div>
+                ) : (
+                  <div className="w-full h-48 border-b-2 border-black flex items-center justify-center bg-gray-100 text-gray-400">
+                    <div className="text-center p-4">
+                      <TreePine size={48} className="mx-auto mb-2 opacity-30" />
+                      <p className="text-xs font-mono uppercase opacity-50 line-clamp-2 px-2">{event.title}</p>
+                    </div>
+                  </div>
+                )}
+
+                <div className="p-6 flex flex-col flex-grow">
+                  <div className="absolute -right-4 -top-4 opacity-10 group-hover:opacity-20 transition-opacity rotate-12">
+                    <div className="border-4 border-black rounded-full p-4 w-32 h-32 flex items-center justify-center">
+                      <span className="font-black text-xs uppercase text-center rotate-[-12deg]">Misión<br />Completada</span>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center mb-4 relative z-10">
+                    <span className="bg-[#b4ff6f] border border-black text-black text-[10px] font-mono px-2 py-1 uppercase font-bold">{event.category}</span>
+                    <span className="font-mono text-xs text-gray-500 line-through decoration-black">{event.date}</span>
+                  </div>
+
+                <h3 className="text-xl font-bold mb-2 leading-tight flex-grow transition-colors">{event.title}</h3>
+
+                {event.stats && (
+                  <div className="font-mono text-2xl font-black text-[#ff7e67] mb-4">
+                    {event.stats}
+                  </div>
+                )}
+
+                <div className="font-serif text-sm text-gray-600 mb-6 line-clamp-3 prose prose-sm max-w-none prose-p:mb-2 prose-p:last:mb-0 prose-headings:font-bold prose-headings:text-gray-800 prose-strong:font-bold prose-strong:text-gray-800 prose-ul:list-disc prose-ul:ml-4 prose-ol:list-decimal prose-ol:ml-4 prose-li:mb-1">
+                  {event.content ? (
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {event.content.length > 200 ? event.content.substring(0, 200) + '...' : event.content}
+                    </ReactMarkdown>
+                  ) : (
+                    <p>{event.summary}</p>
+                  )}
                 </div>
 
-                <div className="flex justify-between items-center mb-4 relative z-10">
-                  <span className="bg-[#b4ff6f] border border-black text-black text-[10px] font-mono px-2 py-1 uppercase font-bold">{event.category}</span>
-                  <span className="font-mono text-xs text-gray-500 line-through decoration-black">{event.date}</span>
-                </div>
-
-                <h3 className="text-xl font-bold mb-2 leading-tight flex-grow">{event.title}</h3>
-
-                <div className="font-mono text-2xl font-black text-[#ff7e67] mb-4">
-                  {event.stats}
-                </div>
-
-                <p className="font-serif text-sm text-gray-600 mb-6 line-clamp-3">
-                  {event.summary}
-                </p>
-
-                <div className="mt-auto pt-4 border-t border-dashed border-gray-300 flex justify-between items-center">
-                  <span className="text-xs font-mono uppercase text-gray-400">Estado: Finalizado</span>
-                  <button
-                    onClick={() => onSelectImpact && onSelectImpact(event.id)}
-                    className="p-2 border border-black hover:bg-black hover:text-white transition-colors"
-                  >
-                    <ArrowRight size={14} />
-                  </button>
+                  <div className="mt-auto pt-4 border-t border-dashed border-gray-300 flex justify-between items-center">
+                    <span className="text-xs font-mono uppercase text-gray-400">Estado: Finalizado</span>
+                    <div className="p-2 border border-black group-hover:bg-black  transition-colors pointer-events-none">
+                      <ArrowRight size={14} />
+                    </div>
+                  </div>
                 </div>
               </div>
             ))}

@@ -88,6 +88,28 @@ export default defineConfig({
             console.error('Proxy error:', err);
           });
         }
+      },
+      '/api/notion': {
+        target: 'https://api.notion.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/notion/, ''),
+        configure: (proxy, options) => {
+          proxy.on('proxyReq', (proxyReq, req, res) => {
+            // Obtener API key del .env del servidor (no necesita VITE_ prefix)
+            const apiKey = process.env.VITE_NOTION_API_KEY || process.env.NOTION_API_KEY;
+            if (apiKey) {
+              proxyReq.setHeader('Authorization', `Bearer ${apiKey}`);
+            }
+            proxyReq.setHeader('Notion-Version', '2022-06-28');
+            // Solo agregar Content-Type para POST requests
+            if (req.method === 'POST') {
+              proxyReq.setHeader('Content-Type', 'application/json');
+            }
+          });
+          proxy.on('error', (err, req, res) => {
+            console.error('Notion proxy error:', err);
+          });
+        }
       }
     }
   },

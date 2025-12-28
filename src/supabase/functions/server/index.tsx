@@ -156,4 +156,71 @@ app.post("/make-server-183eaf28/subscribe", async (c) => {
   }
 });
 
+// Notion API Proxy - Obtener páginas de la base de datos
+app.post("/make-server-183eaf28/notion/database/:databaseId/query", async (c) => {
+  try {
+    const databaseId = c.req.param("databaseId");
+    const apiKey = Deno.env.get("NOTION_API_KEY");
+    
+    if (!apiKey) {
+      return c.json({ error: "NOTION_API_KEY not configured" }, 500);
+    }
+
+    const body = await c.req.json().catch(() => ({}));
+    
+    const response = await fetch(`https://api.notion.com/v1/databases/${databaseId}/query`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Notion-Version': '2022-06-28',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      return c.json({ error: errorText }, response.status);
+    }
+
+    const data = await response.json();
+    return c.json(data);
+  } catch (error) {
+    console.error(error);
+    return c.json({ error: error.message }, 500);
+  }
+});
+
+// Notion API Proxy - Obtener bloques de una página
+app.get("/make-server-183eaf28/notion/blocks/:pageId", async (c) => {
+  try {
+    const pageId = c.req.param("pageId");
+    const apiKey = Deno.env.get("NOTION_API_KEY");
+    const startCursor = c.req.query("start_cursor");
+    
+    if (!apiKey) {
+      return c.json({ error: "NOTION_API_KEY not configured" }, 500);
+    }
+
+    const url = `https://api.notion.com/v1/blocks/${pageId}/children${startCursor ? `?start_cursor=${startCursor}` : ''}`;
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Notion-Version': '2022-06-28',
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      return c.json({ error: errorText }, response.status);
+    }
+
+    const data = await response.json();
+    return c.json(data);
+  } catch (error) {
+    console.error(error);
+    return c.json({ error: error.message }, 500);
+  }
+});
+
 Deno.serve(app.fetch);
