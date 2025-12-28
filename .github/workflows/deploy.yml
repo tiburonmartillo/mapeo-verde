@@ -32,9 +32,11 @@ jobs:
         run: npm ci
 
       - name: Build
-        run: npm run build
         env:
-          CUSTOM_DOMAIN: 'true'  # Indicar que usamos dominio personalizado
+          VITE_NOTION_API_KEY: ${{ secrets.VITE_NOTION_API_KEY }}
+          VITE_NOTION_DATABASE_ID: ${{ secrets.VITE_NOTION_DATABASE_ID }}
+          VITE_SERVER_URL: ${{ secrets.VITE_SERVER_URL }}
+        run: npm run build
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
