@@ -121,24 +121,33 @@ async function fetchFromNotionAPI(databaseId: string, apiKey: string, baseUrl?: 
     let response: Response;
     let usePublicarFilter = true;
     
-    response = await fetch(url, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({
-        filter: {
-          property: 'publicar',
-          checkbox: {
-            equals: true,
+    try {
+      response = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          filter: {
+            property: 'publicar',
+            checkbox: {
+              equals: true,
+            },
           },
-        },
-        sorts: [
-          {
-            property: 'date',
-            direction: 'descending',
-          },
-        ],
-      }),
-    });
+          sorts: [
+            {
+              property: 'date',
+              direction: 'descending',
+            },
+          ],
+        }),
+      });
+    } catch (fetchError: any) {
+      // Error de red o CORS
+      const errorMsg = fetchError.message || 'Error de red al conectar con Notion API';
+      if (typeof window !== 'undefined') {
+        (window as any).__NOTION_ERROR__ = `${errorMsg}. Si estás usando la API directamente, puede ser un problema de CORS. Considera usar un servidor proxy.`;
+      }
+      throw new Error(errorMsg);
+    }
     
     // Si el error es 400 y menciona "publicar", intentar sin el filtro
     if (!response.ok && response.status === 400) {
@@ -146,18 +155,26 @@ async function fetchFromNotionAPI(databaseId: string, apiKey: string, baseUrl?: 
       if (errorText.includes('publicar') || errorText.includes('property')) {
         usePublicarFilter = false;
         // Reintentar sin el filtro de publicar
-        response = await fetch(url, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify({
-            sorts: [
-              {
-                property: 'date',
-                direction: 'descending',
-              },
-            ],
-          }),
-        });
+        try {
+          response = await fetch(url, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({
+              sorts: [
+                {
+                  property: 'date',
+                  direction: 'descending',
+                },
+              ],
+            }),
+          });
+        } catch (retryError: any) {
+          const errorMsg = retryError.message || 'Error al reintentar sin filtro';
+          if (typeof window !== 'undefined') {
+            (window as any).__NOTION_ERROR__ = errorMsg;
+          }
+          throw new Error(errorMsg);
+        }
       }
     }
 
