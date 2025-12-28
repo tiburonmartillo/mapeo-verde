@@ -4,7 +4,6 @@ const getClient = () => {
   const url = Deno.env.get("SUPABASE_URL");
   const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!url || !key) {
-    console.error("Missing Supabase credentials");
     throw new Error("Missing Supabase credentials");
   }
   return createClient(url, key);

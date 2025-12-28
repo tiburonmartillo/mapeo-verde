@@ -61,7 +61,6 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
       const boletinesUrl = normalizePath('data/boletines.json');
       const gacetasUrl = normalizePath('data/gacetas_semarnat_analizadas.json');
       
-      console.log('📡 Cargando datos desde:', { baseUrl, boletinesUrl, gacetasUrl });
       
       // Cargar datos directamente desde public/data y Google Calendar
       const [boletinesResponse, gacetasResponse, googleCalendarEvents] = await Promise.allSettled([
@@ -82,15 +81,11 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         try {
           const mapped = mapBoletinesToProjects(boletinesResponse.value);
           projects = Array.isArray(mapped) ? mapped : [];
-          console.log(`✅ Boletines cargados: ${projects.length} proyectos`);
         } catch (err) {
-          console.warn('Error mapping boletines to projects:', err);
           projects = [];
         }
       } else {
-        console.warn('❌ Boletines response failed:', boletinesResponse);
         if (boletinesResponse.status === 'rejected') {
-          console.error('Error fetching boletines:', boletinesResponse.reason);
         }
       }
 
@@ -100,15 +95,11 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         try {
           const mapped = mapGacetasToDataset(gacetasResponse.value);
           gazettes = Array.isArray(mapped) ? mapped : [];
-          console.log(`✅ Gacetas cargadas: ${gazettes.length} gacetas`);
         } catch (err) {
-          console.warn('Error mapping gacetas to dataset:', err);
           gazettes = [];
         }
       } else {
-        console.warn('❌ Gacetas response failed:', gacetasResponse);
         if (gacetasResponse.status === 'rejected') {
-          console.error('Error fetching gacetas:', gacetasResponse.reason);
         }
       }
 
@@ -119,25 +110,18 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         if (googleEvents.length > 0) {
           // Si hay eventos de Google Calendar, usarlos; si no, mantener los estáticos
           events = googleEvents;
-          console.log(`✅ Eventos de Google Calendar cargados: ${events.length} eventos`);
-          console.log('📋 Eventos cargados:', events.map(e => ({ title: e.title, date: e.date })));
         } else {
-          console.log('ℹ️ No hay eventos en Google Calendar, usando eventos estáticos');
         }
       } else {
-        console.warn('⚠️ Error cargando eventos de Google Calendar, usando eventos estáticos');
         if (googleCalendarEvents.status === 'rejected') {
-          console.error('Error fetching Google Calendar events:', googleCalendarEvents.reason);
         }
       }
 
       // Procesar Bitácora de Impacto desde Notion
       let pastEvents: any[] = PAST_EVENTS_DATA; // Fallback a datos estáticos
       try {
-        console.log('🔄 Intentando cargar Bitácora de Impacto desde Notion...');
         const notionPages = await fetchNotionPages();
         if (notionPages && notionPages.length > 0) {
-          console.log(`📋 Se encontraron ${notionPages.length} página(s) en Notion`);
           // Obtener contenido completo de cada página desde los bloques
           const pastEventsWithContent = await Promise.all(
             notionPages.map(async (page: NotionPage) => {
@@ -149,9 +133,7 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
                   const pageData = await fetchNotionPageContent(page.id);
                   content = pageData.content;
                   images = pageData.images || [];
-                  console.log(`   ✅ "${page.title}": ${content.length} caracteres de contenido, ${images.length} imagen(es)`);
                 } catch (contentError: any) {
-                  console.warn(`   ⚠️  Error obteniendo contenido de "${page.title}":`, contentError.message);
                 }
               }
               
@@ -170,14 +152,9 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
             })
           );
           pastEvents = pastEventsWithContent;
-          console.log(`✅ Bitácora de Impacto cargada desde Notion: ${pastEvents.length} eventos`);
         } else {
-          console.log('ℹ️ No hay páginas en Notion, usando datos estáticos para Bitácora');
         }
       } catch (notionError: any) {
-        console.error('❌ Error cargando Bitácora desde Notion:', notionError);
-        console.error('   Mensaje:', notionError.message);
-        console.warn('⚠️ Usando datos estáticos como fallback');
       }
 
       // Usar datos estáticos para áreas verdes
@@ -189,7 +166,6 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         pastEvents: pastEvents
       });
     } catch (err) {
-      console.error('Error fetching data:', err);
       setError(err instanceof Error ? err.message : 'Error desconocido al cargar datos');
       
       // Fallback completo a datos estáticos en caso de error

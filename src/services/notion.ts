@@ -18,39 +18,60 @@ export async function fetchNotionPages(databaseId?: string): Promise<NotionPage[
   try {
     const notionDatabaseId = databaseId || import.meta.env.VITE_NOTION_DATABASE_ID;
     const isDevelopment = import.meta.env.DEV;
+    const notionApiKey = import.meta.env.VITE_NOTION_API_KEY;
     
-    // En desarrollo, usar proxy de Vite; en producción, usar endpoint del servidor
+    
+    if (!notionDatabaseId) {
+      return [];
+    }
+    
+    // En desarrollo, usar proxy de Vite
     if (isDevelopment) {
-      // Usar proxy de Vite en desarrollo
-      const notionApiKey = import.meta.env.VITE_NOTION_API_KEY;
-      if (notionDatabaseId && notionApiKey) {
+      if (notionApiKey) {
         return await fetchFromNotionAPI(notionDatabaseId, notionApiKey, '/api/notion');
+      } else {
+        return [];
       }
     } else {
-      // En producción, usar endpoint del servidor
-      const serverUrl = import.meta.env.VITE_SERVER_URL || 'https://tu-servidor.com';
-      if (notionDatabaseId) {
+      // En producción, intentar múltiples estrategias
+      if (notionApiKey) {
+        // Estrategia 1: Usar API key directamente (sin servidor)
+        return await fetchFromNotionAPI(notionDatabaseId, notionApiKey);
+      }
+      
+      // Estrategia 2: Usar servidor Supabase si está configurado
+      let serverUrl = import.meta.env.VITE_SERVER_URL;
+      if (!serverUrl) {
+        try {
+          const { projectId } = await import('../utils/supabase/info');
+          if (projectId) {
+            serverUrl = `https://${projectId}.supabase.co`;
+          }
+        } catch (e) {
+          // Ignorar si no hay Supabase
+        }
+      }
+      
+      if (serverUrl) {
         return await fetchFromNotionAPI(notionDatabaseId, '', `${serverUrl}/make-server-183eaf28/notion`);
       }
+      
+      // Si no hay API key ni servidor, mostrar error claro
     }
     
     // Fallback: retornar array vacío
-    console.warn('⚠️ No hay configuración de Notion disponible');
     return [];
   } catch (error) {
-    console.error('Error obteniendo páginas de Notion:', error);
     return [];
   }
 }
 
 /**
  * Obtiene páginas directamente de la API de Notion
- * Usa proxy en desarrollo o endpoint del servidor en producción
+ * Usa proxy en desarrollo o endpoint del servidor en producción, o API directamente
  */
 async function fetchFromNotionAPI(databaseId: string, apiKey: string, baseUrl?: string): Promise<NotionPage[]> {
   try {
-    console.log('🔄 Conectando con Notion API...');
-    console.log(`   Database ID: ${databaseId.substring(0, 8)}...`);
     
     // Si hay baseUrl, usar proxy/endpoint del servidor
     const url = baseUrl 
@@ -62,15 +83,25 @@ async function fetchFromNotionAPI(databaseId: string, apiKey: string, baseUrl?: 
       'Content-Type': 'application/json',
     };
     
-    // Solo agregar Authorization si hay API key (en desarrollo con proxy de Vite)
+    // Agregar Authorization si hay API key
     if (apiKey) {
       headers['Authorization'] = `Bearer ${apiKey}`;
     }
     
-    const response = await fetch(url, {
+    // Intentar hacer la consulta con filtro de "publicar"
+    let response: Response;
+    let usePublicarFilter = true;
+    
+    response = await fetch(url, {
       method: 'POST',
       headers,
       body: JSON.stringify({
+        filter: {
+          property: 'publicar',
+          checkbox: {
+            equals: true,
+          },
+        },
         sorts: [
           {
             property: 'date',
@@ -79,10 +110,30 @@ async function fetchFromNotionAPI(databaseId: string, apiKey: string, baseUrl?: 
         ],
       }),
     });
+    
+    // Si el error es 400 y menciona "publicar", intentar sin el filtro
+    if (!response.ok && response.status === 400) {
+      const errorText = await response.text();
+      if (errorText.includes('publicar') || errorText.includes('property')) {
+        usePublicarFilter = false;
+        // Reintentar sin el filtro de publicar
+        response = await fetch(url, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            sorts: [
+              {
+                property: 'date',
+                direction: 'descending',
+              },
+            ],
+          }),
+        });
+      }
+    }
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`❌ Error de Notion API (${response.status}):`, errorText);
       
       if (response.status === 401) {
         throw new Error('API Key inválida o no autorizada. Verifica VITE_NOTION_API_KEY');
@@ -96,14 +147,31 @@ async function fetchFromNotionAPI(databaseId: string, apiKey: string, baseUrl?: 
     }
 
     const data = await response.json();
-    console.log(`✅ Conexión exitosa. Se encontraron ${data.results?.length || 0} páginas`);
     
     // Transformar los resultados de Notion a nuestro formato
     // Nota: El contenido completo se obtendrá después usando fetchNotionPageContent
-    return data.results.map((page: any) => {
-      const properties = page.properties || {};
-      
-      // Extraer título
+    return data.results
+      .map((page: any) => {
+        const properties = page.properties || {};
+        
+        // Extraer propiedad "publicar" (checkbox) - intentar diferentes variantes del nombre
+        const publicarProperty = properties.publicar || properties.Publicar || properties.PUBLICAR;
+        const publicar = publicarProperty?.checkbox === true;
+        
+        // Si no se usó el filtro en la API (porque la propiedad no existe), filtrar aquí
+        if (!usePublicarFilter) {
+          // Si no hay filtro en la API, filtrar aquí manualmente
+          if (!publicar) {
+            return null;
+          }
+        } else {
+          // Si el filtro se usó en la API, todas las páginas deberían tener publicar=true
+          // Pero verificamos por seguridad
+          if (!publicar) {
+          }
+        }
+        
+        // Extraer título
       const titleProperty = properties.title || properties.Name || properties.name;
       const title = titleProperty?.title?.[0]?.plain_text || 'Sin título';
       
@@ -155,9 +223,9 @@ async function fetchFromNotionAPI(databaseId: string, apiKey: string, baseUrl?: 
         content: '', // Se llenará después con el contenido de los bloques
         url: page.url,
       };
-    });
+      })
+      .filter((page: any) => page !== null); // Filtrar nulls
   } catch (error) {
-    console.error('Error fetching from Notion API:', error);
     throw error;
   }
 }
@@ -185,10 +253,31 @@ export async function fetchNotionPageContent(pageId: string, apiKey?: string): P
         // En desarrollo, usar proxy de Vite
         url = `/api/notion/v1/blocks/${pageId}/children${startCursor ? `?start_cursor=${startCursor}` : ''}`;
         headers['Authorization'] = `Bearer ${notionApiKey}`;
+      } else if (notionApiKey) {
+        // En producción, usar API key directamente (con proxy si es necesario)
+        // Nota: Esto expone la API key en el cliente, pero es funcional para APIs de solo lectura
+        url = `https://api.notion.com/v1/blocks/${pageId}/children${startCursor ? `?start_cursor=${startCursor}` : ''}`;
+        headers['Authorization'] = `Bearer ${notionApiKey}`;
+        headers['Content-Type'] = 'application/json';
       } else {
-        // En producción, usar endpoint del servidor
-        const serverUrl = import.meta.env.VITE_SERVER_URL || 'https://tu-servidor.com';
-        url = `${serverUrl}/make-server-183eaf28/notion/blocks/${pageId}${startCursor ? `?start_cursor=${startCursor}` : ''}`;
+        // Intentar usar servidor Supabase si está disponible
+        let serverUrl = import.meta.env.VITE_SERVER_URL;
+        if (!serverUrl && !isDevelopment) {
+          try {
+            const { projectId } = await import('../utils/supabase/info');
+            if (projectId) {
+              serverUrl = `https://${projectId}.supabase.co`;
+            }
+          } catch (e) {
+            // Ignorar si no hay Supabase
+          }
+        }
+        
+        if (serverUrl) {
+          url = `${serverUrl}/make-server-183eaf28/notion/blocks/${pageId}${startCursor ? `?start_cursor=${startCursor}` : ''}`;
+        } else {
+          throw new Error('No hay API key ni servidor configurado para obtener contenido de Notion');
+        }
       }
       
       const response = await fetch(url, {
@@ -197,7 +286,6 @@ export async function fetchNotionPageContent(pageId: string, apiKey?: string): P
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(`❌ Error obteniendo bloques (${response.status}):`, errorText);
         throw new Error(`Notion API error! status: ${response.status}`);
       }
 
@@ -208,7 +296,6 @@ export async function fetchNotionPageContent(pageId: string, apiKey?: string): P
       startCursor = data.next_cursor || undefined;
     } while (startCursor);
     
-    console.log(`   📄 Obtenidos ${allBlocks.length} bloques de la página`);
     
     // Función helper para obtener bloques hijos de un bloque
     const fetchBlockChildren = async (blockId: string): Promise<any[]> => {
@@ -224,9 +311,29 @@ export async function fetchNotionPageContent(pageId: string, apiKey?: string): P
         if (isDevelopment && notionApiKey) {
           url = `/api/notion/v1/blocks/${blockId}/children`;
           headers['Authorization'] = `Bearer ${notionApiKey}`;
+        } else if (notionApiKey) {
+          // En producción, usar API key directamente
+          url = `https://api.notion.com/v1/blocks/${blockId}/children`;
+          headers['Authorization'] = `Bearer ${notionApiKey}`;
+          headers['Content-Type'] = 'application/json';
         } else {
-          const serverUrl = import.meta.env.VITE_SERVER_URL || 'https://tu-servidor.com';
-          url = `${serverUrl}/make-server-183eaf28/notion/blocks/${blockId}`;
+          // Intentar usar servidor Supabase si está disponible
+          let blockServerUrl = import.meta.env.VITE_SERVER_URL;
+          if (!blockServerUrl && !isDevelopment) {
+            try {
+              const { projectId } = await import('../utils/supabase/info');
+              if (projectId) {
+                blockServerUrl = `https://${projectId}.supabase.co`;
+              }
+            } catch (e) {
+              // Ignorar si no hay Supabase
+            }
+          }
+          
+          if (!blockServerUrl) {
+            return [];
+          }
+          url = `${blockServerUrl}/make-server-183eaf28/notion/blocks/${blockId}`;
         }
         
         const response = await fetch(url, { headers });
@@ -235,7 +342,6 @@ export async function fetchNotionPageContent(pageId: string, apiKey?: string): P
         const data = await response.json();
         return data.results || [];
       } catch (error) {
-        console.warn(`⚠️ Error obteniendo bloques hijos de ${blockId}:`, error);
         return [];
       }
     };
@@ -244,7 +350,6 @@ export async function fetchNotionPageContent(pageId: string, apiKey?: string): P
     const { markdown, images } = await convertNotionBlocksToMarkdown(allBlocks, fetchBlockChildren);
     return { content: markdown, images };
   } catch (error) {
-    console.error('Error fetching Notion page content:', error);
     return { content: '', images: [] };
   }
 }

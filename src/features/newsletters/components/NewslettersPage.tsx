@@ -186,7 +186,6 @@ const NewslettersPage = () => {
   const handleSelectProject = useCallback((id: string | number, lat: number, lng: number) => {
     // Validate coordinates
     if (!lat || !lng || isNaN(lat) || isNaN(lng)) {
-      console.warn('Invalid coordinates for project:', id, lat, lng);
       return;
     }
 

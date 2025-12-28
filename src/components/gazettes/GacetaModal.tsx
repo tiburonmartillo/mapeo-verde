@@ -62,7 +62,6 @@ export const GacetaModal = ({ gaceta, isOpen, onClose }: GacetaModalProps) => {
       // Aquí se integraría la llamada a la API de SEMARNAT para obtener el PDF
       window.open(url, '_blank', 'noopener,noreferrer');
     } catch (error) {
-      console.error('Error descargando PDF:', error);
     } finally {
       setLoadingPdf(prev => ({ ...prev, [tipo]: false }));
     }

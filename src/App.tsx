@@ -85,12 +85,6 @@ const MainApp = () => {
   // Debug: Log routing info (can be removed later)
   useEffect(() => {
     if (location.pathname === '/agenda' && location.search) {
-      console.log('Agenda route detected with query params:', {
-        pathname: location.pathname,
-        search: location.search,
-        activeTab,
-        fullLocation: location
-      });
     }
   }, [location.pathname, location.search, activeTab, location]);
 

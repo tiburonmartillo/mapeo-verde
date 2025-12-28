@@ -19,13 +19,6 @@ const ImpactDetailPage = ({ eventId, onBack }: ImpactDetailPageProps) => {
   // Buscar el evento por slug o ID (compatibilidad con URLs antiguas)
   const event = findEventByIdentifier(pastEvents, eventId);
   
-  console.log('🔍 Buscando evento:', {
-    eventId,
-    pastEventsCount: pastEvents.length,
-    eventIds: pastEvents.map((e: any) => e.id),
-    found: !!event,
-    loading
-  });
   
   // Extraer todas las URLs de imágenes del contenido markdown
   const extractImageUrls = (markdown: string): string[] => {
@@ -107,7 +100,6 @@ const ImpactDetailPage = ({ eventId, onBack }: ImpactDetailPageProps) => {
   
   // Solo mostrar "no encontrado" si ya terminó de cargar y no encontró el evento
   if (!event) {
-    console.warn('⚠️ Evento no encontrado:', eventId);
     return (
       <div className="min-h-screen bg-[#f3f4f0] flex flex-col items-center justify-center p-6">
         <div className="bg-white border-2 border-black p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] max-w-2xl text-center">

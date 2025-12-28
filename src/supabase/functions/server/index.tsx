@@ -89,7 +89,6 @@ app.post("/make-server-183eaf28/seed", async (c) => {
       events: events.length
     }});
   } catch (error) {
-    console.error(error);
     return c.json({ error: error.message }, 500);
   }
 });
@@ -107,7 +106,6 @@ app.get("/make-server-183eaf28/data/:type", async (c) => {
     const data = await kv.getByPrefix(prefix + ":");
     return c.json(data);
   } catch (error) {
-    console.error(error);
     return c.json({ error: error.message }, 500);
   }
 });
@@ -126,7 +124,6 @@ app.post("/make-server-183eaf28/participation", async (c) => {
     await kv.set(`participation:${id}`, entry);
     return c.json({ success: true, id });
   } catch (error) {
-    console.error(error);
     return c.json({ error: error.message }, 500);
   }
 });
@@ -151,7 +148,6 @@ app.post("/make-server-183eaf28/subscribe", async (c) => {
     await kv.set(`subscriber:${email}`, entry);
     return c.json({ success: true });
   } catch (error) {
-    console.error(error);
     return c.json({ error: error.message }, 500);
   }
 });
@@ -186,7 +182,6 @@ app.post("/make-server-183eaf28/notion/database/:databaseId/query", async (c) =>
     const data = await response.json();
     return c.json(data);
   } catch (error) {
-    console.error(error);
     return c.json({ error: error.message }, 500);
   }
 });
@@ -218,7 +213,6 @@ app.get("/make-server-183eaf28/notion/blocks/:pageId", async (c) => {
     const data = await response.json();
     return c.json(data);
   } catch (error) {
-    console.error(error);
     return c.json({ error: error.message }, 500);
   }
 });

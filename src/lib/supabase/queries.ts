@@ -118,7 +118,6 @@ export const getGreenAreas = async (options: QueryOptions = {}): Promise<GreenAr
     try {
       const supabase = getSupabaseClient();
       if (!supabase) {
-        console.warn('Supabase client not available, using fallback data');
         return fallback;
       }
 
@@ -129,7 +128,6 @@ export const getGreenAreas = async (options: QueryOptions = {}): Promise<GreenAr
         .returns<GreenAreaRow[]>();
 
       if (error) {
-        console.warn('Error fetching green areas from Supabase:', error);
         return fallback;
       }
 
@@ -142,7 +140,6 @@ export const getGreenAreas = async (options: QueryOptions = {}): Promise<GreenAr
 
       return result;
     } catch (error) {
-      console.error('Error fetching green areas:', error);
       return fallback;
     }
   });
@@ -166,7 +163,6 @@ export const getProjects = async (options: QueryOptions = {}): Promise<Project[]
     try {
       const supabase = getSupabaseClient();
       if (!supabase) {
-        console.warn('Supabase client not available, using fallback data');
         return fallback;
       }
 
@@ -176,7 +172,6 @@ export const getProjects = async (options: QueryOptions = {}): Promise<Project[]
         .order('date', { ascending: false });
 
       if (error) {
-        console.warn('Error fetching projects from Supabase:', error);
         return fallback;
       }
 
@@ -188,7 +183,6 @@ export const getProjects = async (options: QueryOptions = {}): Promise<Project[]
 
       return result;
     } catch (error) {
-      console.error('Error fetching projects:', error);
       return fallback;
     }
   });
@@ -212,7 +206,6 @@ export const getGazettes = async (options: QueryOptions = {}): Promise<Gazette[]
     try {
       const supabase = getSupabaseClient();
       if (!supabase) {
-        console.warn('Supabase client not available, using fallback data');
         return fallback;
       }
 
@@ -222,7 +215,6 @@ export const getGazettes = async (options: QueryOptions = {}): Promise<Gazette[]
         .order('date', { ascending: false });
 
       if (error) {
-        console.warn('Error fetching gazettes from Supabase:', error);
         return fallback;
       }
 
@@ -234,7 +226,6 @@ export const getGazettes = async (options: QueryOptions = {}): Promise<Gazette[]
 
       return result;
     } catch (error) {
-      console.error('Error fetching gazettes:', error);
       return fallback;
     }
   });
@@ -258,7 +249,6 @@ export const getEvents = async (options: QueryOptions = {}): Promise<Event[]> =>
     try {
       const supabase = getSupabaseClient();
       if (!supabase) {
-        console.warn('Supabase client not available, using fallback data');
         return fallback;
       }
 
@@ -270,7 +260,6 @@ export const getEvents = async (options: QueryOptions = {}): Promise<Event[]> =>
         .returns<EventRow[]>(); // Solo eventos futuros
 
       if (error) {
-        console.warn('Error fetching events from Supabase:', error);
         return fallback;
       }
 
@@ -282,7 +271,6 @@ export const getEvents = async (options: QueryOptions = {}): Promise<Event[]> =>
 
       return result;
     } catch (error) {
-      console.error('Error fetching events:', error);
       return fallback;
     }
   });
@@ -306,7 +294,6 @@ export const getPastEvents = async (options: QueryOptions = {}): Promise<Event[]
     try {
       const supabase = getSupabaseClient();
       if (!supabase) {
-        console.warn('Supabase client not available, using fallback data');
         return fallback;
       }
 
@@ -318,7 +305,6 @@ export const getPastEvents = async (options: QueryOptions = {}): Promise<Event[]
         .returns<EventRow[]>(); // Solo eventos pasados
 
       if (error) {
-        console.warn('Error fetching past events from Supabase:', error);
         return fallback;
       }
 
@@ -330,7 +316,6 @@ export const getPastEvents = async (options: QueryOptions = {}): Promise<Event[]
 
       return result;
     } catch (error) {
-      console.error('Error fetching past events:', error);
       return fallback;
     }
   });

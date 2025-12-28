@@ -71,7 +71,6 @@ ${event.description ? `${event.description}\n\n` : ''}${eventUrl}`;
       }
     }
   } catch (error) {
-    console.error('Error copiando al portapapeles:', error);
     return false;
   }
 }

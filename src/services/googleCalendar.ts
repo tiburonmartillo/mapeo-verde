@@ -78,7 +78,6 @@ function convertGoogleDriveToImageUrl(driveUrl: string): string {
       return `https://drive.google.com/uc?export=view&id=${fileId}`;
     }
   } catch (error) {
-    console.warn('Error convirtiendo URL de Google Drive:', error);
   }
   
   return driveUrl;
@@ -92,13 +91,11 @@ function extractImageFromAttachments(event: ICAL.Event): string {
     // Buscar attachments en el evento
     const attachments = event.component.getAllProperties('attach');
     
-    console.log('📎 Attachments encontrados:', attachments.length);
     
     for (const attach of attachments) {
       const url = attach.getFirstValue();
       const fmtType = attach.getParameter('fmttype');
       
-      console.log('📎 Attachment:', { url, fmtType });
       
       if (url) {
         const urlString = typeof url === 'string' ? url : String(url);
@@ -106,26 +103,22 @@ function extractImageFromAttachments(event: ICAL.Event): string {
         // Verificar si es una URL de imagen directa
         const imageUrlRegex = /\.(jpg|jpeg|png|gif|webp|svg)(\?|$)/i;
         if (imageUrlRegex.test(urlString)) {
-          console.log('🖼️ Imagen directa encontrada en attachment:', urlString);
           return urlString;
         }
         
         // Verificar si es una URL de Google Drive
         if (urlString.includes('drive.google.com')) {
           const imageUrl = convertGoogleDriveToImageUrl(urlString);
-          console.log('🖼️ URL de Google Drive convertida:', imageUrl);
           return imageUrl;
         }
         
         // Verificar si es una URL de Google Photos
         if (urlString.includes('photos.app.goo.gl') || urlString.includes('photos.google.com')) {
-          console.log('🖼️ URL de Google Photos encontrada:', urlString);
           return urlString;
         }
         
         // Si el tipo MIME indica que es una imagen
         if (fmtType && fmtType.startsWith('image/')) {
-          console.log('🖼️ Imagen detectada por tipo MIME:', fmtType, urlString);
           // Si es Google Drive, convertir
           if (urlString.includes('drive.google.com')) {
             return convertGoogleDriveToImageUrl(urlString);
@@ -135,7 +128,6 @@ function extractImageFromAttachments(event: ICAL.Event): string {
       }
     }
   } catch (error) {
-    console.warn('Error extrayendo attachments:', error);
   }
   
   return '';
@@ -233,7 +225,6 @@ function mapICalEventToAppEvent(event: ICAL.Event, index: number): GoogleCalenda
     const endDate = event.endDate?.toJSDate();
     
     if (!startDate) {
-      console.warn('Evento sin fecha de inicio:', event.summary);
       return null;
     }
 
@@ -245,12 +236,6 @@ function mapICalEventToAppEvent(event: ICAL.Event, index: number): GoogleCalenda
     // El evento viene en zona horaria de México, así que usamos la fecha tal cual
     const date = formatDate(startDate);
     
-    console.log('🗓️ Procesando evento:', {
-      summary,
-      startDateRaw: startDate.toISOString(),
-      startDateLocal: startDate.toLocaleString('es-MX', { timeZone: 'America/Mexico_City' }),
-      dateFormatted: date
-    });
     const startTime = formatTime(startDate);
     const endTime = endDate ? formatTime(endDate) : startTime;
     const time = endDate && endDate.getTime() !== startDate.getTime() 
@@ -265,19 +250,15 @@ function mapICalEventToAppEvent(event: ICAL.Event, index: number): GoogleCalenda
     
     // Extraer imagen: primero de attachments, luego de la descripción, finalmente usar una por defecto
     let image = extractImageFromAttachments(event);
-    console.log('🖼️ Imagen de attachments:', image || 'No encontrada');
     
     if (!image) {
       image = extractImageFromDescription(description);
-      console.log('🖼️ Imagen de descripción:', image || 'No encontrada');
     }
     
     if (!image) {
       // Imagen por defecto relacionada con eventos ambientales
       image = 'https://images.unsplash.com/photo-1542601906990-b4d3fb7d5763?q=80&w=1000&auto=format&fit=crop';
-      console.log('🖼️ Usando imagen por defecto');
     } else {
-      console.log('✅ Imagen final para evento:', { title: summary, image });
     }
     
     const category = getCategory(event);
@@ -299,11 +280,9 @@ function mapICalEventToAppEvent(event: ICAL.Event, index: number): GoogleCalenda
       googleCalendarUrl
     };
     
-    console.log('📅 Evento mapeado:', { title: summary, date, time, location });
     
     return mappedEvent;
   } catch (error) {
-    console.error('Error mapeando evento:', error);
     return null;
   }
 }
@@ -317,13 +296,6 @@ export async function fetchGoogleCalendarEvents(): Promise<GoogleCalendarEvent[]
     // Usar import.meta.env.DEV para detectar el entorno correctamente
     const isDevelopment = import.meta.env.DEV;
     
-    console.log('🔧 Entorno detectado:', {
-      hostname: window.location.hostname,
-      isDevelopment,
-      DEV: import.meta.env.DEV,
-      MODE: import.meta.env.MODE,
-      PROD: import.meta.env.PROD
-    });
     
     let response: Response;
     let icalData: string;
@@ -331,7 +303,6 @@ export async function fetchGoogleCalendarEvents(): Promise<GoogleCalendarEvent[]
     if (isDevelopment) {
       // En desarrollo, usar el proxy de Vite
       const icalUrl = '/api/calendar';
-      console.log('📅 Cargando eventos desde Google Calendar (desarrollo):', icalUrl);
       response = await fetch(icalUrl, {
         method: 'GET',
         headers: {
@@ -346,11 +317,9 @@ export async function fetchGoogleCalendarEvents(): Promise<GoogleCalendarEvent[]
       icalData = await response.text();
     } else {
       // En producción, intentar múltiples estrategias
-      console.log('📅 Cargando eventos desde Google Calendar (producción):', calendarUrl);
       
       // Estrategia 1: Intentar usar la URL directa primero (si el calendario es público, puede funcionar)
       try {
-        console.log('🔄 Intentando URL directa del calendario...');
         response = await fetch(calendarUrl, {
           method: 'GET',
           headers: {
@@ -361,17 +330,14 @@ export async function fetchGoogleCalendarEvents(): Promise<GoogleCalendarEvent[]
         
         if (response && response.ok) {
           icalData = await response.text();
-          console.log('✅ URL directa funcionó');
         } else {
           throw new Error(`Direct URL failed: ${response?.status || 'unknown'}`);
         }
       } catch (directError) {
-        console.log('⚠️ URL directa falló, intentando proxy público...', directError);
         
         // Estrategia 2: Usar proxy público allorigins.win
         try {
           const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(calendarUrl)}`;
-          console.log('🔄 Usando proxy público allorigins.win:', proxyUrl);
           
           response = await fetch(proxyUrl, {
             method: 'GET',
@@ -386,7 +352,6 @@ export async function fetchGoogleCalendarEvents(): Promise<GoogleCalendarEvent[]
           }
           
           icalData = await response.text();
-          console.log('✅ Respuesta del proxy recibida:', response.status, response.statusText);
           
           // Si el proxy devuelve JSON con el contenido
           if (icalData.trim().startsWith('{')) {
@@ -394,22 +359,18 @@ export async function fetchGoogleCalendarEvents(): Promise<GoogleCalendarEvent[]
               const jsonData = JSON.parse(icalData);
               if (jsonData.contents) {
                 icalData = jsonData.contents;
-                console.log('📦 Contenido extraído del JSON del proxy');
               } else if (jsonData.status && jsonData.status.http_code !== 200) {
                 throw new Error(`Proxy returned error: ${jsonData.status.http_code}`);
               }
             } catch (jsonError) {
-              console.warn('⚠️ Error parseando JSON del proxy, intentando como texto directo');
               // Si no es JSON válido, puede que sea texto directo
             }
           }
         } catch (proxyError) {
-          console.error('❌ Error con proxy público:', proxyError);
           
           // Estrategia 3: Intentar con otro proxy alternativo (corsproxy.io)
           try {
             const altProxyUrl = `https://corsproxy.io/?${encodeURIComponent(calendarUrl)}`;
-            console.log('🔄 Intentando proxy alternativo corsproxy.io...');
             
             response = await fetch(altProxyUrl, {
               method: 'GET',
@@ -424,9 +385,7 @@ export async function fetchGoogleCalendarEvents(): Promise<GoogleCalendarEvent[]
             }
             
             icalData = await response.text();
-            console.log('✅ Proxy alternativo funcionó');
           } catch (altProxyError) {
-            console.error('❌ Todos los métodos fallaron:', altProxyError);
             throw new Error('No se pudo cargar el calendario desde ninguna fuente');
           }
         }
@@ -434,11 +393,9 @@ export async function fetchGoogleCalendarEvents(): Promise<GoogleCalendarEvent[]
     }
     
     if (!icalData || icalData.trim().length === 0) {
-      console.warn('⚠️ Feed iCal vacío');
       return [];
     }
     
-    console.log('📄 Tamaño del feed iCal:', icalData.length, 'caracteres');
 
     // Parsear el archivo iCal
     const jcalData = ICAL.parse(icalData);
@@ -446,7 +403,6 @@ export async function fetchGoogleCalendarEvents(): Promise<GoogleCalendarEvent[]
     const vevents = comp.getAllSubcomponents('vevent');
 
     if (vevents.length === 0) {
-      console.log('ℹ️ No se encontraron eventos en el calendario');
       return [];
     }
 
@@ -461,10 +417,8 @@ export async function fetchGoogleCalendarEvents(): Promise<GoogleCalendarEvent[]
       }
     }
 
-    console.log(`✅ Eventos cargados desde Google Calendar: ${events.length}`);
     return events;
   } catch (error) {
-    console.error('❌ Error obteniendo eventos de Google Calendar:', error);
     // Retornar array vacío en caso de error para que la app continúe funcionando
     return [];
   }

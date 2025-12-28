@@ -151,7 +151,6 @@ const LinktreePage = () => {
                 } catch (err) {
                   // Error de CORS es normal con iframes de Google Calendar
                   // No es un error real, el calendario debería cargar
-                  console.log('Iframe cargado (CORS es normal)');
                 }
               }}
             />

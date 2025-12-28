@@ -4,11 +4,19 @@ Este documento explica cómo configurar las variables de entorno necesarias para
 
 ## 📋 Variables Requeridas
 
-El proyecto necesita las siguientes variables de entorno:
+### Variables del Cliente (GitHub Secrets)
 
-- `VITE_NOTION_API_KEY` - API Key de Notion
-- `VITE_NOTION_DATABASE_ID` - ID de la base de datos de Notion
-- `VITE_SERVER_URL` - URL del servidor (opcional, solo para producción)
+El proyecto necesita las siguientes variables de entorno en el cliente:
+
+- `VITE_NOTION_DATABASE_ID` - ID de la base de datos de Notion (requerido)
+- `VITE_NOTION_API_KEY` - API Key de Notion (requerido para producción sin servidor)
+- `VITE_SERVER_URL` - URL del servidor Supabase (opcional, solo si usas Supabase como proxy)
+
+### Variables del Servidor Supabase
+
+El servidor Supabase también necesita:
+
+- `NOTION_API_KEY` - API Key de Notion (configurada en Supabase, no en GitHub Secrets)
 
 ## 🏠 Desarrollo Local
 
@@ -32,13 +40,20 @@ Como GitHub Pages solo sirve archivos estáticos, las variables de entorno deben
 1. Ve a tu repositorio en GitHub
 2. Click en **Settings** → **Secrets and variables** → **Actions**
 3. Click en **New repository secret**
-4. Agrega cada variable:
-   - **Name**: `VITE_NOTION_API_KEY`
-   - **Secret**: `secret_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
+4. Agrega las variables requeridas:
+   - **Name**: `VITE_NOTION_DATABASE_ID`
+   - **Secret**: `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx` (tu Database ID de Notion)
    - Click **Add secret**
-5. Repite para las demás variables:
-   - `VITE_NOTION_DATABASE_ID`
-   - `VITE_SERVER_URL` (opcional)
+5. Agrega `VITE_NOTION_API_KEY` (requerido si no usas Supabase):
+   - **Name**: `VITE_NOTION_API_KEY`
+   - **Secret**: `secret_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx` (tu API Key de Notion)
+   - Click **Add secret**
+6. Agrega `VITE_SERVER_URL` (opcional, solo si usas Supabase):
+   - **Name**: `VITE_SERVER_URL`
+   - **Secret**: `https://jvwtihesgbzixitfwxaf.supabase.co` (tu URL de Supabase)
+   - Click **Add secret**
+
+**Nota**: Si configuras `VITE_NOTION_API_KEY`, el código usará la API directamente sin necesidad de Supabase. La API key será visible en el código del cliente, pero es funcional para APIs de solo lectura.
 
 ### Paso 2: Habilitar GitHub Pages
 
@@ -46,7 +61,18 @@ Como GitHub Pages solo sirve archivos estáticos, las variables de entorno deben
 2. En **Source**, selecciona **GitHub Actions**
 3. Guarda los cambios
 
-### Paso 3: El Workflow de GitHub Actions
+### Paso 3: Configurar NOTION_API_KEY en Supabase
+
+El servidor Supabase necesita la API Key de Notion para hacer las peticiones:
+
+1. Ve a tu proyecto en [Supabase Dashboard](https://supabase.com/dashboard)
+2. Ve a **Project Settings** → **Edge Functions** → **Secrets**
+3. Agrega el secret:
+   - **Name**: `NOTION_API_KEY`
+   - **Value**: `secret_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx` (tu API Key de Notion)
+   - Click **Save**
+
+### Paso 4: El Workflow de GitHub Actions
 
 El proyecto incluye un workflow (`.github/workflows/deploy.yml`) que:
 - Se ejecuta automáticamente cuando haces push a `main`
@@ -54,7 +80,7 @@ El proyecto incluye un workflow (`.github/workflows/deploy.yml`) que:
 - Hace el build con las variables configuradas
 - Despliega automáticamente a GitHub Pages
 
-**No necesitas hacer nada más**, el workflow ya está configurado. Solo asegúrate de tener los secrets configurados.
+**Nota**: Si `VITE_SERVER_URL` no está configurada, el código intentará construirla automáticamente desde el `projectId` de Supabase.
 
 ### Verificar el Despliegue
 

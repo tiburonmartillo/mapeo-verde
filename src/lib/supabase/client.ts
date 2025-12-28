@@ -16,7 +16,6 @@ export const getSupabaseClient = (): SupabaseClient | null => {
 
   // Validar que tengamos las credenciales necesarias
   if (!projectId || !publicAnonKey) {
-    console.warn('Supabase credentials not found. Using fallback data.');
     return null;
   }
 
@@ -46,7 +45,6 @@ export const getSupabaseClient = (): SupabaseClient | null => {
 
     return supabaseClient;
   } catch (error) {
-    console.error('Error creating Supabase client:', error);
     return null;
   }
 };
