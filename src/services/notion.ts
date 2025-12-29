@@ -314,20 +314,20 @@ export async function fetchNotionPageContent(pageId: string, apiKey?: string): P
     
     do {
       let url: string;
-      const headers: Record<string, string> = {
-        'Notion-Version': '2022-06-28',
-      };
+      const headers: Record<string, string> = {};
       
       if (isDevelopment && notionApiKey) {
         // En desarrollo, usar proxy de Vite
         url = `/api/notion/v1/blocks/${pageId}/children${startCursor ? `?start_cursor=${startCursor}` : ''}`;
         headers['Authorization'] = `Bearer ${notionApiKey}`;
+        headers['Notion-Version'] = '2022-06-28';
       } else if (notionApiKey) {
         // En producción, usar API key directamente (con proxy si es necesario)
         // Nota: Esto expone la API key en el cliente, pero es funcional para APIs de solo lectura
         url = `https://api.notion.com/v1/blocks/${pageId}/children${startCursor ? `?start_cursor=${startCursor}` : ''}`;
         headers['Authorization'] = `Bearer ${notionApiKey}`;
         headers['Content-Type'] = 'application/json';
+        headers['Notion-Version'] = '2022-06-28';
       } else {
         // Intentar usar servidor Supabase si está disponible
         let serverUrl = import.meta.env.VITE_SERVER_URL;
@@ -355,6 +355,8 @@ export async function fetchNotionPageContent(pageId: string, apiKey?: string): P
           url = `${serverUrl}/functions/v1/make-server-183eaf28/notion/blocks/${pageId}${startCursor ? `?start_cursor=${startCursor}` : ''}`;
           
           // Agregar anon key si está disponible
+          // No enviar Notion-Version desde el cliente para evitar problemas de CORS
+          // El servidor Supabase lo agregará automáticamente
           if (anonKey) {
             headers['Authorization'] = `Bearer ${anonKey}`;
           }
@@ -387,18 +389,18 @@ export async function fetchNotionPageContent(pageId: string, apiKey?: string): P
         const notionApiKey = apiKey || import.meta.env.VITE_NOTION_API_KEY;
         
         let url: string;
-        const headers: Record<string, string> = {
-          'Notion-Version': '2022-06-28',
-        };
+        const headers: Record<string, string> = {};
         
         if (isDevelopment && notionApiKey) {
           url = `/api/notion/v1/blocks/${blockId}/children`;
           headers['Authorization'] = `Bearer ${notionApiKey}`;
+          headers['Notion-Version'] = '2022-06-28';
         } else if (notionApiKey) {
           // En producción, usar API key directamente
           url = `https://api.notion.com/v1/blocks/${blockId}/children`;
           headers['Authorization'] = `Bearer ${notionApiKey}`;
           headers['Content-Type'] = 'application/json';
+          headers['Notion-Version'] = '2022-06-28';
         } else {
           // Intentar usar servidor Supabase si está disponible
           let blockServerUrl = import.meta.env.VITE_SERVER_URL;
@@ -429,6 +431,8 @@ export async function fetchNotionPageContent(pageId: string, apiKey?: string): P
           url = `${blockServerUrl}/functions/v1/make-server-183eaf28/notion/blocks/${blockId}`;
           
           // Agregar anon key si está disponible
+          // No enviar Notion-Version desde el cliente para evitar problemas de CORS
+          // El servidor Supabase lo agregará automáticamente
           if (anonKey) {
             headers['Authorization'] = `Bearer ${anonKey}`;
           }
