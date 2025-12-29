@@ -125,17 +125,19 @@ async function fetchFromNotionAPI(databaseId: string, apiKey: string, baseUrl?: 
       : `https://api.notion.com/v1/databases/${databaseId}/query`;
     
     const headers: Record<string, string> = {
-      'Notion-Version': '2022-06-28',
       'Content-Type': 'application/json',
     };
     
-    // Si es una petición a Supabase, agregar anon key
+    // Si es una petición a Supabase, agregar anon key (el servidor agregará Notion-Version)
     if (baseUrl && supabaseAnonKey) {
       headers['Authorization'] = `Bearer ${supabaseAnonKey}`;
+      // No enviar Notion-Version desde el cliente para evitar problemas de CORS
+      // El servidor Supabase lo agregará automáticamente
     }
-    // Si es petición directa a Notion, agregar API key
+    // Si es petición directa a Notion, agregar API key y Notion-Version
     else if (apiKey) {
       headers['Authorization'] = `Bearer ${apiKey}`;
+      headers['Notion-Version'] = '2022-06-28';
     }
     
     // Intentar hacer la consulta con filtro de "publicar"
