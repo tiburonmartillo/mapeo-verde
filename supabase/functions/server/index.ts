@@ -162,7 +162,7 @@ app.post("/make-server-183eaf28/subscribe", async (c) => {
 });
 
 // Notion API Proxy - Obtener páginas de la base de datos
-app.options("/make-server-183eaf28/notion/database/:databaseId/query", async (c) => {
+app.options("/notion/database/:databaseId/query", async (c) => {
   const origin = c.req.header("Origin") || "*";
   c.header("Access-Control-Allow-Origin", origin);
   c.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
@@ -172,7 +172,7 @@ app.options("/make-server-183eaf28/notion/database/:databaseId/query", async (c)
   return c.text("", 204);
 });
 
-app.post("/make-server-183eaf28/notion/database/:databaseId/query", async (c) => {
+app.post("/notion/database/:databaseId/query", async (c) => {
   // Set CORS headers explicitly for this endpoint
   const origin = c.req.header("Origin") || "*";
   c.header("Access-Control-Allow-Origin", origin);
@@ -214,7 +214,7 @@ app.post("/make-server-183eaf28/notion/database/:databaseId/query", async (c) =>
 });
 
 // Notion API Proxy - Obtener bloques de una página
-app.get("/make-server-183eaf28/notion/blocks/:pageId", async (c) => {
+app.get("/notion/blocks/:pageId", async (c) => {
   // Set CORS headers explicitly for this endpoint
   const origin = c.req.header("Origin") || "*";
   c.res.headers.set("Access-Control-Allow-Origin", origin);
