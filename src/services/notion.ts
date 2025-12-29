@@ -65,7 +65,7 @@ export async function fetchNotionPages(databaseId?: string): Promise<NotionPage[
             // Ignorar si no se puede obtener
           }
           
-          return await fetchFromNotionAPI(notionDatabaseId, '', `${serverUrl}/functions/v1/server/notion`, anonKey);
+          return await fetchFromNotionAPI(notionDatabaseId, '', `${serverUrl}/functions/v1/make-server-183eaf28/notion`, anonKey);
         } catch (serverError: any) {
           if (typeof window !== 'undefined') {
             (window as any).__NOTION_ERROR__ = `Error con servidor Supabase: ${serverError.message}. Verifica que NOTION_API_KEY esté configurada en Supabase.`;
@@ -352,7 +352,7 @@ export async function fetchNotionPageContent(pageId: string, apiKey?: string): P
             // Ignorar si no se puede obtener
           }
           
-          url = `${serverUrl}/functions/v1/server/notion/blocks/${pageId}${startCursor ? `?start_cursor=${startCursor}` : ''}`;
+          url = `${serverUrl}/functions/v1/make-server-183eaf28/notion/blocks/${pageId}${startCursor ? `?start_cursor=${startCursor}` : ''}`;
           
           // Agregar anon key si está disponible
           // No enviar Notion-Version desde el cliente para evitar problemas de CORS
@@ -428,7 +428,7 @@ export async function fetchNotionPageContent(pageId: string, apiKey?: string): P
             // Ignorar si no se puede obtener
           }
           
-          url = `${blockServerUrl}/functions/v1/server/notion/blocks/${blockId}`;
+          url = `${blockServerUrl}/functions/v1/make-server-183eaf28/notion/blocks/${blockId}`;
           
           // Agregar anon key si está disponible
           // No enviar Notion-Version desde el cliente para evitar problemas de CORS
