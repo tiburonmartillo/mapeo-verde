@@ -61,16 +61,19 @@ Como GitHub Pages solo sirve archivos estáticos, las variables de entorno deben
 2. En **Source**, selecciona **GitHub Actions**
 3. Guarda los cambios
 
-### Paso 3: Configurar NOTION_API_KEY en Supabase
+### Paso 3: Configurar NOTION_API_KEY en Supabase (Recomendado)
 
-El servidor Supabase necesita la API Key de Notion para hacer las peticiones:
+El servidor Supabase necesita la API Key de Notion para hacer las peticiones. **Esto es necesario si quieres usar Supabase como proxy (recomendado para evitar problemas de CORS)**:
 
 1. Ve a tu proyecto en [Supabase Dashboard](https://supabase.com/dashboard)
+   - Tu proyecto: https://supabase.com/dashboard/project/jvwtihesgbzixitfwxaf
 2. Ve a **Project Settings** → **Edge Functions** → **Secrets**
 3. Agrega el secret:
    - **Name**: `NOTION_API_KEY`
    - **Value**: `secret_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx` (tu API Key de Notion)
    - Click **Save**
+
+**Nota**: Si no configuras esto, el código intentará usar la API de Notion directamente, lo cual puede fallar por problemas de CORS en el navegador.
 
 ### Paso 4: El Workflow de GitHub Actions
 

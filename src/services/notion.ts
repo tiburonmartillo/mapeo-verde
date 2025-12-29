@@ -40,21 +40,8 @@ export async function fetchNotionPages(databaseId?: string): Promise<NotionPage[
         return [];
       }
     } else {
-      // En producción, intentar múltiples estrategias
-      if (notionApiKey) {
-        // Estrategia 1: Usar API key directamente (sin servidor)
-        try {
-          return await fetchFromNotionAPI(notionDatabaseId, notionApiKey);
-        } catch (apiError: any) {
-          // Registrar error para debugging
-          if (typeof window !== 'undefined') {
-            (window as any).__NOTION_ERROR__ = `Error de Notion API: ${apiError.message}`;
-          }
-          throw apiError;
-        }
-      }
-      
-      // Estrategia 2: Usar servidor Supabase si está configurado
+      // En producción, priorizar Supabase sobre API directa (evita problemas de CORS)
+      // Estrategia 1: Usar servidor Supabase (recomendado, evita CORS)
       let serverUrl = import.meta.env.VITE_SERVER_URL;
       if (!serverUrl) {
         try {
@@ -72,15 +59,36 @@ export async function fetchNotionPages(databaseId?: string): Promise<NotionPage[
           return await fetchFromNotionAPI(notionDatabaseId, '', `${serverUrl}/make-server-183eaf28/notion`);
         } catch (serverError: any) {
           if (typeof window !== 'undefined') {
-            (window as any).__NOTION_ERROR__ = `Error con servidor Supabase: ${serverError.message}`;
+            (window as any).__NOTION_ERROR__ = `Error con servidor Supabase: ${serverError.message}. Verifica que NOTION_API_KEY esté configurada en Supabase.`;
+          }
+          // Si falla Supabase, intentar API directa como fallback
+          if (notionApiKey) {
+            try {
+              return await fetchFromNotionAPI(notionDatabaseId, notionApiKey);
+            } catch (apiError: any) {
+              throw serverError; // Lanzar el error original de Supabase
+            }
           }
           throw serverError;
         }
       }
       
+      // Estrategia 2: Usar API key directamente (puede fallar por CORS)
+      if (notionApiKey) {
+        try {
+          return await fetchFromNotionAPI(notionDatabaseId, notionApiKey);
+        } catch (apiError: any) {
+          // Registrar error para debugging
+          if (typeof window !== 'undefined') {
+            (window as any).__NOTION_ERROR__ = `Error de Notion API: ${apiError.message}. Si es un error de CORS, configura Supabase como proxy.`;
+          }
+          throw apiError;
+        }
+      }
+      
       // Si no hay API key ni servidor, registrar error
       if (typeof window !== 'undefined') {
-        (window as any).__NOTION_ERROR__ = 'VITE_NOTION_API_KEY y VITE_SERVER_URL no están configuradas';
+        (window as any).__NOTION_ERROR__ = 'VITE_NOTION_API_KEY o VITE_SERVER_URL deben estar configuradas. Se recomienda usar Supabase como proxy.';
       }
     }
     
