@@ -45,10 +45,10 @@ const PREFIX_MAP = {
 };
 
 // Health check
-app.get("/make-server-183eaf28/health", (c) => c.json({ status: "ok" }));
+app.get("/health", (c) => c.json({ status: "ok" }));
 
 // Seed endpoint
-app.post("/make-server-183eaf28/seed", async (c) => {
+app.post("/seed", async (c) => {
   try {
     // Check if data exists (naive check on one type)
     const existing = await kv.getByPrefix("green_area:");
@@ -103,7 +103,7 @@ app.post("/make-server-183eaf28/seed", async (c) => {
 });
 
 // Generic GET for collections
-app.get("/make-server-183eaf28/data/:type", async (c) => {
+app.get("/data/:type", async (c) => {
   const type = c.req.param("type");
   const prefix = PREFIX_MAP[type];
   
@@ -120,7 +120,7 @@ app.get("/make-server-183eaf28/data/:type", async (c) => {
 });
 
 // Participation submission
-app.post("/make-server-183eaf28/participation", async (c) => {
+app.post("/participation", async (c) => {
   try {
     const body = await c.req.json();
     const id = crypto.randomUUID();
@@ -138,7 +138,7 @@ app.post("/make-server-183eaf28/participation", async (c) => {
 });
 
 // Newsletter subscription
-app.post("/make-server-183eaf28/subscribe", async (c) => {
+app.post("/subscribe", async (c) => {
   try {
     const { email } = await c.req.json();
     if (!email) return c.json({ error: "Email required" }, 400);
@@ -162,7 +162,7 @@ app.post("/make-server-183eaf28/subscribe", async (c) => {
 });
 
 // Notion API Proxy - Obtener páginas de la base de datos
-app.options("/make-server-183eaf28/notion/database/:databaseId/query", async (c) => {
+app.options("/notion/database/:databaseId/query", async (c) => {
   const origin = c.req.header("Origin") || "*";
   c.header("Access-Control-Allow-Origin", origin);
   c.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
@@ -172,7 +172,7 @@ app.options("/make-server-183eaf28/notion/database/:databaseId/query", async (c)
   return c.text("", 204);
 });
 
-app.post("/make-server-183eaf28/notion/database/:databaseId/query", async (c) => {
+app.post("/notion/database/:databaseId/query", async (c) => {
   // Set CORS headers explicitly for this endpoint
   const origin = c.req.header("Origin") || "*";
   c.header("Access-Control-Allow-Origin", origin);
@@ -214,7 +214,7 @@ app.post("/make-server-183eaf28/notion/database/:databaseId/query", async (c) =>
 });
 
 // Notion API Proxy - Obtener bloques de una página
-app.get("/make-server-183eaf28/notion/blocks/:pageId", async (c) => {
+app.get("/notion/blocks/:pageId", async (c) => {
   // Set CORS headers explicitly for this endpoint
   const origin = c.req.header("Origin") || "*";
   c.res.headers.set("Access-Control-Allow-Origin", origin);
