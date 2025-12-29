@@ -15,17 +15,26 @@ const app = new Hono();
 // Enable logger
 app.use('*', logger(console.log));
 
-// Enable CORS
-app.use(
-  "/*",
-  cors({
-    origin: "*",
-    allowHeaders: ["Content-Type", "Authorization", "Notion-Version"],
-    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    exposeHeaders: ["Content-Length"],
-    maxAge: 600,
-  }),
-);
+// Custom CORS middleware to ensure Notion-Version header is allowed
+// This must run before any other middleware to set CORS headers correctly
+app.use("*", async (c, next) => {
+  const origin = c.req.header("Origin") || "*";
+  
+  // Set CORS headers for all requests
+  c.res.headers.set("Access-Control-Allow-Origin", origin);
+  c.res.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  c.res.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization, Notion-Version, notion-version");
+  c.res.headers.set("Access-Control-Expose-Headers", "Content-Length");
+  c.res.headers.set("Access-Control-Max-Age", "600");
+  c.res.headers.set("Access-Control-Allow-Credentials", "true");
+  
+  // Handle preflight requests
+  if (c.req.method === "OPTIONS") {
+    return c.text("", 204);
+  }
+  
+  await next();
+});
 
 const PREFIX_MAP = {
   'green_areas': 'green_area',
@@ -153,7 +162,25 @@ app.post("/make-server-183eaf28/subscribe", async (c) => {
 });
 
 // Notion API Proxy - Obtener páginas de la base de datos
+app.options("/make-server-183eaf28/notion/database/:databaseId/query", async (c) => {
+  const origin = c.req.header("Origin") || "*";
+  c.header("Access-Control-Allow-Origin", origin);
+  c.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  c.header("Access-Control-Allow-Headers", "Content-Type, Authorization, Notion-Version, notion-version");
+  c.header("Access-Control-Expose-Headers", "Content-Length");
+  c.header("Access-Control-Max-Age", "600");
+  return c.text("", 204);
+});
+
 app.post("/make-server-183eaf28/notion/database/:databaseId/query", async (c) => {
+  // Set CORS headers explicitly for this endpoint
+  const origin = c.req.header("Origin") || "*";
+  c.header("Access-Control-Allow-Origin", origin);
+  c.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  c.header("Access-Control-Allow-Headers", "Content-Type, Authorization, Notion-Version, notion-version");
+  c.header("Access-Control-Expose-Headers", "Content-Length");
+  c.header("Access-Control-Max-Age", "600");
+  
   try {
     const databaseId = c.req.param("databaseId");
     const apiKey = Deno.env.get("NOTION_API_KEY");
@@ -188,6 +215,13 @@ app.post("/make-server-183eaf28/notion/database/:databaseId/query", async (c) =>
 
 // Notion API Proxy - Obtener bloques de una página
 app.get("/make-server-183eaf28/notion/blocks/:pageId", async (c) => {
+  // Set CORS headers explicitly for this endpoint
+  const origin = c.req.header("Origin") || "*";
+  c.res.headers.set("Access-Control-Allow-Origin", origin);
+  c.res.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  c.res.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization, Notion-Version, notion-version");
+  c.res.headers.set("Access-Control-Expose-Headers", "Content-Length");
+  c.res.headers.set("Access-Control-Max-Age", "600");
   try {
     const pageId = c.req.param("pageId");
     const apiKey = Deno.env.get("NOTION_API_KEY");
