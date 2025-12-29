@@ -42,3 +42,4 @@ lint_output.txt
 
 # TypeScript
 *.tsbuildinfo
+.supabase/
