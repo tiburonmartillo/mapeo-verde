@@ -56,7 +56,16 @@ export async function fetchNotionPages(databaseId?: string): Promise<NotionPage[
       
       if (serverUrl) {
         try {
-          return await fetchFromNotionAPI(notionDatabaseId, '', `${serverUrl}/make-server-183eaf28/notion`);
+          // Obtener anon key de Supabase para autenticación
+          let anonKey = '';
+          try {
+            const { publicAnonKey } = await import('../utils/supabase/info');
+            anonKey = publicAnonKey;
+          } catch (e) {
+            // Ignorar si no se puede obtener
+          }
+          
+          return await fetchFromNotionAPI(notionDatabaseId, '', `${serverUrl}/functions/v1/make-server-183eaf28/notion`, anonKey);
         } catch (serverError: any) {
           if (typeof window !== 'undefined') {
             (window as any).__NOTION_ERROR__ = `Error con servidor Supabase: ${serverError.message}. Verifica que NOTION_API_KEY esté configurada en Supabase.`;
@@ -107,12 +116,12 @@ export async function fetchNotionPages(databaseId?: string): Promise<NotionPage[
  * Obtiene páginas directamente de la API de Notion
  * Usa proxy en desarrollo o endpoint del servidor en producción, o API directamente
  */
-async function fetchFromNotionAPI(databaseId: string, apiKey: string, baseUrl?: string): Promise<NotionPage[]> {
+async function fetchFromNotionAPI(databaseId: string, apiKey: string, baseUrl?: string, supabaseAnonKey?: string): Promise<NotionPage[]> {
   try {
     
-    // Si hay baseUrl, usar proxy/endpoint del servidor
+    // Si hay baseUrl, usar proxy/endpoint del servidor Supabase
     const url = baseUrl 
-      ? `${baseUrl}/v1/databases/${databaseId}/query`
+      ? `${baseUrl}/database/${databaseId}/query`
       : `https://api.notion.com/v1/databases/${databaseId}/query`;
     
     const headers: Record<string, string> = {
@@ -120,8 +129,12 @@ async function fetchFromNotionAPI(databaseId: string, apiKey: string, baseUrl?: 
       'Content-Type': 'application/json',
     };
     
-    // Agregar Authorization si hay API key
-    if (apiKey) {
+    // Si es una petición a Supabase, agregar anon key
+    if (baseUrl && supabaseAnonKey) {
+      headers['Authorization'] = `Bearer ${supabaseAnonKey}`;
+    }
+    // Si es petición directa a Notion, agregar API key
+    else if (apiKey) {
       headers['Authorization'] = `Bearer ${apiKey}`;
     }
     
@@ -328,7 +341,21 @@ export async function fetchNotionPageContent(pageId: string, apiKey?: string): P
         }
         
         if (serverUrl) {
-          url = `${serverUrl}/make-server-183eaf28/notion/blocks/${pageId}${startCursor ? `?start_cursor=${startCursor}` : ''}`;
+          // Obtener anon key de Supabase para autenticación
+          let anonKey = '';
+          try {
+            const { publicAnonKey } = await import('../utils/supabase/info');
+            anonKey = publicAnonKey;
+          } catch (e) {
+            // Ignorar si no se puede obtener
+          }
+          
+          url = `${serverUrl}/functions/v1/make-server-183eaf28/notion/blocks/${pageId}${startCursor ? `?start_cursor=${startCursor}` : ''}`;
+          
+          // Agregar anon key si está disponible
+          if (anonKey) {
+            headers['Authorization'] = `Bearer ${anonKey}`;
+          }
         } else {
           throw new Error('No hay API key ni servidor configurado para obtener contenido de Notion');
         }
@@ -387,7 +414,22 @@ export async function fetchNotionPageContent(pageId: string, apiKey?: string): P
           if (!blockServerUrl) {
             return [];
           }
-          url = `${blockServerUrl}/make-server-183eaf28/notion/blocks/${blockId}`;
+          
+          // Obtener anon key de Supabase para autenticación
+          let anonKey = '';
+          try {
+            const { publicAnonKey } = await import('../utils/supabase/info');
+            anonKey = publicAnonKey;
+          } catch (e) {
+            // Ignorar si no se puede obtener
+          }
+          
+          url = `${blockServerUrl}/functions/v1/make-server-183eaf28/notion/blocks/${blockId}`;
+          
+          // Agregar anon key si está disponible
+          if (anonKey) {
+            headers['Authorization'] = `Bearer ${anonKey}`;
+          }
         }
         
         const response = await fetch(url, { headers });
