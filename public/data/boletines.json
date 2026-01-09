@@ -41636,6 +41636,103 @@
       "filename": "https://www.aguascalientes.gob.mx/SSMAA/BoletinesSMA/Repositorio/2025/12%20Diciembre/BOLETIN51-2025_23%20DE%20DICIEMBRE_DEL01512_1912.pdf",
       "director": "T.S.U. LUIS MEDINA HERNÁNDEZ",
       "id": 461
+    },
+    {
+      "resolutivos_emitidos": [
+        {
+          "numero": 1,
+          "tipo_estudio": "IP",
+          "promovente": "MEZQUITAL DEL PUERTO, S.A DE C.V",
+          "nombre_proyecto": "OPERACIÓN VIANEY NAVE INVIERNO 3",
+          "naturaleza_proyecto": null,
+          "giro": "INDUSTRIAL",
+          "municipio": "AGUASCALIENTES",
+          "expediente": "SSMAA- DIRA-2834-2025",
+          "fecha_ingreso": "2025-11-21",
+          "fecha_resolutivo": null,
+          "no_oficio_resolutivo": null,
+          "boletin_id": 462
+        },
+        {
+          "numero": 2,
+          "tipo_estudio": "IP",
+          "promovente": "MEIWAMOLD MEXICO, S.A.DE C.V",
+          "nombre_proyecto": "MEIWAMOLD MEXICO",
+          "naturaleza_proyecto": null,
+          "giro": "INDUSTRIAL",
+          "municipio": "AGUASCALIENTES",
+          "expediente": "SSMAA- DIRA-2839-2025",
+          "fecha_ingreso": "2025-12-10",
+          "fecha_resolutivo": null,
+          "no_oficio_resolutivo": null,
+          "boletin_id": 462
+        },
+        {
+          "numero": 3,
+          "tipo_estudio": "IP",
+          "promovente": "CONSTRUCTORA TOLED, S.A DE C.V.",
+          "nombre_proyecto": "ZIRA RESIDENCIAL CONDOMINIO HORIZONTAL UNIFAMILIAR",
+          "naturaleza_proyecto": null,
+          "giro": "HABITACIONAL",
+          "municipio": "AGUASCALIENTES",
+          "expediente": "SSMAA- DIRA-2825-2025",
+          "fecha_ingreso": "2025-10-31",
+          "fecha_resolutivo": null,
+          "no_oficio_resolutivo": null,
+          "boletin_id": 462
+        }
+      ],
+      "fecha_publicacion": "2025-12-30",
+      "director": "T.S.U. LUIS MEDINA HERNÁNDEZ",
+      "secretario": null,
+      "cantidad_ingresados": 3,
+      "proyectos_ingresados": [
+        {
+          "numero": 1,
+          "tipo_estudio": "MIA",
+          "promovente": "MASTER RAIL S.A. DE C.V.",
+          "nombre_proyecto": "MASTER RAIL",
+          "naturaleza_proyecto": "La empresa tiene como actividad económica la fabricación de productos metálicos forjados y troquelados. Consiste en la operación y funcionamiento de una planta dedicada a la fabricación de sistemas de carga para portones, en una nave industrial con una superficie de 1,500 m2, ubicada dentro de un predio con una superficie total de 3,000 m2 en la Carretera federal 45 kilómetro 38.02 Aguascalientes-Zacatecas, S/N, localidad la misión, C.P. 20430, Rincón de Romos Aguascalientes.",
+          "giro": "INDUSTRIAL",
+          "municipio": "RINCÓN DE ROMOS",
+          "coordenadas_x": 778974,
+          "coordenadas_y": 2458996,
+          "expediente": "SSMAA-DIRA-2844-2025",
+          "fecha_ingreso": "2025-12-22",
+          "boletin_id": 462
+        },
+        {
+          "numero": 2,
+          "tipo_estudio": "MIA",
+          "promovente": "MARIO GARCIA VILLALOBOS",
+          "nombre_proyecto": "CENTRO LOGISTICO COMERCIAL TROJES",
+          "naturaleza_proyecto": "El Proyecto consiste en la urbanización y construcción de un Centro Logistico Comercial en el cual se construirán bodegas para su uso comercial. Este centro contará con la infraestructura necesaria para garantizar la accesibilidad, seguridad, y funcionalidad de los establecimientos. Los servicios básicos de agua, electricidad, alumbrado público, drenaje, comunicación y vialidad serán integrados de acuerdo con la legislación municipal y estatal, asegurando que cada lote comercial esté plenamente equipado para el desarrollo de operaciones en armonía con el entorno y la Ciudad de Aguascalientes.",
+          "giro": "COMERCIAL",
+          "municipio": "AGUASCALIENTES",
+          "coordenadas_x": 779579.56,
+          "coordenadas_y": 2427679.5439,
+          "expediente": "SSMAA-dira-2845-2025",
+          "fecha_ingreso": "2025-12-26",
+          "boletin_id": 462
+        },
+        {
+          "numero": 3,
+          "tipo_estudio": "IP",
+          "promovente": "C. DAVID VAZQUEZ LOZANO",
+          "nombre_proyecto": "REHABILITACIÓN DE BANCO DE MATERIAL LOMAS DE ARELLANO",
+          "naturaleza_proyecto": "El proyecto cumplirá con la rehabilitación de un banco de materiales, el cual fue utilizado previamente para la extracción de materiales pétreos. El sitio será rellenado con residuos de manejo especial para restablecer el nivel natural del terreno. Una vez completada esta restauración, el área podrá ser devuelta a su vocación originaria la cual es su uso agricultura y conservación.",
+          "giro": "BANCO",
+          "municipio": "AGUASCALIENTES",
+          "coordenadas_x": 783224.805,
+          "coordenadas_y": 2411317.37,
+          "expediente": "SSMAA-dira-2846-2025",
+          "fecha_ingreso": "2025-12-26",
+          "boletin_id": 462
+        }
+      ],
+      "cantidad_resolutivos": 3,
+      "filename": "https://www.aguascalientes.gob.mx/SSMAA/BoletinesSMA/Repositorio/2025/12%20Diciembre/BOLETIN52-2025_30%20DE%20DICIEMBRE_DEL02212_2612.pdf",
+      "id": 462
     }
   ],
   "metadata": {
