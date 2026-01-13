@@ -41733,6 +41733,74 @@
       "cantidad_resolutivos": 3,
       "filename": "https://www.aguascalientes.gob.mx/SSMAA/BoletinesSMA/Repositorio/2025/12%20Diciembre/BOLETIN52-2025_30%20DE%20DICIEMBRE_DEL02212_2612.pdf",
       "id": 462
+    },
+    {
+      "secretario": null,
+      "director": "T.S.U. LUIS MEDINA HERNÁNDEZ",
+      "fecha_publicacion": "2026-01-06",
+      "cantidad_ingresados": 4,
+      "resolutivos_emitidos": [],
+      "filename": "https://www.aguascalientes.gob.mx/SSMAA/BoletinesSMA/Repositorio/2025/12%20Diciembre/BOLETIN01-2026_06%20DE%20ENERO_DEL2912_0201.pdf",
+      "cantidad_resolutivos": 0,
+      "proyectos_ingresados": [
+        {
+          "numero": 1,
+          "tipo_estudio": "IP",
+          "promovente": "NISSAN MEXICANA, S.A DE C.V",
+          "nombre_proyecto": "COPROCESAMIENTO Y VALORIZACIÓN DE SCRAP DE ALUMINIO GENERADO POR PROVEEDORES EXTERNOS MEDIANTE SU INTEGRACIÓN AL PROCESO DE FUNDICIÓN EXISTENTE EN PLANTA A1",
+          "naturaleza_proyecto": "Las actividades de acopio de residuos de aluminio provenientes de proveedores externos, su almacenamiento, fundición, y posterior moldeado, se llevará a cabo dentro de la infraestructura existente de la planta de fundición 1 en planta A1 de Nissan Mexicana. El aluminio recuperado será reincorporado como materia prima secundaria al proceso de fabricación de componentes automotrices del propio complejo.",
+          "giro": "INDUSTRIAL",
+          "municipio": "AGUASCALIENTES",
+          "coordenadas_x": 781345.51,
+          "coordenadas_y": 2413667.39,
+          "expediente": "SSMAA-DIRA-2847-2025",
+          "fecha_ingreso": "2025-12-29",
+          "boletin_id": 463
+        },
+        {
+          "numero": 2,
+          "tipo_estudio": "MIA",
+          "promovente": "GRUPO INMOBILIARIO MANDIUR, S.A DE C.V.",
+          "nombre_proyecto": "PLAZA SANTA MÓNICA",
+          "naturaleza_proyecto": "El proyecto consiste en la urbanización y construcción de una plaza comercial con 79 locales distribuidos en 2 niveles que pretende ubicarse sobre Av. Siglo XXI (Tercer Anillo) tramo Sur, colindando con el desarrollo habitacional Rancho Santa Mónica, en la zona suroeste de la ciudad de Aguascalientes.",
+          "giro": "COMERCIAL",
+          "municipio": "AGUASCALIENTES",
+          "coordenadas_x": 777051.08,
+          "coordenadas_y": 2417795.77,
+          "expediente": "SSMAA-DIRA-2848-2025",
+          "fecha_ingreso": "2025-12-30",
+          "boletin_id": 463
+        },
+        {
+          "numero": 3,
+          "tipo_estudio": "MIA",
+          "promovente": "CONCRETOS SUSTENTABLES MEXICANOS S.A DE C.V.",
+          "nombre_proyecto": "CENTRO INTEGRAL DE RESIDUOS DE LA CONSTRUCCIÓN Y DEMOLICIÓN",
+          "naturaleza_proyecto": "Este centro será la primera infraestructura de su tipo en la región, diseñada para recibir, clasificar, triturar y valorizar los RCD generados por obras públicas y privadas, permitiendo reincorporar los materiales recuperados como agregados pétreos reciclados, bases hidráulicas, mezclas asfálticas, block y adoquines ecológicos a nuevos procesos constructivos. De esta manera, se cierra el ciclo de los materiales y se impulsa una economía circular local.",
+          "giro": "CENTRO DE RESIDUOS",
+          "municipio": "AGUASCALIENTES",
+          "coordenadas_x": 782343.0482,
+          "coordenadas_y": 2425903.206,
+          "expediente": "SSMAA-DIRA-2849-2025",
+          "fecha_ingreso": "2025-12-30",
+          "boletin_id": 463
+        },
+        {
+          "numero": 4,
+          "tipo_estudio": "IP",
+          "promovente": "J&R MATALS AND ALLOYS PLANTA 2",
+          "nombre_proyecto": "CENTRO DE COPIO DE RESIDUOS DE MANEJO ESPECIAL J&R MATALS AND ALLOYS PLANTA 2",
+          "naturaleza_proyecto": "El proyecto consiste en obtener la autorización en materia de impacto ambiental para la adecuación, operación y mantenimiento del establecimiento denominado centro de acopio de residuos de manejo especial, J&R METALS AND ALLOYS 'Planta 2', el sitio cuenta con una nave industrial ya existente y lo que se busca es tener una nave o área para únicamente acopiar residuos de manejo especial como lo es plástico de alta densidad, de baja densidad y metales en diferentes presentaciones, lo anterior derivado de la observación de la necesidad o requerimiento y demanda de los servicios de algunos clientes.",
+          "giro": "CENTRO DE ACOPIO",
+          "municipio": "AGUASCALIENTES",
+          "coordenadas_x": 2417158.47,
+          "coordenadas_y": 796292.61,
+          "expediente": "SSMAA-DIRA-2850-2025",
+          "fecha_ingreso": "2025-12-31",
+          "boletin_id": 463
+        }
+      ],
+      "id": 463
     }
   ],
   "metadata": {
