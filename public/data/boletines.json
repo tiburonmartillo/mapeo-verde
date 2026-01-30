@@ -41895,6 +41895,74 @@
       "filename": "https://www.aguascalientes.gob.mx/SSMAA/BoletinesSMA/Repositorio/2026/Enero/BOLETIN02-2026_13-DE-ENERO-0501-0901.pdf",
       "fecha_publicacion": "2026-01-13",
       "id": 465
+    },
+    {
+      "cantidad_ingresados": 1,
+      "proyectos_ingresados": [
+        {
+          "numero": 1,
+          "tipo_estudio": "MIA",
+          "promovente": "FERNANDO CASTILLO ESTRADA",
+          "nombre_proyecto": "SAN VICENTE",
+          "naturaleza_proyecto": "EL PROYECTO CONSISTE EN LA URBANIZACIÓN DE UN FRACCIONAMIENTO DENOMINADO SAN VICENTE EL CUÁL TENDRÁ UN GIRO HABITACIONAL Y COMERCIAL; EL CUÁL CONTARA CON 267 PREDIOS, 2 ÁREAS DE DONACIÓN Y VIALIDAD COMÚN.",
+          "giro": "HABITACIONAL",
+          "municipio": "AGUASCALIENTES",
+          "coordenadas_x": 2418584.68,
+          "coordenadas_y": 784930.63,
+          "expediente": "SSMAA-DIRA-2853-2026",
+          "fecha_ingreso": "2026-01-15",
+          "boletin_id": 466
+        }
+      ],
+      "resolutivos_emitidos": [
+        {
+          "numero": 1,
+          "tipo_estudio": "IP",
+          "promovente": "JAIME HUMBERTO LOPEZ GARCIA",
+          "nombre_proyecto": "PLAZA BELAGO",
+          "naturaleza_proyecto": null,
+          "giro": "COMERCIAL",
+          "municipio": "AGUASCALIENTES",
+          "expediente": "SSMAA-DIRA-2825-2025",
+          "fecha_ingreso": "06-oct-25",
+          "fecha_resolutivo": null,
+          "no_oficio_resolutivo": null,
+          "extemporaneo": true,
+          "boletin_id": 466
+        }
+      ],
+      "secretario": "T.S.U. LUIS MEDINA HERNÁNDEZ",
+      "cantidad_resolutivos": 1,
+      "director": null,
+      "filename": "https://www.aguascalientes.gob.mx/SSMAA/BoletinesSMA/Repositorio/2026/Enero/BOLETIN03-2026_20-DE-ENERO-1201-1601.rar",
+      "fecha_publicacion": "2026-01-20",
+      "id": 466
+    },
+    {
+      "cantidad_resolutivos": 0,
+      "cantidad_ingresados": 1,
+      "director": null,
+      "filename": "https://www.aguascalientes.gob.mx/SSMAA/BoletinesSMA/Repositorio/2026/Enero/BOLETIN04-2026_27-DE-ENERO-1901-2301.pdf",
+      "fecha_publicacion": "2026-01-27",
+      "secretario": null,
+      "proyectos_ingresados": [
+        {
+          "numero": 1,
+          "tipo_estudio": "IP",
+          "promovente": "Mitsubishi Materials México",
+          "nombre_proyecto": "Afilado de Herramientas Planta Mitsubishi",
+          "naturaleza_proyecto": "El proyecto denominado AFILADO DE HERRAMIENTAS PLANTA MITSUBISHI consiste en la instalación y operación de maquinaria para realizar el afilado de herramientas, que son brocas y brochas, fabricadas en carburo y acero respectivamente. El volumen de producción mensual estimado será de 1000 brocas y 16 brochas.",
+          "giro": "INDUSTRIAL",
+          "municipio": "AGUASCALIENTES",
+          "coordenadas_x": 781077.43,
+          "coordenadas_y": 2417297.36,
+          "expediente": "SSMAA-DIRA-2854-2026",
+          "fecha_ingreso": "2026-01-23",
+          "boletin_id": 467
+        }
+      ],
+      "resolutivos_emitidos": [],
+      "id": 467
     }
   ],
   "metadata": {
