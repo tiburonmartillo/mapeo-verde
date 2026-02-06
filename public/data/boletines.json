@@ -41358,7 +41358,7 @@
           "nombre_proyecto": "ARBOLADA RESIDENCIAL",
           "naturaleza_proyecto": null,
           "giro": "HABITACIONAL",
-          "municipio": "RINCON DE ROMO",
+          "municipio": "RINCÓN DE ROMO",
           "expediente": "SSMAA-DIRA-2792-2025",
           "fecha_ingreso": "2025-06-26",
           "fecha_resolutivo": "2025-10-20",
@@ -41400,7 +41400,7 @@
           "nombre_proyecto": "FRACCIONAMIENTO MIXTO HABITACIONAL UNIFAMILIAR DE TIPO POPULAR EL RIEGO",
           "naturaleza_proyecto": null,
           "giro": "HABITACIONAL",
-          "municipio": "PABELLON",
+          "municipio": "PABELLÓN DE ARTEAGA",
           "expediente": "SSMAA-DIRA-2807-2025",
           "fecha_ingreso": "2025-07-28",
           "fecha_resolutivo": "2025-10-30",
@@ -41541,7 +41541,7 @@
           "nombre_proyecto": "CONDOMINIO MIXTO SAN BLAS",
           "naturaleza_proyecto": "Este proyecto consiste en un condómino de 53,370.90 m2, El proyecto cuenta con 178 lotes habitacionales y 12 comerciales, en dos etapas, El predio se encuentra dentro del Estado de Aguascalientes, ubicado en el municipio de San Francisco de los Romo cercano a la localidad de Macario J. Gómez.",
           "giro": "HABITACIONAL",
-          "municipio": "SAN FRANCISCO DE LOS ROMOS",
+          "municipio": "SAN FRANCISCO DE LOS ROMO",
           "coordenadas_x": 784853894.0,
           "coordenadas_y": 2433573220.0,
           "expediente": "SSMAA-DIRA-2836-2025",
@@ -41555,7 +41555,7 @@
           "nombre_proyecto": "CONDOMINIO MIXTO HABITACIONAL Y COMERCIAL “RESERVA COSMOS”",
           "naturaleza_proyecto": "Preparación del sitio y urbanización de un Condominio mixto habitacional y comercial el cual contempla el desarrollo de 40 predios con una superficie total de 5,317.16m2 destinados a viviendas unifamiliares con medidas standard de 7.0 m x 18 m con una superficie de construcción promedio de 126 m2 cada uno, 6 lotes de tipo mixto con una superficie de 756.00m2 con las mismas medidas consideradas para los lotes unifamiliares de así como 3 lotes contemplados para actividades comerciales asimismo el condominio mixto habitacional y comercial “Reserva Cosmos” contempla la construcción de 2 vialidades interiores que dividirán al predio del proyecto. Dicho predio para este desarrollo habitacional abarca una superficie total de 9,990.08 m2.",
           "giro": "HABITACIONAL",
-          "municipio": "PABELLON DE ARTEAGA",
+          "municipio": "PABELLÓN DE ARTEAGA",
           "coordenadas_x": 780639.04,
           "coordenadas_y": 2450774.67,
           "expediente": "SSMAA-DIRA-2837-2025",
@@ -41597,7 +41597,7 @@
           "nombre_proyecto": "NAVES INDUSTRIALES PROVIDENCIA NORTE II",
           "naturaleza_proyecto": "El proyecto estará ubicado en el Municipio de San Francisco de los Romo y consiste básicamente en la construcción de tres naves industriales (Módulos) para renta, en una superficie de 43,478.02 m2, que forman parte de la superficie total del predio, que es de 116,858.32 m2.",
           "giro": "INDUSTRIAL",
-          "municipio": "San Francisco de los Romo",
+          "municipio": "SAN FRANCISCO DE LOS ROMO",
           "coordenadas_x": 780977.061,
           "coordenadas_y": 2441238.722,
           "expediente": "SSMAA-DIRA-2840-2026",
@@ -41934,7 +41934,8 @@
       "secretario": "T.S.U. LUIS MEDINA HERNÁNDEZ",
       "cantidad_resolutivos": 1,
       "director": null,
-      "filename": "https://www.aguascalientes.gob.mx/SSMAA/BoletinesSMA/Repositorio/2026/Enero/BOLETIN03-2026_20-DE-ENERO-1201-1601.rar",
+      "filename": "https://adn-a.vercel.app/boletines-ssmaa/BOLETIN03-2026_20-DE-ENERO-1201-1601.pdf",
+      "url-perdida": "https://www.aguascalientes.gob.mx/SSMAA/BoletinesSMA/Repositorio/2026/Enero/BOLETIN03-2026_20-DE-ENERO-1201-1601.rar",
       "fecha_publicacion": "2026-01-20",
       "id": 466
     },
@@ -41963,6 +41964,73 @@
       ],
       "resolutivos_emitidos": [],
       "id": 467
+    },
+    {
+      "proyectos_ingresados": [
+        {
+          "numero": 1,
+          "tipo_estudio": "MIA",
+          "promovente": "FERNANDO CASTILLO ESTRADA",
+          "nombre_proyecto": "SAN VICENTE",
+          "naturaleza_proyecto": "Urbanización de un fraccionamiento denominado San Vicente el cuál tendrá un giro habitacional y comercial; el cuál contará con 267 predios, 2 áreas de donación y vialidad común.",
+          "giro": "HABITACIONAL",
+          "municipio": "AGUASCALIENTES",
+          "coordenadas_x": 784930.63,
+          "coordenadas_y": 2418584.68,
+          "expediente": "SSMAA-DIRA-2853-2026",
+          "fecha_ingreso": "2026-01-15",
+          "boletin_id": 468
+        }
+      ],
+      "cantidad_ingresados": 1,
+      "director": null,
+      "resolutivos_emitidos": [
+        {
+          "numero": 1,
+          "tipo_estudio": "IP",
+          "promovente": "JAIME HUMBERTO LOPEZ GARCIA",
+          "nombre_proyecto": "PLAZA BELAGO",
+          "naturaleza_proyecto": null,
+          "giro": "COMERCIAL",
+          "municipio": "AGUASCALIENTES",
+          "expediente": "SSMAA-DIRA-2829-2025",
+          "fecha_ingreso": "2025-10-06",
+          "fecha_resolutivo": null,
+          "no_oficio_resolutivo": null,
+          "boletin_id": 468
+        }
+      ],
+      "cantidad_resolutivos": 1,
+      "fecha_publicacion": "2026-01-20",
+      "secretario": null,
+      "filename": "https://www.aguascalientes.gob.mx/SSMAA/BoletinesSMA/Repositorio/2026/Enero/BOLETIN03-2026_20-DE-ENERO-1201-1601.pdf",
+      "id": 468
+    },
+    {
+      "proyectos_ingresados": [
+        {
+          "numero": 1,
+          "tipo_estudio": "MIA",
+          "promovente": "INSTITUTO DE VIVIENDA SOCIAL Y ORDENAMIENTO DE LA PROPIEDAD DEL ESTADO DE AGUASCALIENTES",
+          "nombre_proyecto": "COTORINA 2",
+          "naturaleza_proyecto": "Urbanización y construcción de un Desarrollo Habitacional Unifamiliar con Comercio B con una superficie de 483,031.89 metros cuadrados ubicada al sur del municipio de Aguascalientes, al sur de la localidad de Cotorina (Coyotes), en el estado de Aguascalientes.",
+          "giro": "HABITACIONAL",
+          "municipio": "AGUASCALIENTES",
+          "coordenadas_x": 782690.85,
+          "coordenadas_y": 2407860.6,
+          "expediente": "SSMAA-DIRA-2855-2026",
+          "fecha_ingreso": "2026-01-28",
+          "boletin_id": 469
+        }
+      ],
+      "cantidad_ingresados": 1,
+      "director": null,
+      "resolutivos_emitidos": [],
+      "cantidad_resolutivos": 0,
+      "fecha_publicacion": "2026-02-03",
+      "secretario": null,
+      "filename": "https://www.aguascalientes.gob.mx/SSMAA/BoletinesSMA/Repositorio/2026/Enero/BOLETIN05-2026-03-DE-FEBRERO-2601-3001.pdf",
+      "id": 469
     }
   ],
   "metadata": {
