@@ -18,8 +18,6 @@ export const FeaturePreview = ({
 }: FeaturePreviewProps) => {
     const {
         greenAreas: GREEN_AREAS_DATA,
-        projects: PROJECTS_DATA,
-        gazettes: GAZETTES_DATA,
         events: EVENTS_DATA,
     } = React.useContext(DataContext);
 
@@ -39,16 +37,12 @@ export const FeaturePreview = ({
                         <div className="max-w-7xl mx-auto">
                             <h2 className="text-3xl font-bold mb-8 text-center uppercase">
                                 {hoveredFeature === 'Áreas Verdes' && 'Explora nuestras áreas verdes'}
-                                {hoveredFeature === 'Boletines' && 'Boletines Recientes'}
-                                {hoveredFeature === 'Gacetas' && 'Gacetas Ambientales'}
                                 {hoveredFeature === 'Agenda' && 'Próximos Eventos'}
                             </h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                                 {(() => {
                                     let data: any[] = [];
                                     if (hoveredFeature === 'Áreas Verdes') data = GREEN_AREAS_DATA;
-                                    else if (hoveredFeature === 'Boletines') data = PROJECTS_DATA;
-                                    else if (hoveredFeature === 'Gacetas') data = GAZETTES_DATA;
                                     else if (hoveredFeature === 'Agenda') data = EVENTS_DATA;
 
                                     // Ordenar por fecha (más recientes primero) y tomar los 4 más recientes
@@ -72,10 +66,6 @@ export const FeaturePreview = ({
                                             onClick={() => {
                                                 if (hoveredFeature === 'Áreas Verdes') {
                                                     onNavigate('GREEN_AREAS', item.id);
-                                                } else if (hoveredFeature === 'Boletines') {
-                                                    onNavigate('NEWSLETTERS', item.id);
-                                                } else if (hoveredFeature === 'Gacetas') {
-                                                    onNavigate('GAZETTES', item.id);
                                                 } else if (hoveredFeature === 'Agenda') {
                                                     onNavigate('AGENDA', item.id);
                                                 }
@@ -96,11 +86,7 @@ export const FeaturePreview = ({
                                                 ) : null}
                                                 {(!item.image || item.image === '') && (
                                                     <div className="p-8 opacity-50 group-hover:opacity-100 transition-opacity">
-                                                        {hoveredFeature === 'Boletines' && (
-                                                            <LayoutGrid size={64} strokeWidth={1} />
-                                                        )}
-                                                        {hoveredFeature === 'Gacetas' && <FileText size={64} strokeWidth={1} />}
-                                                        {!hoveredFeature && <TreePine size={64} strokeWidth={1} />}
+                                                        <TreePine size={64} strokeWidth={1} />
                                                     </div>
                                                 )}
 

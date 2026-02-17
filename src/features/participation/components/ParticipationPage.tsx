@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { Camera, Search, FileText, ArrowDown } from 'lucide-react';
 import { getNavbarHeight } from '../../../utils/helpers/layoutHelpers';
+import { getSupabaseClient } from '../../../lib/supabase';
 
 const PARTICIPATION_ROLES = [
   {
@@ -47,11 +48,29 @@ const PARTICIPATION_ROLES = [
 const FORM_ROLES = ['Explorador', 'Analista', 'Investigador', 'Desarrollador', 'Difusión'];
 
 const ParticipationPage = () => {
-  const roles = useMemo(() => PARTICIPATION_ROLES, []);
-  const formRoles = useMemo(() => FORM_ROLES, []);
   const [navbarHeight, setNavbarHeight] = useState(64);
   const [isMobile, setIsMobile] = useState(false);
   const lastScrollYRef = useRef(0);
+  const [entryType, setEntryType] = useState<'GREEN_AREA' | 'EVENT'>('GREEN_AREA');
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    whatsapp: '',
+    // Área verde
+    areaName: '',
+    areaAddress: '',
+    areaLat: '',
+    areaLng: '',
+    areaNeed: '',
+    // Evento
+    eventTitle: '',
+    eventDate: '',
+    eventTime: '',
+    eventLocation: '',
+    eventDescription: '',
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -121,124 +140,357 @@ const ParticipationPage = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#f3f4f0] flex flex-col">
+    <div className="min-h-screen bg-[#f3f4f0] text-black flex flex-col">
        <div 
-         className="bg-[#d89dff] border-b border-black p-12 md:p-24 text-center relative overflow-hidden transition-[padding-top] duration-300 ease-in-out" 
+         className="py-24 px-6 border-b border-black relative bg-white"
          style={{ paddingTop: isMobile ? `${navbarHeight + 48}px` : undefined }}
        >
-          <div className="relative z-10 max-w-4xl mx-auto">
-             <div className="inline-block border border-black bg-white px-4 py-1 mb-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                <span className="font-mono text-xs uppercase tracking-widest font-bold">Únete a la Brigada</span>
-             </div>
-             <h1 className="text-5xl md:text-8xl font-black mb-8 leading-[0.9] tracking-tighter">
-                TU CIUDAD<br/>TE NECESITA
-             </h1>
-             <p className="font-serif text-xl md:text-2xl max-w-2xl mx-auto leading-relaxed text-black/80">
-                No somos una empresa. Somos una red descentralizada de ciudadanos construyendo la base de datos ambiental más grande de la región.
-             </p>
-          </div>
-          <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
-             <svg width="100%" height="100%">
-                <pattern id="p-grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                   <path d="M 40 0 L 0 0 0 40" fill="none" stroke="black" strokeWidth="1"/>
-                </pattern>
-                <rect width="100%" height="100%" fill="url(#p-grid)" />
-             </svg>
-          </div>
-       </div>
-
-       <div className="max-w-7xl mx-auto px-6 py-20">
-          <div className="flex flex-col md:flex-row justify-between items-end mb-12 border-b-4 border-black pb-4 gap-4">
-             <h2 className="text-4xl font-bold tracking-tight">¿CÓMO PUEDES AYUDAR?</h2>
-             <p className="font-mono text-sm max-w-md text-right md:text-left">
-                Existen múltiples formas de colaborar, desde salir a la calle hasta analizar datos desde tu casa.
-             </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-             {roles.map((role, idx) => {
-               const IconComponent = role.icon;
-               return (
-                 <div key={idx} className="flex flex-col border-2 border-black bg-white p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-2 transition-transform duration-300">
-                    <div className={`bg-black text-white w-16 h-16 flex items-center justify-center rounded-full mb-6 border-2`} style={{ borderColor: role.color }}>
-                       <IconComponent size={32} />
-                    </div>
-                    <h3 className="text-2xl font-bold mb-4">{role.title}</h3>
-                    <p className="font-serif text-gray-600 mb-6 flex-grow">
-                       {role.description}
-                    </p>
-                    <div className="border-t border-dashed border-gray-300 pt-4 mb-8">
-                        <ul className="text-xs font-mono space-y-2 text-gray-500 uppercase">
-                           {role.requirements.map((req, i) => (
-                             <li key={i} className="flex items-center gap-2">
-                               <div className="w-2 h-2" style={{ backgroundColor: role.color }} />
-                               {req}
-                             </li>
-                           ))}
-                        </ul>
-                    </div>
-                    <button className="w-full py-4 border-2 border-black text-black font-bold uppercase hover:bg-[#ff7e67] hover:text-white transition-colors tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-y-1" style={{ backgroundColor: role.buttonColor }}>
-                       {role.buttonText}
-                    </button>
-                 </div>
-               );
-             })}
-          </div>
-       </div>
-
-       <div className="bg-black text-white py-24 px-6 border-t border-black relative">
-          <div className="absolute top-0 right-0 w-32 h-32 border-l border-b border-white/20"></div>
-          <div className="absolute bottom-0 left-0 w-32 h-32 border-r border-t border-white/20"></div>
+          <div className="absolute top-0 right-0 w-32 h-32 border-l border-b border-black/10"></div>
+          <div className="absolute bottom-0 left-0 w-32 h-32 border-r border-t border-black/10"></div>
 
           <div className="max-w-4xl mx-auto relative z-10">
-             <div className="flex flex-col md:flex-row items-start md:items-center gap-6 mb-12 border-b border-white/20 pb-8">
-                <div className="w-16 h-16 bg-[#d89dff] text-black flex items-center justify-center rounded-full shrink-0">
+              <div className="flex flex-col md:flex-row items-start md:items-center gap-6 mb-12 border-b border-white/20 pb-8">
+                <div className="w-16 h-16 bg-[#d89dff] text-black flex items-center justify-center rounded-full shrink-0 border-2 border-black">
                     <ArrowDown size={32} strokeWidth={3} />
                 </div>
                 <div>
-                    <h2 className="text-4xl md:text-5xl font-bold uppercase tracking-tight">Registro de Voluntarios</h2>
-                    <p className="font-serif text-gray-400 mt-2 text-lg">Únete a nuestra comunidad en WhatsApp y recibe tu kit de bienvenida digital.</p>
+                    <h2 className="text-4xl md:text-5xl font-bold uppercase tracking-tight">Registrar Área Verde o Evento</h2>
+                    <p className="font-serif text-gray-700 mt-2 text-lg">
+                      Usa este formulario para proponer una nueva área verde al inventario o sugerir un evento para la agenda ambiental.
+                    </p>
                 </div>
              </div>
              
-             <form className="space-y-8" onSubmit={(e) => e.preventDefault()}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
-                   <div className="space-y-4 group">
-                      <label className="font-mono text-xs uppercase tracking-widest text-[#d89dff] group-hover:text-white transition-colors">Nombre Completo</label>
-                      <input type="text" className="w-full bg-transparent border-b-2 border-white/30 py-4 text-2xl font-light focus:border-[#d89dff] focus:outline-none transition-all placeholder:text-white/20" placeholder="Escribe tu nombre..." />
-                   </div>
-                   <div className="space-y-4 group">
-                      <label className="font-mono text-xs uppercase tracking-widest text-[#d89dff] group-hover:text-white transition-colors">Correo Electrónico</label>
-                      <input type="email" className="w-full bg-transparent border-b-2 border-white/30 py-4 text-2xl font-light focus:border-[#d89dff] focus:outline-none transition-all placeholder:text-white/20" placeholder="tucorreo@ejemplo.com" />
-                   </div>
-                </div>
-                
-                <div className="space-y-6 pt-8">
-                   <label className="font-mono text-xs uppercase tracking-widest text-[#d89dff] block">Me interesa participar como (Selecciona varios):</label>
-                   <div className="flex flex-wrap gap-4">
-                      {formRoles.map(role => (
-                         <label key={role} className="flex items-center gap-3 cursor-pointer group select-none">
-                            <input type="checkbox" className="peer sr-only" />
-                            <div className="w-8 h-8 border-2 border-white peer-checked:bg-[#d89dff] peer-checked:border-[#d89dff] flex items-center justify-center transition-all">
-                               <div className="w-4 h-4 bg-black opacity-0 peer-checked:opacity-100 transition-opacity" />
-                            </div>
-                            <span className="font-bold text-xl text-white peer-checked:text-[#d89dff] transition-colors">{role}</span>
-                         </label>
-                      ))}
-                   </div>
-                </div>
+             <form
+               className="space-y-8"
+               onSubmit={async (e) => {
+                 e.preventDefault();
+                 setIsSubmitting(true);
+                 setSubmitMessage(null);
+                 try {
+                   const payload = {
+                     tipo: entryType === 'GREEN_AREA' ? 'Área verde' : 'Evento',
+                     nombre: formData.name,
+                     correo: formData.email,
+                     whatsapp: formData.whatsapp || null,
+                     ...(entryType === 'GREEN_AREA'
+                       ? {
+                           areaName: formData.areaName,
+                           areaAddress: formData.areaAddress,
+                           areaLat: formData.areaLat,
+                           areaLng: formData.areaLng,
+                           areaNeed: formData.areaNeed,
+                         }
+                       : {
+                           eventTitle: formData.eventTitle,
+                           eventDate: formData.eventDate,
+                           eventTime: formData.eventTime,
+                           eventLocation: formData.eventLocation,
+                           eventDescription: formData.eventDescription,
+                         }),
+                   };
 
-                <div className="pt-16 flex flex-col md:flex-row gap-6 items-center">
-                   <button className="w-full md:w-auto px-12 py-5 bg-[#d89dff] text-black text-xl font-bold uppercase tracking-widest hover:bg-[#ff7e67] hover:text-white transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none border-2 border-black">
-                      Enviar Registro
+                   const client = getSupabaseClient();
+                   if (!client) {
+                     throw new Error(
+                       'Supabase no está configurado en este entorno (revisa las variables de entorno).',
+                     );
+                   }
+
+                   const { error } = await client
+                     .from('participation_submissions')
+                     .insert({
+                       type: entryType,
+                       name: formData.name,
+                       email: formData.email,
+                       whatsapp: formData.whatsapp || null,
+                       data: payload,
+                     });
+
+                   if (error) {
+                     throw error;
+                   }
+
+                   setSubmitMessage(
+                     'Gracias. Hemos registrado tu propuesta en la base de datos y el equipo la revisará pronto.',
+                   );
+                   setFormData({
+                     name: '',
+                     email: '',
+                     whatsapp: '',
+                     areaName: '',
+                     areaAddress: '',
+                     areaLat: '',
+                     areaLng: '',
+                     areaNeed: '',
+                     eventTitle: '',
+                     eventDate: '',
+                     eventTime: '',
+                     eventLocation: '',
+                     eventDescription: '',
+                   });
+                 } catch (err: any) {
+                   setSubmitMessage(
+                     'No pudimos guardar en Supabase. Revisa la configuración del backend o vuelve a intentarlo más tarde.',
+                   );
+                 } finally {
+                   setIsSubmitting(false);
+                 }
+               }}
+             >
+               {/* Datos de contacto */}
+               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+                 <div className="space-y-4 group">
+                   <label className="font-mono text-xs uppercase tracking-widest text-[#d89dff] group-hover:text-black transition-colors">
+                     Nombre Completo
+                   </label>
+                   <input
+                     type="text"
+                     className="w-full bg-transparent border-b-2 border-black/20 py-4 text-2xl font-light focus:border-[#d89dff] focus:outline-none transition-all placeholder:text-gray-400"
+                     placeholder="Escribe tu nombre..."
+                     value={formData.name}
+                     onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
+                     required
+                   />
+                 </div>
+                 <div className="space-y-4 group">
+                   <label className="font-mono text-xs uppercase tracking-widest text-[#d89dff] group-hover:text-black transition-colors">
+                     Correo Electrónico
+                   </label>
+                   <input
+                     type="email"
+                     className="w-full bg-transparent border-b-2 border-black/20 py-4 text-2xl font-light focus:border-[#d89dff] focus:outline-none transition-all placeholder:text-gray-400"
+                     placeholder="tucorreo@ejemplo.com"
+                     value={formData.email}
+                     onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
+                     required
+                   />
+                 </div>
+                 <div className="space-y-4 group">
+                   <label className="font-mono text-xs uppercase tracking-widest text-[#d89dff] group-hover:text-black transition-colors">
+                     WhatsApp (opcional)
+                   </label>
+                   <input
+                     type="tel"
+                     className="w-full bg-transparent border-b-2 border-black/20 py-4 text-2xl font-light focus:border-[#d89dff] focus:outline-none transition-all placeholder:text-gray-400"
+                     placeholder="+52 ..."
+                     value={formData.whatsapp}
+                     onChange={(e) =>
+                       setFormData((prev) => ({ ...prev, whatsapp: e.target.value }))
+                     }
+                   />
+                 </div>
+               </div>
+
+               {/* Selector de tipo de registro */}
+               <div className="space-y-4 pt-8">
+                 <label className="font-mono text-xs uppercase tracking-widest text-[#d89dff] block">
+                   Quiero registrar:
+                 </label>
+                 <div className="flex flex-wrap gap-4">
+                   <button
+                     type="button"
+                     onClick={() => setEntryType('GREEN_AREA')}
+                     className={`px-6 py-3 border-2 border-black font-mono text-sm uppercase tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all ${
+                       entryType === 'GREEN_AREA'
+                         ? 'bg-[#b4ff6f] text-black'
+                         : 'bg-transparent text-black hover:bg-black/5'
+                     }`}
+                   >
+                     Nueva área verde
                    </button>
-                   <p className="text-xs font-mono text-gray-500 max-w-xs text-center md:text-left">
-                      Al registrarte aceptas nuestra política de datos abiertos y privacidad. No compartimos tus datos.
-                   </p>
-                </div>
+                   <button
+                     type="button"
+                     onClick={() => setEntryType('EVENT')}
+                     className={`px-6 py-3 border-2 border-black font-mono text-sm uppercase tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all ${
+                       entryType === 'EVENT'
+                         ? 'bg-[#ff7e67] text-black'
+                         : 'bg-transparent text-black hover:bg-black/5'
+                     }`}
+                   >
+                     Evento para agenda
+                   </button>
+                 </div>
+               </div>
+
+               {/* Campos dinámicos */}
+               {entryType === 'GREEN_AREA' ? (
+                 <div className="space-y-6 pt-8">
+                   <label className="font-mono text-xs uppercase tracking-widest text-[#d89dff] block">
+                     Detalles del área verde
+                   </label>
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+                     <div className="space-y-3">
+                       <span className="text-xs font-mono text-gray-600 uppercase">
+                         Nombre del lugar
+                       </span>
+                       <input
+                         type="text"
+                         className="w-full bg-transparent border-b-2 border-black/20 py-3 text-xl font-light focus:border-[#d89dff] focus:outline-none transition-all placeholder:text-gray-400"
+                         placeholder="Ej. Parque del Barrio, Jardín central..."
+                         value={formData.areaName}
+                         onChange={(e) =>
+                           setFormData((prev) => ({ ...prev, areaName: e.target.value }))
+                         }
+                         required
+                       />
+                     </div>
+                     <div className="space-y-3">
+                       <span className="text-xs font-mono text-gray-600 uppercase">Dirección</span>
+                       <input
+                         type="text"
+                         className="w-full bg-transparent border-b-2 border-black/20 py-3 text-xl font-light focus:border-[#d89dff] focus:outline-none transition-all placeholder:text-gray-400"
+                         placeholder="Calle, colonia, referencias..."
+                         value={formData.areaAddress}
+                         onChange={(e) =>
+                           setFormData((prev) => ({ ...prev, areaAddress: e.target.value }))
+                         }
+                         required
+                       />
+                     </div>
+                     <div className="space-y-3">
+                       <span className="text-xs font-mono text-gray-600 uppercase">
+                         Coordenadas (opcional)
+                       </span>
+                       <div className="grid grid-cols-2 gap-4">
+                         <input
+                           type="text"
+                           className="w-full bg-transparent border-b-2 border-black/20 py-3 text-lg font-light focus:border-[#d89dff] focus:outline-none transition-all placeholder:text-gray-400"
+                           placeholder="Latitud"
+                           value={formData.areaLat}
+                           onChange={(e) =>
+                             setFormData((prev) => ({ ...prev, areaLat: e.target.value }))
+                           }
+                         />
+                         <input
+                           type="text"
+                           className="w-full bg-transparent border-b-2 border-black/20 py-3 text-lg font-light focus:border-[#d89dff] focus:outline-none transition-all placeholder:text-gray-400"
+                           placeholder="Longitud"
+                           value={formData.areaLng}
+                           onChange={(e) =>
+                             setFormData((prev) => ({ ...prev, areaLng: e.target.value }))
+                           }
+                         />
+                       </div>
+                     </div>
+                     <div className="space-y-3 md:col-span-2">
+                       <span className="text-xs font-mono text-gray-600 uppercase">
+                         Necesidad / problema principal
+                       </span>
+                       <textarea
+                         className="w-full bg-transparent border-2 border-black/20 p-4 text-base font-light focus:border-[#d89dff] focus:outline-none transition-all placeholder:text-gray-400 min-h-[120px]"
+                         placeholder="Describe brevemente el estado del lugar, riesgos o necesidades (tala, falta de riego, vandalismo, etc.)"
+                         value={formData.areaNeed}
+                         onChange={(e) =>
+                           setFormData((prev) => ({ ...prev, areaNeed: e.target.value }))
+                         }
+                       />
+                     </div>
+                   </div>
+                 </div>
+               ) : (
+                 <div className="space-y-6 pt-8">
+                   <label className="font-mono text-xs uppercase tracking-widest text-[#d89dff] block">
+                     Detalles del evento
+                   </label>
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+                     <div className="space-y-3">
+                       <span className="text-xs font-mono text-gray-600 uppercase">
+                         Título del evento
+                       </span>
+                       <input
+                         type="text"
+                         className="w-full bg-transparent border-b-2 border-black/20 py-3 text-xl font-light focus:border-[#d89dff] focus:outline-none transition-all placeholder:text-gray-400"
+                         placeholder="Ej. Jornada de reforestación..."
+                         value={formData.eventTitle}
+                         onChange={(e) =>
+                           setFormData((prev) => ({ ...prev, eventTitle: e.target.value }))
+                         }
+                         required
+                       />
+                     </div>
+                     <div className="space-y-3">
+                       <span className="text-xs font-mono text-gray-600 uppercase">
+                         Fecha y hora
+                       </span>
+                       <div className="grid grid-cols-2 gap-4">
+                         <input
+                           type="date"
+                           className="w-full bg-transparent border-b-2 border-black/20 py-3 text-base font-light focus:border-[#d89dff] focus:outline-none transition-all placeholder:text-gray-400"
+                           value={formData.eventDate}
+                           onChange={(e) =>
+                             setFormData((prev) => ({ ...prev, eventDate: e.target.value }))
+                           }
+                           required
+                         />
+                         <input
+                           type="time"
+                           className="w-full bg-transparent border-b-2 border-black/20 py-3 text-base font-light focus:border-[#d89dff] focus:outline-none transition-all placeholder:text-gray-400"
+                           value={formData.eventTime}
+                           onChange={(e) =>
+                             setFormData((prev) => ({ ...prev, eventTime: e.target.value }))
+                           }
+                           required
+                         />
+                       </div>
+                     </div>
+                     <div className="space-y-3 md:col-span-2">
+                       <span className="text-xs font-mono text-gray-600 uppercase">
+                         Lugar / punto de reunión
+                       </span>
+                       <input
+                         type="text"
+                         className="w-full bg-transparent border-b-2 border-black/20 py-3 text-xl font-light focus:border-[#d89dff] focus:outline-none transition-all placeholder:text-gray-400"
+                         placeholder="Dirección o referencia del lugar"
+                         value={formData.eventLocation}
+                         onChange={(e) =>
+                           setFormData((prev) => ({ ...prev, eventLocation: e.target.value }))
+                         }
+                         required
+                       />
+                     </div>
+                     <div className="space-y-3 md:col-span-2">
+                       <span className="text-xs font-mono text-gray-600 uppercase">
+                         Descripción breve
+                       </span>
+                       <textarea
+                         className="w-full bg-transparent border-2 border-black/20 p-4 text-base font-light focus:border-[#d89dff] focus:outline-none transition-all placeholder:text-gray-400 min-h-[120px]"
+                         placeholder="¿Qué se hará? ¿Quién convoca? ¿Hay requisitos para asistir?"
+                         value={formData.eventDescription}
+                         onChange={(e) =>
+                           setFormData((prev) => ({
+                             ...prev,
+                             eventDescription: e.target.value,
+                           }))
+                         }
+                       />
+                     </div>
+                   </div>
+                 </div>
+               )}
+
+               <div className="pt-16 flex flex-col md:flex-row gap-6 items-center">
+                 <button
+                   type="submit"
+                   disabled={isSubmitting}
+                   className="w-full md:w-auto px-12 py-5 bg-[#d89dff] text-black text-xl font-bold uppercase tracking-widest hover:bg-[#ff7e67] hover:text-white transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none border-2 border-black disabled:opacity-60 disabled:cursor-not-allowed"
+                 >
+                   {isSubmitting ? 'Preparando correo...' : 'Enviar propuesta'}
+                 </button>
+                 <p className="text-xs font-mono text-gray-600 max-w-xs text-center md:text-left">
+                   Tu propuesta no se publica automáticamente. El equipo revisará la información y
+                   la integrará al inventario o a la agenda.
+                 </p>
+               </div>
+
+               {submitMessage && (
+                 <p className="mt-4 text-xs font-mono text-[#2f855a] max-w-xl">
+                   {submitMessage}
+                 </p>
+               )}
              </form>
           </div>
-       </div>
+        </div>
     </div>
   );
 };

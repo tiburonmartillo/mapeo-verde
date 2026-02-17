@@ -47,8 +47,6 @@ const FeatureList = ({ onFeatureEnter, onFeatureLeave, onNavigate }: FeatureList
   const features: Feature[] = [
     { title: "Agenda", desc: "Actividades de voluntariado y educación." },
     { title: "Áreas Verdes", desc: "Inventario colaborativo de flora urbana." },
-    { title: "Boletines", desc: "Monitor de proyectos locales y alertas ciudadanas." },
-    { title: "Gacetas", desc: "Rastreo de impacto ambiental federal." }
   ];
 
   const handleFeatureClick = (title: string) => {

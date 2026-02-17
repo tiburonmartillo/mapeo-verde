@@ -22,6 +22,7 @@ const GazettesPage = React.lazy(() => import('./features/gazettes/components/Gaz
 const ParticipationPage = React.lazy(() => import('./features/participation/components/ParticipationPage'));
 const ManifestoPage = React.lazy(() => import('./features/manifesto/components/ManifestoPage'));
 const LinktreePage = React.lazy(() => import('./features/linktree/components/LinktreePage'));
+const PrivacyPage = React.lazy(() => import('./features/legal/components/PrivacyPage'));
 
 import { FeaturePreview } from './features/home/components';
 
@@ -264,6 +265,16 @@ const LinktreePageWrapper = () => {
   );
 };
 
+const PrivacyPageWrapper = () => {
+  return (
+    <div className="min-h-screen bg-[#f3f4f0] font-sans">
+      <React.Suspense fallback={<PageLoader />}>
+        <PrivacyPage />
+      </React.Suspense>
+    </div>
+  );
+};
+
 export default function App() {
   return (
     <DataProvider>
@@ -279,6 +290,7 @@ export default function App() {
         <Route path="/participacion" element={<MainApp />} />
         <Route path="/manifiesto" element={<ManifestoPageWrapper />} />
         <Route path="/links" element={<LinktreePageWrapper />} />
+        <Route path="/aviso-de-privacidad" element={<PrivacyPageWrapper />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </DataProvider>

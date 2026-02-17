@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { ChevronLeft, AlertCircle, TreePine, MapPin } from 'lucide-react';
 import { useContext } from 'react';
 import { DataContext } from '../../../context/DataContext';
+import { Map, Overlay } from 'pigeon-maps';
 
 interface GreenAreaDetailPageProps {
   areaId: string | number;
@@ -10,16 +11,41 @@ interface GreenAreaDetailPageProps {
 
 const GreenAreaDetailPage = ({ areaId, onBack }: GreenAreaDetailPageProps) => {
   const { greenAreas: GREEN_AREAS_DATA = [] } = useContext(DataContext) as any;
-  const area = GREEN_AREAS_DATA.find((a: any) => a.id === areaId);
+  const area = GREEN_AREAS_DATA.find((a: any) => String(a.id) === String(areaId));
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   
   if (!area) return null;
+
+  const hasValidCoords =
+    typeof area.lat === 'number' &&
+    typeof area.lng === 'number' &&
+    !Number.isNaN(area.lat) &&
+    !Number.isNaN(area.lng);
+  const galleryImages: string[] = useMemo(() => {
+    const images: string[] = [];
+    if (area.image) images.push(area.image);
+    if (Array.isArray(area.images)) {
+      for (const img of area.images) {
+        if (typeof img === 'string' && img && !images.includes(img)) {
+          images.push(img);
+        }
+      }
+    }
+    return images;
+  }, [area]);
+
+  const activeImage =
+    galleryImages[selectedImageIndex] ?? galleryImages[0] ?? area.image ?? '';
+
+  const mapTiler = (x: number, y: number, z: number) =>
+    `https://tile.openstreetmap.org/${z}/${x}/${y}.png`;
 
   return (
     <div className="min-h-screen bg-[#f3f4f0] flex flex-col items-center pb-24">
       <div className="w-full h-[45vh] relative border-b-4 border-black bg-gray-800">
-        {area.image ? (
+        {activeImage ? (
           <img 
-            src={area.image} 
+            src={activeImage} 
             alt={area.name}
             className="w-full h-full object-cover grayscale"
             onError={(e) => {
@@ -42,7 +68,7 @@ const GreenAreaDetailPage = ({ areaId, onBack }: GreenAreaDetailPageProps) => {
 
         <div className="absolute bottom-8 left-6 right-6 text-white">
            <div className="flex gap-2 mb-4">
-              {area.tags.map((tag: string) => (
+              {(area.tags || []).map((tag: string) => (
                  <span key={tag} className="bg-[#b4ff6f] text-black px-2 py-1 font-mono text-[10px] uppercase font-bold border border-black">
                     {tag}
                  </span>
@@ -90,11 +116,62 @@ const GreenAreaDetailPage = ({ areaId, onBack }: GreenAreaDetailPageProps) => {
             </p>
          </div>
 
-         <div className="bg-gray-200 h-48 w-full border-2 border-black relative">
-            <div className="absolute inset-0 flex items-center justify-center">
-               <p className="font-mono text-xs uppercase font-bold text-gray-500">[ VISTA DE MAPA SATELITAL ]</p>
-            </div>
+         {/* Mapa con ubicación real (o centro por defecto si no hay coords) */}
+         <div className="w-full h-72 border-2 border-black relative overflow-hidden bg-gray-200">
+           <Map
+               center={
+                 hasValidCoords
+                   ? [area.lat, area.lng]
+                   : ([21.8853, -102.2916] as [number, number])
+               }
+               zoom={16}
+               provider={mapTiler}
+               metaWheelZoom={true}
+               twoFingerDrag={true}
+           >
+             {hasValidCoords && (
+               <Overlay anchor={[area.lat, area.lng]} offset={[15, 30]}>
+                 <div className="transform -translate-x-1/2 -translate-y-full">
+                   <TreePine
+                     fill="#3CB371"
+                     color="white"
+                     size={40}
+                     strokeWidth={1.5}
+                     className="drop-shadow-md"
+                   />
+                 </div>
+               </Overlay>
+             )}
+           </Map>
          </div>
+
+         {/* Galería de imágenes si hay al menos una */}
+         {galleryImages.length > 0 && (
+           <div>
+             <h3 className="font-bold text-2xl mb-4 border-b border-black pb-2">Galería</h3>
+             <div className="flex gap-3 overflow-x-auto pb-2">
+               {galleryImages.map((img, idx) => (
+                 <button
+                   key={img + idx}
+                   type="button"
+                   onClick={() => setSelectedImageIndex(idx)}
+                   className={`relative w-28 h-20 border-2 ${
+                     idx === selectedImageIndex ? 'border-black' : 'border-gray-300'
+                   } overflow-hidden flex-shrink-0`}
+                 >
+                   <img
+                     src={img}
+                     alt={`${area.name} ${idx + 1}`}
+                     className="w-full h-full object-cover"
+                     onError={(e) => {
+                       (e.target as HTMLImageElement).style.display = 'none';
+                     }}
+                   />
+                 </button>
+               ))}
+             </div>
+           </div>
+         )}
       </div>
 
       <div className="fixed bottom-6 left-0 w-full px-4 z-50 flex flex-col items-center gap-3 pointer-events-none">

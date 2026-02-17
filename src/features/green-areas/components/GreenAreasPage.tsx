@@ -4,7 +4,7 @@ import { Map, Overlay } from 'pigeon-maps';
 import { useContext } from 'react';
 import { DataContext } from '../../../context/DataContext';
 import { getNavbarHeight } from '../../../utils/helpers/layoutHelpers';
-import { useAccentColor } from '../../../utils/helpers';
+import { getAccentColor, useAccentColor } from '../../../utils/helpers';
 
 interface GreenAreasPageProps {
   onSelectArea?: (areaId: string | number) => void;
@@ -16,7 +16,7 @@ const GreenAreasPage = ({ onSelectArea }: GreenAreasPageProps) => {
   const [viewMode, setViewMode] = useState('table');
   const [searchQuery, setSearchQuery] = useState('');
   const [navbarHeight, setNavbarHeight] = useState(64);
-  const [isNavbarVisible, setIsNavbarVisible] = useState(true);
+  const [_isNavbarVisible, setIsNavbarVisible] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const lastScrollYRef = useRef(0);
 
@@ -110,8 +110,9 @@ const GreenAreasPage = ({ onSelectArea }: GreenAreasPageProps) => {
   const [statusFilter, setStatusFilter] = useState('TODOS');
 
   const filteredBySearch = useMemo(() => {
+    const tags = (item: any) => Array.isArray(item.tags) ? item.tags : [];
     const filtered = GREEN_AREAS_DATA.filter((item: any) => {
-       if (categoryFilter !== 'TODOS' && !item.tags.some((t: any) => String(t).toUpperCase().includes(categoryFilter))) return false;
+       if (categoryFilter !== 'TODOS' && !tags(item).some((t: any) => String(t).toUpperCase().includes(categoryFilter))) return false;
        if (statusFilter !== 'TODOS') {
          const hasNeed = !!item.need;
          if (statusFilter === 'RIESGO' && !hasNeed) return false;
@@ -120,10 +121,10 @@ const GreenAreasPage = ({ onSelectArea }: GreenAreasPageProps) => {
        return true;
     });
 
-    return filtered.filter((item: any) => 
-      String(item.name).toLowerCase().includes(searchQuery.toLowerCase()) ||
-      String(item.address).toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.tags.some((tag: any) => String(tag).toLowerCase().includes(searchQuery.toLowerCase()))
+    return filtered.filter((item: any) =>
+      String(item.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      String(item.address || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      tags(item).some((tag: any) => String(tag).toLowerCase().includes(searchQuery.toLowerCase()))
     );
   }, [GREEN_AREAS_DATA, categoryFilter, statusFilter, searchQuery]);
 
@@ -356,7 +357,7 @@ const GreenAreasPage = ({ onSelectArea }: GreenAreasPageProps) => {
                 </table>
                 {currentData.length === 0 && (
                   <div className="p-12 text-center text-gray-500 font-mono">
-                    No se encontraron áreas verdes.
+                    Cargando información de áreas verdes...
                   </div>
                 )}
               </div>
@@ -459,7 +460,7 @@ const GreenAreasPage = ({ onSelectArea }: GreenAreasPageProps) => {
                     `}
                   >
                     <TreePine 
-                      fill={selectedAreaId === point.id ? "#fccb4e" : "#000"} 
+                      fill={selectedAreaId === point.id ? getAccentColor('AGENDA') : "#3CB371"} 
                       color="white" 
                       size={40} 
                       strokeWidth={1.5}

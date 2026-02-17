@@ -26,8 +26,68 @@ export interface Database {
         Insert: EventInsert;
         Update: EventUpdate;
       };
+      areas_donacion: {
+        Row: AreasDonacionRow;
+        Insert: AreasDonacionInsert;
+        Update: AreasDonacionUpdate;
+      };
+      documentos_json: {
+        Row: DocumentosJsonRow;
+        Insert: DocumentosJsonInsert;
+        Update: DocumentosJsonUpdate;
+      };
     };
   };
+}
+
+// Áreas de donación (CSV "Áreas de donación-Vista de cuadrícula": Lugar, ID, Tipo, Dirección, Latitud, Longitud, etc.)
+export interface AreasDonacionRow {
+  id: number;
+  lugar?: string | null;   // nombre del sitio en el CSV
+  nombre?: string | null;
+  name?: string | null;
+  tipo?: string | null;    // Parque, Andador, Espacio público, etc.
+  direccion?: string | null;
+  latitud?: number | null;
+  longitud?: number | null;
+  portada?: string | null;
+  evidencia?: string | null;
+  video?: string | null;
+  estado?: string | null;
+  necesidad?: string | null;
+  // Cuando los datos provienen de la tabla areas_donacion_json, todo el registro
+  // original del CSV vive dentro de esta propiedad.
+  data?: any;
+  [key: string]: unknown;
+}
+
+export interface AreasDonacionInsert {
+  id?: number;
+  nombre?: string | null;
+  name?: string | null;
+  direccion?: string | null;
+  latitud?: number | null;
+  longitud?: number | null;
+  portada?: string | null;
+  evidencia?: string | null;
+  video?: string | null;
+  estado?: string | null;
+  necesidad?: string | null;
+  [key: string]: unknown;
+}
+
+export interface AreasDonacionUpdate {
+  nombre?: string | null;
+  name?: string | null;
+  direccion?: string | null;
+  latitud?: number | null;
+  longitud?: number | null;
+  portada?: string | null;
+  evidencia?: string | null;
+  video?: string | null;
+  estado?: string | null;
+  necesidad?: string | null;
+  [key: string]: unknown;
 }
 
 // Green Areas
@@ -190,5 +250,28 @@ export interface EventUpdate {
   category?: string;
   image?: string | null;
   description?: string | null;
+}
+
+// Documentos JSON unificados (areas_donacion, boletines, gacetas)
+export interface DocumentosJsonRow {
+  id: number;
+  source_type: 'areas_donacion' | 'boletines' | 'gacetas';
+  source_id: number;
+  data: any; // JSONB - puede contener cualquier estructura según source_type
+  updated_at: string;
+}
+
+export interface DocumentosJsonInsert {
+  source_type: 'areas_donacion' | 'boletines' | 'gacetas';
+  source_id: number;
+  data: any;
+  updated_at?: string;
+}
+
+export interface DocumentosJsonUpdate {
+  source_type?: 'areas_donacion' | 'boletines' | 'gacetas';
+  source_id?: number;
+  data?: any;
+  updated_at?: string;
 }
 

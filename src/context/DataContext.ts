@@ -1,5 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { GREEN_AREAS_DATA, EVENTS_DATA, PAST_EVENTS_DATA } from '../data/static';
+import {
+  getAreasDonacion,
+  getGreenAreas,
+  getProjects,
+  getGazettes,
+  getEvents,
+  getPastEvents,
+  getAreasDonacionFromJson,
+  getProjectsFromJson,
+  getGazettesFromJson,
+  checkSupabaseConnection,
+} from '../lib/supabase';
 import { mapBoletinesToProjects, mapGacetasToDataset } from '../utils/helpers';
 import { fetchGoogleCalendarEvents } from '../services/googleCalendar';
 import { fetchNotionPages, fetchNotionPageContent, NotionPage } from '../services/notion';
@@ -13,6 +25,9 @@ export interface DataContextType {
   refresh: () => Promise<void>;
   loading: boolean;
   error: string | null;
+  /** Estado de conexión a Supabase (se verifica al cargar datos) */
+  supabaseConnected: boolean;
+  supabaseError: string | null;
 }
 
 export const DataContext = React.createContext<DataContextType>({
@@ -24,6 +39,8 @@ export const DataContext = React.createContext<DataContextType>({
   refresh: async () => {},
   loading: true,
   error: null,
+  supabaseConnected: false,
+  supabaseError: null,
 });
 
 export const DataProvider = ({ children }: { children: React.ReactNode }) => {
@@ -42,12 +59,18 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [supabaseConnected, setSupabaseConnected] = useState(false);
+  const [supabaseError, setSupabaseError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
 
     try {
+      const connection = await checkSupabaseConnection();
+      setSupabaseConnected(connection.connected);
+      setSupabaseError(connection.error ?? null);
+
       // Obtener el base URL de Vite (resuelve automáticamente el base path)
       const baseUrl = import.meta.env.BASE_URL || '/';
       // Normalizar las rutas: eliminar barras duplicadas
@@ -60,65 +83,88 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
       
       const boletinesUrl = normalizePath('data/boletines.json');
       const gacetasUrl = normalizePath('data/gacetas_semarnat_analizadas.json');
-      
-      
-      // Cargar datos directamente desde public/data y Google Calendar
-      const [boletinesResponse, gacetasResponse, googleCalendarEvents] = await Promise.allSettled([
-        fetch(boletinesUrl).then(res => {
-          if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-          return res.json();
-        }),
-        fetch(gacetasUrl).then(res => {
-          if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-          return res.json();
-        }),
-        fetchGoogleCalendarEvents(),
+
+      // Prioridad: documentos_json (tabla unificada) → tablas relacionales → JSON estáticos
+      const [
+        areasDonacionFromJson,
+        areasDonacion,
+        greenAreasSupabase,
+        projectsFromJson,
+        projectsSupabase,
+        gazettesFromJson,
+        gazettesSupabase,
+        eventsSupabase,
+        pastEventsSupabase,
+        boletinesResponse,
+        gacetasResponse,
+        googleCalendarEvents,
+      ] = await Promise.all([
+        getAreasDonacionFromJson({ useCache: true, fallback: [] }),
+        getAreasDonacion({ useCache: true, fallback: [] }),
+        getGreenAreas({ useCache: true, fallback: [] }),
+        getProjectsFromJson({ useCache: true, fallback: [] }),
+        getProjects({ useCache: true, fallback: [] }),
+        getGazettesFromJson({ useCache: true, fallback: [] }),
+        getGazettes({ useCache: true, fallback: [] }),
+        getEvents({ useCache: true, fallback: [] }),
+        getPastEvents({ useCache: true, fallback: [] }),
+        fetch(boletinesUrl).then(res => (res.ok ? res.json() : [])).catch(() => []),
+        fetch(gacetasUrl).then(res => (res.ok ? res.json() : [])).catch(() => []),
+        fetchGoogleCalendarEvents().catch(() => []),
       ]);
 
-      // Procesar boletines a proyectos
+      // Ordenar por fecha (más reciente primero); acepta YYYY-MM-DD o similares
+      const byDateDesc = (a: any, b: any) => {
+        const dA = (a?.date || '').toString().replace(/\//g, '-').slice(0, 10);
+        const dB = (b?.date || '').toString().replace(/\//g, '-').slice(0, 10);
+        return dB.localeCompare(dA);
+      };
+
+      // Proyectos: documentos_json → Supabase → boletines JSON estático
       let projects: any[] = [];
-      if (boletinesResponse.status === 'fulfilled' && boletinesResponse.value) {
+      if (projectsFromJson && projectsFromJson.length > 0) {
+        projects = projectsFromJson;
+      } else if (projectsSupabase && projectsSupabase.length > 0) {
+        projects = projectsSupabase;
+      } else if (boletinesResponse != null) {
         try {
-          const mapped = mapBoletinesToProjects(boletinesResponse.value);
+          const mapped = mapBoletinesToProjects(boletinesResponse);
           projects = Array.isArray(mapped) ? mapped : [];
-        } catch (err) {
+        } catch {
           projects = [];
         }
-      } else {
-        if (boletinesResponse.status === 'rejected') {
-        }
       }
+      projects = [...projects].sort(byDateDesc);
 
-      // Procesar gacetas
+      // Gacetas: documentos_json → Supabase → JSON estático
       let gazettes: any[] = [];
-      if (gacetasResponse.status === 'fulfilled' && gacetasResponse.value) {
+      if (gazettesFromJson && gazettesFromJson.length > 0) {
+        gazettes = gazettesFromJson;
+      } else if (gazettesSupabase && gazettesSupabase.length > 0) {
+        gazettes = gazettesSupabase;
+      } else if (gacetasResponse != null) {
         try {
-          const mapped = mapGacetasToDataset(gacetasResponse.value);
+          const mapped = mapGacetasToDataset(gacetasResponse);
           gazettes = Array.isArray(mapped) ? mapped : [];
-        } catch (err) {
+        } catch {
           gazettes = [];
         }
-      } else {
-        if (gacetasResponse.status === 'rejected') {
-        }
+      }
+      gazettes = [...gazettes].sort(byDateDesc);
+
+      // Eventos: Supabase → Google Calendar → estáticos
+      let events: any[] = EVENTS_DATA;
+      if (eventsSupabase && eventsSupabase.length > 0) {
+        events = eventsSupabase;
+      } else if (Array.isArray(googleCalendarEvents) && googleCalendarEvents.length > 0) {
+        events = googleCalendarEvents;
       }
 
-      // Procesar eventos de Google Calendar
-      let events: any[] = EVENTS_DATA; // Fallback a eventos estáticos
-      if (googleCalendarEvents.status === 'fulfilled' && googleCalendarEvents.value) {
-        const googleEvents = googleCalendarEvents.value;
-        if (googleEvents.length > 0) {
-          // Si hay eventos de Google Calendar, usarlos; si no, mantener los estáticos
-          events = googleEvents;
-        } else {
-        }
+      // Bitácora (eventos pasados): Supabase → Notion → estáticos
+      let pastEvents: any[] = PAST_EVENTS_DATA;
+      if (pastEventsSupabase && pastEventsSupabase.length > 0) {
+        pastEvents = pastEventsSupabase;
       } else {
-        if (googleCalendarEvents.status === 'rejected') {
-        }
-      }
-
-      // Procesar Bitácora de Impacto desde Notion
-      let pastEvents: any[] = PAST_EVENTS_DATA; // Fallback a datos estáticos
       try {
         const notionPages = await fetchNotionPages();
         if (notionPages && notionPages.length > 0) {
@@ -163,19 +209,30 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
       } catch (notionError: any) {
         // Error cargando desde Notion, usar datos estáticos
       }
+      }
 
-      // Usar datos estáticos para áreas verdes
+      // Bitácora: más reciente primero
+      pastEvents = [...pastEvents].sort(byDateDesc);
+
+      // Áreas verdes: documentos_json → Supabase (areas_donacion → green_areas) → estáticos
+      let greenAreas = GREEN_AREAS_DATA;
+      if (areasDonacionFromJson && areasDonacionFromJson.length > 0) {
+        greenAreas = areasDonacionFromJson;
+      } else if (areasDonacion && areasDonacion.length > 0) {
+        greenAreas = areasDonacion;
+      } else if (greenAreasSupabase && greenAreasSupabase.length > 0) {
+        greenAreas = greenAreasSupabase;
+      }
+
       setData({
-        greenAreas: GREEN_AREAS_DATA,
-        projects: projects.length > 0 ? projects : [],
-        gazettes: gazettes.length > 0 ? gazettes : [],
-        events: events,
-        pastEvents: pastEvents
+        greenAreas: greenAreas?.length ? greenAreas : GREEN_AREAS_DATA,
+        projects: projects?.length ? projects : [],
+        gazettes: gazettes?.length ? gazettes : [],
+        events: events?.length ? events : EVENTS_DATA,
+        pastEvents: pastEvents?.length ? pastEvents : PAST_EVENTS_DATA,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido al cargar datos');
-      
-      // Fallback completo a datos estáticos en caso de error
       setData({
         greenAreas: GREEN_AREAS_DATA,
         projects: [],
@@ -205,7 +262,9 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
     pastEvents: data.pastEvents,
     refresh,
     loading,
-    error
+    error,
+    supabaseConnected,
+    supabaseError,
   };
 
   return React.createElement(

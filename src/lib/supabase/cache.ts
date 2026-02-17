@@ -70,9 +70,9 @@ class QueryCache {
   }
 
   /**
-   * Genera una clave de caché a partir de una tabla y filtros
+   * Genera una clave de caché a partir de una tabla y filtros (instance method para uso con queryCache)
    */
-  static generateKey(table: string, filters?: Record<string, any>): string {
+  generateKey(table: string, filters?: Record<string, any>): string {
     const filterStr = filters ? JSON.stringify(filters) : '';
     return `${table}:${filterStr}`;
   }

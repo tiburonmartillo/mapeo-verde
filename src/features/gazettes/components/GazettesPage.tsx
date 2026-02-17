@@ -4,7 +4,6 @@ import { Calendar, Search, List, LayoutGrid, ChevronLeft, ChevronRight, Download
 import { useContext } from 'react';
 import { DataContext } from '../../../context/DataContext';
 import { getNavbarHeight } from '../../../utils/helpers/layoutHelpers';
-import { GacetaModal } from '../../../components/gazettes/GacetaModal';
 
 const GazettesPage = () => {
   const { gazettes: GAZETTES_DATA } = useContext(DataContext);
@@ -104,10 +103,6 @@ const GazettesPage = () => {
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-
-  // Modal de gaceta
-  const [isGacetaModalOpen, setIsGacetaModalOpen] = useState(false);
-  const [selectedGaceta, setSelectedGaceta] = useState<any | null>(null);
 
   // Filter projects logic
   const filteredByYear = selectedYear === 'all'
@@ -258,12 +253,10 @@ const GazettesPage = () => {
                   </thead>
                   <tbody className="divide-y divide-black">
                     {currentData.map((row: any) => (
-                      <tr
+                    <tr
                         key={row.id}
                         onClick={() => {
                           handleSelectProject(row.id);
-                          setSelectedGaceta(row);
-                          setIsGacetaModalOpen(true);
                         }}
                         className={`cursor-pointer hover:bg-[#9dcdff]/20 transition-colors ${selectedProjectId === row.id ? 'bg-[#9dcdff]/50' : ''}`}
                       >
@@ -311,8 +304,6 @@ const GazettesPage = () => {
                     key={card.id}
                     onClick={() => {
                       handleSelectProject(card.id);
-                      setSelectedGaceta(card);
-                      setIsGacetaModalOpen(true);
                     }}
                     className={`
                           border-2 border-black bg-white p-4 cursor-pointer hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all h-full
@@ -465,16 +456,6 @@ const GazettesPage = () => {
         </div>
 
       </div>
-
-      {/* Modal de Gaceta */}
-      <GacetaModal
-        gaceta={selectedGaceta}
-        isOpen={isGacetaModalOpen}
-        onClose={() => {
-          setIsGacetaModalOpen(false);
-          setSelectedGaceta(null);
-        }}
-      />
     </div>
   );
 };

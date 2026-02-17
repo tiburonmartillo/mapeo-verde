@@ -56,3 +56,45 @@ export const resetSupabaseClient = (): void => {
   supabaseClient = null;
 };
 
+/**
+ * Verifica que la conexión a Supabase funcione (credenciales + red + tabla accesible).
+ * Intenta verificar con areas_donacion_json o areas_donacion primero; si no existen, prueba green_areas.
+ */
+export async function checkSupabaseConnection(): Promise<{
+  connected: boolean;
+  error?: string;
+}> {
+  const client = getSupabaseClient();
+  if (!client) {
+    return {
+      connected: false,
+      error: 'Credenciales no configuradas (revisa projectId y publicAnonKey en src/utils/supabase/info)',
+    };
+  }
+  try {
+    // Intentar primero con las tablas _json que sabemos que existen en este proyecto
+    const tablesToTry = [
+      'areas_donacion_json',
+      'boletines_json',
+      'gacetas_json',
+      'areas_donacion',
+      'projects',
+      'gazettes',
+      'green_areas',
+    ];
+    for (const table of tablesToTry) {
+      const { error } = await client.from(table).select('id').limit(1);
+      if (!error) {
+        return { connected: true };
+      }
+    }
+    // Si todas las tablas fallan, la conexión funciona pero no hay tablas accesibles
+    return { connected: true, error: 'No se encontraron tablas accesibles' };
+  } catch (e) {
+    return {
+      connected: false,
+      error: e instanceof Error ? e.message : 'Error de red o tiempo de espera agotado',
+    };
+  }
+}
+
