@@ -1,7 +1,11 @@
 import { motion } from 'motion/react';
 import { useState } from 'react';
+import { Calendar, AlertCircle } from 'lucide-react';
 import { LogoMap } from '../../../components/common/LogoMap';
-import { ExternalLink, Calendar, Instagram, Facebook, Music, AlertCircle } from 'lucide-react';
+import FacebookLogo from '../../../assets/Facebook_Logo_Primary.png';
+import InstagramLogo from '../../../assets/Instagram_Glyph_Gradient.svg';
+import WhatsAppLogo from '../../../assets/whatsapp.svg';
+import TikTokLogo from '../../../assets/tiktok-svgrepo-com.svg';
 
 const LinktreePage = () => {
   const [calendarError, setCalendarError] = useState(false);
@@ -10,119 +14,144 @@ const LinktreePage = () => {
   const calendarEmbedUrl = `https://calendar.google.com/calendar/u/0/embed?src=${encodeURIComponent(calendarId)}&ctz=America%2FMexico_City&mode=MONTH&showPrint=0&showTabs=0&showCalendars=0&showTz=0`;
   const calendarViewUrl = `https://calendar.google.com/calendar/u/0/embed?src=${encodeURIComponent(calendarId)}&ctz=America%2FMexico_City`;
   
-  const links = [
+  const profiles = [
     {
+      id: 1,
       name: 'Instagram',
       url: 'https://www.instagram.com/mapeoverde/',
-      icon: Instagram,
-      bgColor: 'linear-gradient(to right, #a855f7, #ec4899)',
-      className: 'bg-gradient-to-r from-purple-500 to-pink-500',
+      logo: InstagramLogo,
+      logoType: 'image' as const,
     },
     {
+      id: 2,
       name: 'Facebook',
       url: 'https://www.facebook.com/mapeoverde/',
-      icon: Facebook,
-      bgColor: '#2563eb',
-      className: 'bg-blue-600',
+      logo: FacebookLogo,
+      logoType: 'image' as const,
     },
     {
+      id: 3,
+      name: 'WhatsApp',
+      url: 'https://wa.me/5214491234567',
+      logo: WhatsAppLogo,
+      logoType: 'image' as const,
+    },
+    {
+      id: 4,
       name: 'TikTok',
       url: 'https://www.tiktok.com/@mapeoverde',
-      icon: Music,
-      bgColor: '#000000',
-      className: 'bg-black',
+      logo: TikTokLogo,
+      logoType: 'image' as const,
     },
     {
-      name: 'Sitio Web',
-      url: 'https://mapeoverde.org',
-      icon: ExternalLink,
-      bgColor: '#7FB800',
-      className: 'bg-[#7FB800]',
+      id: 5,
+      name: 'Agenda',
+      url: '/agenda',
+      logo: null,
+      logoType: 'text' as const,
+      logoText: 'Agenda',
     },
     {
-      name: 'Agenda Mapeo Verde',
-      url: calendarViewUrl,
-      icon: Calendar,
-      bgColor: '#FF7F50',
-      className: 'bg-[#FF7F50]',
-      isCalendar: true,
+      id: 6,
+      name: 'Áreas Verde',
+      url: '/areas-verdes',
+      logo: null,
+      logoType: 'text' as const,
+      logoText: 'Áreas Verde',
     },
   ];
 
   return (
-    <div className="min-h-screen bg-[#f3f4f0] flex flex-col items-center justify-center px-4 py-12">
+    <div className="relative min-h-screen bg-[#f3f4f0] flex flex-col items-center justify-center px-6 pt-6 pb-6 overflow-hidden">
+      {/* Background - Dot Pattern (mismo que header de inicio) */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.1 }}
+        transition={{ duration: 1.5 }}
+        className="absolute inset-0 pointer-events-none"
+        style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '24px 24px' }}
+        aria-hidden="true"
+      />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
+        className="relative z-10 w-full max-w-md flex flex-col items-center"
       >
-        {/* Logo */}
-        <div className="flex justify-center mb-8">
-          <div className="w-32 h-32">
+        {/* Logo Mapeo Verde */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="mb-8 w-full"
+        >
+          <div className="w-full aspect-[835/383]">
             <LogoMap className="w-full h-full" />
           </div>
-        </div>
+        </motion.div>
 
         {/* Title */}
-        <h1 className="text-3xl font-bold text-center mb-2 text-black">Mapeo Verde</h1>
-        <p className="text-center text-gray-600 mb-8">Conecta con nosotros</p>
+        <motion.h1
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="text-3xl font-bold text-center mb-2 text-black"
+        >
+          Conecta con nosotros
+        </motion.h1>
 
-        {/* Links */}
-        <div className="space-y-4 mb-8">
-          {links.map((link, index) => {
-            const Icon = link.icon;
+        {/* Profile Cards Grid - 2 columnas x 3 filas - Estilo Brutalista */}
+        <div className="grid grid-cols-2 gap-4 mb-12 w-full">
+          {profiles.map((profile, index) => {
+            // Las últimas dos cards (Agenda y Áreas Verde) son rectángulos horizontales
+            const isRectangular = profile.id === 5 || profile.id === 6;
+            
             return (
               <motion.a
-                key={link.name}
-                href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                style={{
-                  background: link.bgColor,
-                }}
-                className={`
-                  flex items-center justify-between
-                  w-full p-4 rounded-lg
-                  ${link.className} ${link.isCalendar ? 'text-[#fafafa]' : 'text-white'}
-                  shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
-                  hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]
-                  transition-all duration-200
-                  cursor-pointer
-                  group
-                `}
+                key={profile.id}
+                href={profile.url}
+                target={profile.url.startsWith('http') ? '_blank' : undefined}
+                rel={profile.url.startsWith('http') ? 'noopener noreferrer' : undefined}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.4, delay: 0.3 + index * 0.1 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95, translateY: 1 }}
+                className={`${isRectangular ? 'h-20' : 'aspect-square'} w-full bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] cursor-pointer flex items-center justify-center hover:bg-[#ff7e67] hover:text-white transition-all active:translate-y-1 active:shadow-none`}
+                aria-label={profile.name}
               >
-                <div className="flex items-center gap-3">
-                  <Icon className={`w-5 h-5 ${link.isCalendar ? 'text-[#fafafa]' : ''}`} style={link.isCalendar ? { color: '#fafafa' } : {}} />
-                  <span className={`font-medium ${link.isCalendar ? 'text-[#fafafa]' : ''}`} style={link.isCalendar ? { color: '#fafafa' } : {}}>{link.name}</span>
-                </div>
-                <ExternalLink className={`w-4 h-4 opacity-70 group-hover:opacity-100 transition-opacity ${link.isCalendar ? 'text-[#fafafa]' : ''}`} style={link.isCalendar ? { color: '#fafafa' } : {}} />
+                {profile.logoType === 'image' && profile.logo ? (
+                  <img
+                    src={profile.logo}
+                    alt={profile.name}
+                    className="w-16 h-16 md:w-20 md:h-20 object-contain p-2"
+                  />
+                ) : profile.logoType === 'text' && profile.logoText ? (
+                  <span className="text-lg md:text-xl font-bold text-black uppercase tracking-wider">
+                    {profile.logoText}
+                  </span>
+                ) : null}
               </motion.a>
             );
           })}
         </div>
 
-        {/* Calendar Embed */}
+        {/* Calendar Embed - Estilo Brutalista */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.5 }}
-          className="w-full rounded-lg overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] border-2 border-black bg-white"
+          transition={{ duration: 0.5, delay: 0.9 }}
+          className="w-full border-2 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] overflow-hidden"
         >
           {calendarError ? (
             <div className="p-8 text-center">
-              <AlertCircle className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-              <p className="text-gray-600 mb-4">No se pudo cargar el calendario</p>
+              <AlertCircle className="w-12 h-12 mx-auto mb-4 text-black" />
+              <p className="text-black mb-4 font-bold">No se pudo cargar el calendario</p>
               <a
                 href={calendarViewUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-[#FF7F50] text-[#fafafa] rounded-lg hover:opacity-90 transition-opacity"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-[#ff7e67] text-white font-bold uppercase border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-black transition-all active:translate-y-1 active:shadow-none"
               >
                 <Calendar className="w-4 h-4" />
                 Abrir calendario en Google Calendar
@@ -141,16 +170,13 @@ const LinktreePage = () => {
               allowFullScreen
               onError={() => setCalendarError(true)}
               onLoad={(e) => {
-                // Verificar si el iframe cargó correctamente
                 const iframe = e.target as HTMLIFrameElement;
                 try {
-                  // Si el iframe tiene contenido, está bien
                   if (iframe.contentWindow) {
                     setCalendarError(false);
                   }
                 } catch (err) {
                   // Error de CORS es normal con iframes de Google Calendar
-                  // No es un error real, el calendario debería cargar
                 }
               }}
             />
@@ -162,4 +188,3 @@ const LinktreePage = () => {
 };
 
 export default LinktreePage;
-
