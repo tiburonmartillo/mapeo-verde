@@ -370,7 +370,18 @@ export async function fetchGoogleCalendarEvents(): Promise<GoogleCalendarEvent[]
         icalData = await fetchIcalWithFallbacks(calendarUrl);
       }
     } else {
-      // En producción (GitHub Pages): solo fetch directa + proxies CORS (no hay backend).
+      // En producción (GitHub Pages): primero JSON estático generado en build; si no hay, proxies CORS.
+      const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '') + '/';
+      const staticUrl = `${base}calendar-events.json`;
+      try {
+        const res = await fetch(staticUrl, { headers: { Accept: 'application/json' } });
+        if (res?.ok) {
+          const json = await res.json();
+          if (Array.isArray(json) && json.length > 0) return json;
+        }
+      } catch {
+        // ignorar
+      }
       icalData = await fetchIcalWithFallbacks(calendarUrl);
     }
 

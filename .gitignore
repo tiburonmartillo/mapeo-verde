@@ -40,6 +40,9 @@ lint_output.txt
 # Vite
 .vite
 
+# Generado en build (eventos de Google Calendar para producción)
+public/calendar-events.json
+
 # TypeScript
 *.tsbuildinfo
 .supabase/
