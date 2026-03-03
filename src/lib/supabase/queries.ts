@@ -190,6 +190,19 @@ interface QueryOptions {
   fallback?: any[]; // Datos de fallback si falla la query
 }
 
+// Tipos ligeros para la tabla de participación (no tipada en Database)
+type ParticipationType = 'GREEN_AREA' | 'EVENT';
+
+interface ParticipationSubmissionRow {
+  id: number;
+  type: ParticipationType;
+  name: string | null;
+  email: string | null;
+  whatsapp: string | null;
+  data: any;
+  created_at?: string;
+}
+
 /**
  * Obtiene áreas verdes desde Supabase con caché y deduplicación
  */
@@ -235,6 +248,55 @@ export const getGreenAreas = async (options: QueryOptions = {}): Promise<GreenAr
       return fallback;
     }
   });
+};
+
+/**
+ * Obtiene aportes ciudadanos de áreas verdes desde participation_submissions
+ * y los mapea al tipo GreenArea de la aplicación.
+ */
+export const getParticipationGreenAreas = async (): Promise<GreenArea[]> => {
+  try {
+    const supabase = getSupabaseClient();
+    if (!supabase) return [];
+
+    const { data, error } = await supabase
+      .from('participation_submissions')
+      .select('*')
+      .eq('type', 'GREEN_AREA')
+      .order('id', { ascending: true });
+
+    if (error || !data) return [];
+
+    return (data as ParticipationSubmissionRow[])
+      .map((row) => {
+        const d = row.data ?? {};
+        const lat = Number(d.areaLat ?? d.lat ?? d.latitude);
+        const lng = Number(d.areaLng ?? d.lng ?? d.longitude);
+        if (!d.areaName || !d.areaAddress || !Number.isFinite(lat) || !Number.isFinite(lng)) {
+          return null;
+        }
+
+        const idOffset = 100000; // evitar colisión con IDs de tablas oficiales
+
+        const needText =
+          (d.areaNeed && String(d.areaNeed).trim()) ||
+          'Propuesta ciudadana en revisión';
+
+        return {
+          id: idOffset + row.id,
+          name: String(d.areaName),
+          address: String(d.areaAddress),
+          lat,
+          lng,
+          tags: ['Propuesta ciudadana'],
+          need: needText,
+          image: '',
+        } as GreenArea;
+      })
+      .filter((x): x is GreenArea => x !== null);
+  } catch {
+    return [];
+  }
 };
 
 /**
@@ -494,6 +556,72 @@ export const getEvents = async (options: QueryOptions = {}): Promise<Event[]> =>
       return fallback;
     }
   });
+};
+
+/**
+ * Obtiene eventos ciudadanos desde participation_submissions
+ * y los mapea al tipo Event de la aplicación.
+ */
+export const getParticipationEvents = async (): Promise<Event[]> => {
+  try {
+    const supabase = getSupabaseClient();
+    if (!supabase) return [];
+
+    const { data, error } = await supabase
+      .from('participation_submissions')
+      .select('*')
+      .eq('type', 'EVENT')
+      .order('id', { ascending: true });
+
+    if (error || !data) return [];
+
+    return (data as ParticipationSubmissionRow[])
+      .map((row) => {
+        const d = row.data ?? {};
+        const date = (d.eventDate || '').toString();
+        const startTime = (d.eventStartTime || d.eventTime || '').toString();
+        const endTime = (d.eventEndTime || '').toString();
+        const title = (d.eventTitle || '').toString();
+        const location = (d.eventLocation || '').toString();
+        const imageUrl = (d.eventImageUrl || '').toString();
+
+        if (!date || !startTime || !title || !location) {
+          return null;
+        }
+
+        const isoStart = (() => {
+          // Espera YYYY-MM-DD y HH:MM
+          const datePart = date.length >= 10 ? date.slice(0, 10) : date;
+          const timePart = startTime.length >= 5 ? startTime.slice(0, 5) : startTime;
+          return `${datePart}T${timePart}:00`;
+        })();
+
+        const isoEnd = (() => {
+          if (!endTime) return isoStart;
+          const datePart = date.length >= 10 ? date.slice(0, 10) : date;
+          const timePart = endTime.length >= 5 ? endTime.slice(0, 5) : endTime;
+          return `${datePart}T${timePart}:00`;
+        })();
+        const idOffset = 100000;
+        const timeLabel = endTime ? `${startTime}–${endTime}` : startTime;
+
+        return {
+          id: idOffset + row.id,
+          title,
+          date,
+          time: timeLabel,
+          isoStart,
+          isoEnd,
+          location,
+          category: 'Propuesta ciudadana',
+          image: imageUrl,
+          description: (d.eventDescription || '').toString(),
+        } as Event;
+      })
+      .filter((x): x is Event => x !== null);
+  } catch {
+    return [];
+  }
 };
 
 /**

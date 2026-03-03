@@ -3,10 +3,12 @@ export { queryCache } from './cache';
 export { requestDeduplicator } from './requestDeduplication';
 export {
   getGreenAreas,
+  getParticipationGreenAreas,
   getAreasDonacion,
   getProjects,
   getGazettes,
   getEvents,
+  getParticipationEvents,
   getPastEvents,
   getAreasDonacionFromJson,
   getProjectsFromJson,

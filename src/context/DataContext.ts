@@ -1,11 +1,13 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { GREEN_AREAS_DATA, EVENTS_DATA, PAST_EVENTS_DATA } from '../data/static';
 import {
   getAreasDonacion,
   getGreenAreas,
+  getParticipationGreenAreas,
   getProjects,
   getGazettes,
   getEvents,
+  getParticipationEvents,
   getPastEvents,
   getAreasDonacionFromJson,
   getProjectsFromJson,
@@ -61,6 +63,42 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
   const [error, setError] = useState<string | null>(null);
   const [supabaseConnected, setSupabaseConnected] = useState(false);
   const [supabaseError, setSupabaseError] = useState<string | null>(null);
+  const lastAgendaEventsHashRef = useRef<string>('');
+
+  const fetchAgendaEvents = useCallback(async () => {
+    try {
+      const [eventsSupabase, participationEvents, googleCalendarEvents] = await Promise.all([
+        getEvents({ useCache: false, fallback: [] }),
+        getParticipationEvents(),
+        fetchGoogleCalendarEvents().catch(() => []),
+      ]);
+
+      // Misma prioridad que en fetchData(): Supabase → Google Calendar → estáticos
+      let events: any[] = EVENTS_DATA;
+      if (eventsSupabase && eventsSupabase.length > 0) {
+        events = eventsSupabase;
+      } else if (Array.isArray(googleCalendarEvents) && googleCalendarEvents.length > 0) {
+        events = googleCalendarEvents;
+      }
+
+      // Añadir propuestas ciudadanas de eventos (al final de la lista)
+      if (participationEvents && participationEvents.length > 0) {
+        events = [...events, ...participationEvents];
+      }
+
+      // Evitar sobrescribir con vacío (por CORS/red) y evitar renders si no cambió.
+      if (!events || events.length === 0) return;
+      const nextHash = events
+        .map((e: any) => `${String(e?.id ?? '')}|${String(e?.isoStart ?? '')}|${String(e?.isoEnd ?? '')}`)
+        .join(';;');
+      if (nextHash === lastAgendaEventsHashRef.current) return;
+      lastAgendaEventsHashRef.current = nextHash;
+
+      setData((prev) => ({ ...prev, events }));
+    } catch {
+      // refresh silencioso: si falla, conservar lo ya mostrado
+    }
+  }, []);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -89,11 +127,13 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         areasDonacionFromJson,
         areasDonacion,
         greenAreasSupabase,
+        participationGreenAreas,
         projectsFromJson,
         projectsSupabase,
         gazettesFromJson,
         gazettesSupabase,
         eventsSupabase,
+        participationEvents,
         pastEventsSupabase,
         boletinesResponse,
         gacetasResponse,
@@ -102,11 +142,13 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         getAreasDonacionFromJson({ useCache: true, fallback: [] }),
         getAreasDonacion({ useCache: true, fallback: [] }),
         getGreenAreas({ useCache: true, fallback: [] }),
+        getParticipationGreenAreas(),
         getProjectsFromJson({ useCache: true, fallback: [] }),
         getProjects({ useCache: true, fallback: [] }),
         getGazettesFromJson({ useCache: true, fallback: [] }),
         getGazettes({ useCache: true, fallback: [] }),
         getEvents({ useCache: true, fallback: [] }),
+        getParticipationEvents(),
         getPastEvents({ useCache: true, fallback: [] }),
         fetch(boletinesUrl).then(res => (res.ok ? res.json() : [])).catch(() => []),
         fetch(gacetasUrl).then(res => (res.ok ? res.json() : [])).catch(() => []),
@@ -158,6 +200,11 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         events = eventsSupabase;
       } else if (Array.isArray(googleCalendarEvents) && googleCalendarEvents.length > 0) {
         events = googleCalendarEvents;
+      }
+
+      // Añadir propuestas ciudadanas de eventos (al final de la lista)
+      if (participationEvents && participationEvents.length > 0) {
+        events = [...events, ...participationEvents];
       }
 
       // Bitácora (eventos pasados): Supabase → Notion → estáticos
@@ -224,6 +271,11 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         greenAreas = greenAreasSupabase;
       }
 
+      // Añadir propuestas ciudadanas de áreas verdes (al final de la lista)
+      if (participationGreenAreas && participationGreenAreas.length > 0) {
+        greenAreas = [...greenAreas, ...participationGreenAreas];
+      }
+
       setData({
         greenAreas: greenAreas?.length ? greenAreas : GREEN_AREAS_DATA,
         projects: projects?.length ? projects : [],
@@ -248,6 +300,17 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // Auto-actualizar Agenda en "tiempo real" (polling).
+  // Nota: Google Calendar iCal no ofrece push realtime en un sitio estático; esto es lo más cercano sin backend.
+  useEffect(() => {
+    // Permitir ajustar por env si se requiere (ms). Default: 60s
+    const intervalMs = Number(import.meta.env.VITE_AGENDA_REFRESH_MS) || 60_000;
+    const interval = window.setInterval(() => {
+      fetchAgendaEvents();
+    }, intervalMs);
+    return () => window.clearInterval(interval);
+  }, [fetchAgendaEvents]);
 
   // Función de refresh que recarga los datos
   const refresh = useCallback(async () => {

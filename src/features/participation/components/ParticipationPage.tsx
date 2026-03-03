@@ -1,57 +1,28 @@
-import React, { useMemo, useState, useEffect, useRef } from 'react';
-import { Camera, Search, FileText, ArrowDown } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { ArrowDown } from 'lucide-react';
 import { getNavbarHeight } from '../../../utils/helpers/layoutHelpers';
 import { getSupabaseClient } from '../../../lib/supabase';
+import { Map, Marker } from 'pigeon-maps';
 
-const PARTICIPATION_ROLES = [
-  {
-    icon: Camera,
-    color: '#d89dff',
-    title: 'Explorador Urbano',
-    description: 'Sal a las calles de tu colonia. Tu misión es fotografiar, medir y georreferenciar árboles y áreas verdes usando nuestra app web.',
-    requirements: [
-      'Smartphone con GPS',
-      'Caminatas al aire libre',
-      'Sin experiencia previa'
-    ],
-    buttonText: 'Quiero Mapear',
-    buttonColor: '#d89dff'
-  },
-  {
-    icon: Search,
-    color: '#b4ff6f',
-    title: 'Analista de Datos',
-    description: 'Verifica la calidad de la información desde casa. Ayuda a identificar especies en las fotos y valida reportes de alertas ciudadanas.',
-    requirements: [
-      'Computadora / Tablet',
-      'Curiosidad botánica',
-      'Atención al detalle'
-    ],
-    buttonText: 'Quiero Validar',
-    buttonColor: '#b4ff6f'
-  },
-  {
-    icon: FileText,
-    color: '#fccb4e',
-    title: 'Investigador',
-    description: 'Usa nuestros datos abiertos para generar reportes, tesis académicas o artículos periodísticos sobre el estado ambiental de la ciudad.',
-    requirements: [
-      'Análisis de datos',
-      'Generación de impacto',
-      'Publicación libre'
-    ],
-    buttonText: 'Descargar Datos',
-    buttonColor: '#fccb4e'
-  }
-];
+const HALF_HOUR_TIME_OPTIONS = Array.from({ length: 24 * 2 }, (_, index) => {
+  const hours = Math.floor(index / 2)
+    .toString()
+    .padStart(2, '0');
+  const minutes = index % 2 === 0 ? '00' : '30';
+  return `${hours}:${minutes}`;
+});
 
-const FORM_ROLES = ['Explorador', 'Analista', 'Investigador', 'Desarrollador', 'Difusión'];
+const timeToMinutes = (value: string | null | undefined): number | null => {
+  if (!value) return null;
+  const [h, m] = value.split(':').map((v) => parseInt(v, 10));
+  if (Number.isNaN(h) || Number.isNaN(m)) return null;
+  return h * 60 + m;
+};
 
 const ParticipationPage = () => {
   const [navbarHeight, setNavbarHeight] = useState(64);
   const [isMobile, setIsMobile] = useState(false);
-  const lastScrollYRef = useRef(0);
-  const [entryType, setEntryType] = useState<'GREEN_AREA' | 'EVENT'>('GREEN_AREA');
+  const [entryType, setEntryType] = useState<'GREEN_AREA' | 'EVENT'>('EVENT');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -65,12 +36,27 @@ const ParticipationPage = () => {
     // Evento
     eventTitle: '',
     eventDate: '',
-    eventTime: '',
+    eventStartTime: '',
+    eventEndTime: '',
     eventLocation: '',
     eventDescription: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState<string | null>(null);
+  const [mapCenter, setMapCenter] = useState<[number, number]>([21.8853, -102.2916]);
+  const [mapZoom, setMapZoom] = useState(13);
+  const [isReverseGeocoding, setIsReverseGeocoding] = useState(false);
+  const [eventMarker, setEventMarker] = useState<[number, number] | null>(null);
+  const [eventLocationSuggestions, setEventLocationSuggestions] = useState<
+    { label: string; lat: number; lng: number }[]
+  >([]);
+  const [isSearchingLocation, setIsSearchingLocation] = useState(false);
+  const eventLocationAbortRef = useRef<AbortController | null>(null);
+  const [eventImageFile, setEventImageFile] = useState<File | null>(null);
+  const [eventImageName, setEventImageName] = useState<string | null>(null);
+  const [eventImagePreview, setEventImagePreview] = useState<string | null>(null);
+  const [submitStatus, setSubmitStatus] = useState<'success' | 'error' | null>(null);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -84,6 +70,16 @@ const ParticipationPage = () => {
       window.removeEventListener('resize', checkMobile);
     };
   }, []);
+
+  useEffect(() => {
+    if (submitMessage) {
+      setSnackbarOpen(true);
+      const timeout = setTimeout(() => {
+        setSnackbarOpen(false);
+      }, 6000);
+      return () => clearTimeout(timeout);
+    }
+  }, [submitMessage]);
 
   useEffect(() => {
     const updateNavbarHeight = () => {
@@ -167,7 +163,86 @@ const ParticipationPage = () => {
                  e.preventDefault();
                  setIsSubmitting(true);
                  setSubmitMessage(null);
+                 setSubmitStatus(null);
                  try {
+                   if (entryType === 'EVENT') {
+                     const start = formData.eventStartTime;
+                     const end = formData.eventEndTime;
+                     const toMinutes = (value: string) => {
+                       const [h, m] = value.split(':').map((v) => parseInt(v, 10));
+                       if (Number.isNaN(h) || Number.isNaN(m)) return NaN;
+                       return h * 60 + m;
+                     };
+                     const startMinutes = toMinutes(start);
+                     const endMinutes = toMinutes(end);
+                     if (
+                       !start ||
+                       !end ||
+                       Number.isNaN(startMinutes) ||
+                       Number.isNaN(endMinutes) ||
+                       endMinutes <= startMinutes
+                     ) {
+                       setSubmitMessage(
+                         'Revisa el horario: la hora de fin debe ser mayor que la hora de inicio.',
+                       );
+                       setSubmitStatus('error');
+                       setIsSubmitting(false);
+                       return;
+                     }
+                   }
+
+                   const client = getSupabaseClient();
+                   if (!client) {
+                     throw new Error(
+                       'Supabase no está configurado en este entorno (revisa las variables de entorno).',
+                     );
+                   }
+
+                   let eventImageUrl: string | null = null;
+                   let imageStatusMessage: string | null = null;
+                   if (entryType === 'EVENT') {
+                     if (eventImageFile) {
+                       try {
+                         const ext = eventImageFile.name.split('.').pop() || 'jpg';
+                         const safeExt = ext.toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+                         const path = `event-banners/${Date.now()}-${Math.random()
+                           .toString(36)
+                           .slice(2)}.${safeExt}`;
+
+                         const { data: uploadData, error: uploadError } = await client.storage
+                           .from('event_banners')
+                           .upload(path, eventImageFile, {
+                             cacheControl: '3600',
+                             upsert: false,
+                           });
+
+                         if (uploadError) {
+                           imageStatusMessage = `No se pudo subir la imagen del evento: ${uploadError.message}`;
+                         } else if (uploadData?.path) {
+                           const { data: publicUrlData } = client.storage
+                             .from('event_banners')
+                             .getPublicUrl(uploadData.path);
+                           if (publicUrlData?.publicUrl) {
+                             eventImageUrl = publicUrlData.publicUrl;
+                             imageStatusMessage = 'Imagen del evento cargada correctamente.';
+                           } else {
+                             imageStatusMessage =
+                               'No se pudo obtener la URL pública del cartel del evento.';
+                           }
+                         } else {
+                           imageStatusMessage =
+                             'No se recibió información de la ruta de la imagen subida.';
+                         }
+                       } catch (error: any) {
+                         imageStatusMessage =
+                           'Error inesperado al subir la imagen del evento. Detalle: ' +
+                           (error?.message || 'sin mensaje de error');
+                       }
+                     } else {
+                       imageStatusMessage = 'No se detectó ningún archivo de imagen adjunto.';
+                     }
+                   }
+
                    const payload = {
                      tipo: entryType === 'GREEN_AREA' ? 'Área verde' : 'Evento',
                      nombre: formData.name,
@@ -184,18 +259,13 @@ const ParticipationPage = () => {
                        : {
                            eventTitle: formData.eventTitle,
                            eventDate: formData.eventDate,
-                           eventTime: formData.eventTime,
+                           eventStartTime: formData.eventStartTime,
+                           eventEndTime: formData.eventEndTime,
                            eventLocation: formData.eventLocation,
                            eventDescription: formData.eventDescription,
+                           eventImageUrl: eventImageUrl,
                          }),
                    };
-
-                   const client = getSupabaseClient();
-                   if (!client) {
-                     throw new Error(
-                       'Supabase no está configurado en este entorno (revisa las variables de entorno).',
-                     );
-                   }
 
                    const { error } = await client
                      .from('participation_submissions')
@@ -211,9 +281,13 @@ const ParticipationPage = () => {
                      throw error;
                    }
 
-                   setSubmitMessage(
-                     'Gracias. Hemos registrado tu propuesta en la base de datos y el equipo la revisará pronto.',
-                   );
+                   let successMessage =
+                     'Gracias. Hemos registrado tu propuesta en la base de datos y el equipo la revisará pronto.';
+                   if (imageStatusMessage) {
+                     successMessage += ' Detalle sobre la imagen: ' + imageStatusMessage;
+                   }
+                   setSubmitMessage(successMessage);
+                   setSubmitStatus('success');
                    setFormData({
                      name: '',
                      email: '',
@@ -225,19 +299,48 @@ const ParticipationPage = () => {
                      areaNeed: '',
                      eventTitle: '',
                      eventDate: '',
-                     eventTime: '',
+                     eventStartTime: '',
+                     eventEndTime: '',
                      eventLocation: '',
                      eventDescription: '',
                    });
+                   setEventImageFile(null);
+                   if (eventImagePreview) {
+                     URL.revokeObjectURL(eventImagePreview);
+                   }
+                   setEventImagePreview(null);
                  } catch (err: any) {
                    setSubmitMessage(
                      'No pudimos guardar en Supabase. Revisa la configuración del backend o vuelve a intentarlo más tarde.',
                    );
+                  setSubmitStatus('error');
                  } finally {
                    setIsSubmitting(false);
                  }
                }}
              >
+              {submitMessage && snackbarOpen && (
+                <div
+                  role="alert"
+                  className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-4 px-4 py-3 rounded-lg shadow-lg border max-w-[min(90vw,28rem)] min-w-[18rem] animate-in fade-in slide-in-from-bottom-4 duration-300 ${
+                    submitStatus === 'success'
+                      ? 'bg-green-600 border-green-700 text-white'
+                      : 'bg-red-600 border-red-700 text-white'
+                  }`}
+                >
+                  <span className="text-sm flex-1">{submitMessage}</span>
+                  <button
+                    type="button"
+                    className="shrink-0 p-1 rounded hover:bg-white/20 transition-colors focus:outline-none focus:ring-2 focus:ring-white/50"
+                    onClick={() => setSnackbarOpen(false)}
+                    aria-label="Cerrar"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              )}
                {/* Datos de contacto */}
                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
                  <div className="space-y-4 group">
@@ -272,11 +375,16 @@ const ParticipationPage = () => {
                    </label>
                    <input
                      type="tel"
+                     inputMode="numeric"
+                     maxLength={10}
                      className="w-full bg-transparent border-b-2 border-black/20 py-4 text-2xl font-light focus:border-[#d89dff] focus:outline-none transition-all placeholder:text-gray-400"
-                     placeholder="+52 ..."
+                    placeholder="Ej. 4492345678"
                      value={formData.whatsapp}
                      onChange={(e) =>
-                       setFormData((prev) => ({ ...prev, whatsapp: e.target.value }))
+                      setFormData((prev) => ({
+                        ...prev,
+                        whatsapp: e.target.value.replace(/\D/g, '').slice(0, 10),
+                      }))
                      }
                    />
                  </div>
@@ -373,6 +481,77 @@ const ParticipationPage = () => {
                          />
                        </div>
                      </div>
+                    <div className="space-y-3 md:col-span-2">
+                      <span className="text-xs font-mono text-gray-600 uppercase">
+                        Ubicación en mapa (OpenStreetMap)
+                      </span>
+                      <div className="w-full h-64 border border-black bg-gray-100 overflow-hidden">
+                        <Map
+                          center={
+                            formData.areaLat && formData.areaLng
+                              ? [
+                                  parseFloat(formData.areaLat) || mapCenter[0],
+                                  parseFloat(formData.areaLng) || mapCenter[1],
+                                ]
+                              : mapCenter
+                          }
+                          zoom={mapZoom}
+                          height={256}
+                          provider={(x, y, z) =>
+                            `https://tile.openstreetmap.org/${z}/${x}/${y}.png`
+                          }
+                          onBoundsChanged={({ center, zoom }: any) => {
+                            setMapCenter(center);
+                            setMapZoom(zoom);
+                          }}
+                          onClick={async ({ latLng }: { latLng: [number, number] }) => {
+                            const [lat, lng] = latLng;
+                            setFormData((prev) => ({
+                              ...prev,
+                              areaLat: lat.toFixed(6),
+                              areaLng: lng.toFixed(6),
+                              // Fallback inmediato: al menos mostrar coordenadas como texto
+                              areaAddress:
+                                prev.areaAddress && prev.areaAddress.length > 0
+                                  ? prev.areaAddress
+                                  : `${lat.toFixed(6)}, ${lng.toFixed(6)}`,
+                            }));
+                            setMapCenter([lat, lng]);
+                            try {
+                              setIsReverseGeocoding(true);
+                              const response = await fetch(
+                                `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`,
+                              );
+                              if (response.ok) {
+                                const data = await response.json();
+                                if (data?.display_name) {
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    areaAddress: data.display_name,
+                                  }));
+                                }
+                              }
+                            } finally {
+                              setIsReverseGeocoding(false);
+                            }
+                          }}
+                        >
+                          {formData.areaLat && formData.areaLng && (
+                            <Marker
+                              width={40}
+                              anchor={[
+                                parseFloat(formData.areaLat) || mapCenter[0],
+                                parseFloat(formData.areaLng) || mapCenter[1],
+                              ]}
+                            />
+                          )}
+                        </Map>
+                      </div>
+                      <p className="text-[11px] font-mono text-gray-500">
+                        Haz clic en el mapa para elegir el lugar.{' '}
+                        {isReverseGeocoding && 'Buscando dirección...'}
+                      </p>
+                    </div>
                      <div className="space-y-3 md:col-span-2">
                        <span className="text-xs font-mono text-gray-600 uppercase">
                          Necesidad / problema principal
@@ -411,7 +590,7 @@ const ParticipationPage = () => {
                      </div>
                      <div className="space-y-3">
                        <span className="text-xs font-mono text-gray-600 uppercase">
-                         Fecha y hora
+                         Fecha y horario
                        </span>
                        <div className="grid grid-cols-2 gap-4">
                          <input
@@ -423,31 +602,52 @@ const ParticipationPage = () => {
                            }
                            required
                          />
-                         <input
-                           type="time"
-                           className="w-full bg-transparent border-b-2 border-black/20 py-3 text-base font-light focus:border-[#d89dff] focus:outline-none transition-all placeholder:text-gray-400"
-                           value={formData.eventTime}
-                           onChange={(e) =>
-                             setFormData((prev) => ({ ...prev, eventTime: e.target.value }))
-                           }
-                           required
-                         />
+                         <div className="grid grid-cols-2 gap-3">
+                           <select
+                             className="w-full bg-transparent border-b-2 border-black/20 py-3 text-base font-light focus:border-[#d89dff] focus:outline-none transition-all"
+                             value={formData.eventStartTime}
+                             onChange={(e) =>
+                               setFormData((prev) => ({
+                                 ...prev,
+                                 eventStartTime: e.target.value,
+                                 // Siempre forzar a que el usuario vuelva a elegir la hora de fin
+                                 eventEndTime: '',
+                               }))
+                             }
+                             required
+                           >
+                             <option value="">Inicio</option>
+                             {HALF_HOUR_TIME_OPTIONS.map((time) => (
+                               <option key={time} value={time}>
+                                 {time}
+                               </option>
+                             ))}
+                           </select>
+                           <select
+                             className="w-full bg-transparent border-b-2 border-black/20 py-3 text-base font-light focus:border-[#d89dff] focus:outline-none transition-all"
+                             value={formData.eventEndTime}
+                             onChange={(e) =>
+                               setFormData((prev) => ({ ...prev, eventEndTime: e.target.value }))
+                             }
+                             required
+                           >
+                             <option value="">Fin</option>
+                             {HALF_HOUR_TIME_OPTIONS.map((time) => {
+                               const startMinutes = timeToMinutes(formData.eventStartTime);
+                               const thisMinutes = timeToMinutes(time);
+                               const disabled =
+                                 startMinutes != null &&
+                                 thisMinutes != null &&
+                                 thisMinutes <= startMinutes;
+                               return (
+                                 <option key={time} value={time} disabled={disabled}>
+                                   {time}
+                                 </option>
+                               );
+                             })}
+                           </select>
+                         </div>
                        </div>
-                     </div>
-                     <div className="space-y-3 md:col-span-2">
-                       <span className="text-xs font-mono text-gray-600 uppercase">
-                         Lugar / punto de reunión
-                       </span>
-                       <input
-                         type="text"
-                         className="w-full bg-transparent border-b-2 border-black/20 py-3 text-xl font-light focus:border-[#d89dff] focus:outline-none transition-all placeholder:text-gray-400"
-                         placeholder="Dirección o referencia del lugar"
-                         value={formData.eventLocation}
-                         onChange={(e) =>
-                           setFormData((prev) => ({ ...prev, eventLocation: e.target.value }))
-                         }
-                         required
-                       />
                      </div>
                      <div className="space-y-3 md:col-span-2">
                        <span className="text-xs font-mono text-gray-600 uppercase">
@@ -465,6 +665,252 @@ const ParticipationPage = () => {
                          }
                        />
                      </div>
+                    <div className="space-y-3 md:col-span-2">
+                      <span className="text-xs font-mono text-gray-600 uppercase block">
+                        Cartel del evento o imagen
+                      </span>
+                      <div>
+                        <label className="inline-flex items-center justify-center px-4 py-2 border-2 border-black bg-[#d89dff] text-black font-mono text-[10px] uppercase tracking-widest cursor-pointer hover:bg-[#ff7e67] hover:text-white transition-colors">
+                          Seleccionar imagen
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files && e.target.files[0];
+                              setEventImageFile(file || null);
+                              setEventImageName(file ? file.name : null);
+                              if (eventImagePreview) {
+                                URL.revokeObjectURL(eventImagePreview);
+                              }
+                              if (file) {
+                                const previewUrl = URL.createObjectURL(file);
+                                setEventImagePreview(previewUrl);
+                              } else {
+                                setEventImagePreview(null);
+                              }
+                            }}
+                          />
+                        </label>
+                      </div>
+                       <div className="text-[11px] font-mono text-gray-600 mt-1">
+                         {eventImageName ? (
+                           <span>Archivo seleccionado: {eventImageName}</span>
+                         ) : (
+                           <span>Sin archivo seleccionado</span>
+                         )}
+                       </div>
+                       {eventImagePreview && (
+                         <div className="mt-3 border border-black bg-gray-100 w-full max-w-md overflow-hidden">
+                           <img
+                             src={eventImagePreview}
+                             alt="Vista previa del cartel del evento"
+                             className="w-fit h-[250px] object-contain bg-white"
+                           />
+                         </div>
+                       )}
+                       <p className="text-[11px] font-mono text-gray-500">
+                         Opcional. Se usará como imagen de referencia del evento.
+                       </p>
+                     </div>
+                     <div className="space-y-3 md:col-span-2">
+                       <span className="text-xs font-mono text-gray-600 uppercase">
+                         Lugar / punto de reunión
+                       </span>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          className="w-full bg-transparent border-b-2 border-black/20 py-3 text-xl font-light focus:border-[#d89dff] focus:outline-none transition-all placeholder:text-gray-400"
+                          placeholder="Dirección o referencia del lugar"
+                          value={formData.eventLocation}
+                          onChange={async (e) => {
+                            const value = e.target.value;
+                            setFormData((prev) => ({ ...prev, eventLocation: value }));
+
+                            // Limpia sugerencias si hay muy poco texto
+                            if (!value || value.trim().length < 3) {
+                              setEventLocationSuggestions([]);
+                              if (eventLocationAbortRef.current) {
+                                eventLocationAbortRef.current.abort();
+                              }
+                              return;
+                            }
+
+                            if (eventLocationAbortRef.current) {
+                              eventLocationAbortRef.current.abort();
+                            }
+                            const controller = new AbortController();
+                            eventLocationAbortRef.current = controller;
+
+                            try {
+                              setIsSearchingLocation(true);
+                              const baseUrl = 'https://nominatim.openstreetmap.org/search';
+                              // Viewbox aproximado que cubre el estado de Aguascalientes
+                              const params = new URLSearchParams({
+                                format: 'jsonv2',
+                                // Forzar contexto de búsqueda en Aguascalientes para nombres de negocios
+                                q: `${value}, Aguascalientes`,
+                                addressdetails: '1',
+                                namedetails: '1',
+                                limit: '15',
+                                countrycodes: 'mx',
+                                viewbox: '-102.8,22.3,-101.8,21.5', // lon_min,lat_max,lon_max,lat_min
+                                bounded: '1',
+                              });
+                              const url = `${baseUrl}?${params.toString()}`;
+                              const response = await fetch(url, {
+                                signal: controller.signal,
+                                headers: {
+                                  'Accept-Language': 'es',
+                                },
+                              });
+                              if (!response.ok) {
+                                setEventLocationSuggestions([]);
+                                return;
+                              }
+                              const data: any[] = await response.json();
+                              const qLower = value.toLowerCase();
+                              const filtered = (data || []).filter((item: any) => {
+                                const address = item.address || {};
+                                const state: string | undefined =
+                                  address.state || address.state_district;
+                                const displayName: string = item.display_name || '';
+                                return (
+                                  (state &&
+                                    state.toLowerCase().includes('aguascalientes')) ||
+                                  displayName.toLowerCase().includes('aguascalientes')
+                                );
+                              });
+
+                              // Priorizar lugares cuyo nombre parezca negocio / lugar específico
+                              const scored = filtered
+                                .map((item: any) => {
+                                  const displayName: string = item.display_name || '';
+                                  const name: string =
+                                    (item.namedetails && item.namedetails.name) || '';
+                                  const cls: string = item.class || '';
+                                  let score = 0;
+
+                                  const displayLower = displayName.toLowerCase();
+                                  const nameLower = name.toLowerCase();
+
+                                  if (nameLower === qLower) score += 5;
+                                  else if (nameLower.startsWith(qLower)) score += 4;
+                                  else if (displayLower.startsWith(qLower)) score += 3;
+                                  else if (displayLower.includes(qLower)) score += 1;
+
+                                  if (
+                                    ['amenity', 'shop', 'tourism', 'leisure', 'landuse'].includes(
+                                      cls,
+                                    )
+                                  ) {
+                                    score += 1;
+                                  }
+
+                                  return { item, score };
+                                })
+                                .sort((a: any, b: any) => b.score - a.score);
+
+                              const suggestions = scored.slice(0, 5).map(({ item }: any) => ({
+                                label: item.display_name as string,
+                                lat: parseFloat(item.lat),
+                                lng: parseFloat(item.lon),
+                              }));
+                              setEventLocationSuggestions(suggestions);
+                            } catch {
+                              // Ignorar errores de red / abort
+                            } finally {
+                              setIsSearchingLocation(false);
+                            }
+                          }}
+                          required
+                        />
+                        {(eventLocationSuggestions.length > 0 || isSearchingLocation) && (
+                          <div className="absolute left-0 right-0 mt-1 bg-white border border-black/20 shadow-lg max-h-64 overflow-auto z-20">
+                            {isSearchingLocation && (
+                              <div className="px-3 py-2 text-xs font-mono text-gray-500">
+                                Buscando lugares...
+                              </div>
+                            )}
+                            {eventLocationSuggestions.map((suggestion, index) => (
+                              <button
+                                key={`${suggestion.lat}-${suggestion.lng}-${index}`}
+                                type="button"
+                                className="block w-full text-left px-3 py-2 text-xs font-mono hover:bg-[#f3f4f0] border-t border-black/5"
+                                onClick={() => {
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    eventLocation: suggestion.label,
+                                  }));
+                                  setMapCenter([suggestion.lat, suggestion.lng]);
+                                  setMapZoom(16);
+                                  setEventMarker([suggestion.lat, suggestion.lng]);
+                                  setEventLocationSuggestions([]);
+                                }}
+                              >
+                                {suggestion.label}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                     </div>
+                    <div className="space-y-3 md:col-span-2">
+                      <span className="text-xs font-mono text-gray-600 uppercase">
+                        Ubicación en mapa (OpenStreetMap)
+                      </span>
+                      <div className="w-full h-64 border border-black bg-gray-100 overflow-hidden">
+                        <Map
+                          center={mapCenter}
+                          zoom={mapZoom}
+                          height={256}
+                          provider={(x, y, z) =>
+                            `https://tile.openstreetmap.org/${z}/${x}/${y}.png`
+                          }
+                          onBoundsChanged={({ center, zoom }: any) => {
+                            setMapCenter(center);
+                            setMapZoom(zoom);
+                          }}
+                          onClick={async ({ latLng }: { latLng: [number, number] }) => {
+                            const [lat, lng] = latLng;
+                            setMapCenter([lat, lng]);
+                            setEventMarker([lat, lng]);
+                            // Fallback inmediato: escribir coordenadas si aún no hay texto
+                            setFormData((prev) => ({
+                              ...prev,
+                              eventLocation:
+                                prev.eventLocation && prev.eventLocation.length > 0
+                                  ? prev.eventLocation
+                                  : `${lat.toFixed(6)}, ${lng.toFixed(6)}`,
+                            }));
+                            try {
+                              setIsReverseGeocoding(true);
+                              const response = await fetch(
+                                `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`,
+                              );
+                              if (response.ok) {
+                                const data = await response.json();
+                                if (data?.display_name) {
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    eventLocation: data.display_name,
+                                  }));
+                                }
+                              }
+                            } finally {
+                              setIsReverseGeocoding(false);
+                            }
+                          }}
+                        >
+                          {eventMarker && (
+                            <Marker width={40} anchor={eventMarker} />
+                          )}
+                        </Map>
+                      </div>
+                      <p className="text-[11px] font-mono text-gray-500">
+                        Haz clic en el mapa para buscar la dirección aproximada del evento.
+                      </p>
+                    </div>
                    </div>
                  </div>
                )}
@@ -483,11 +929,6 @@ const ParticipationPage = () => {
                  </p>
                </div>
 
-               {submitMessage && (
-                 <p className="mt-4 text-xs font-mono text-[#2f855a] max-w-xl">
-                   {submitMessage}
-                 </p>
-               )}
              </form>
           </div>
         </div>
