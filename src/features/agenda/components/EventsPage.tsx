@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo, useContext, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useSearchParams } from 'react-router-dom';
 import { Calendar, ChevronLeft, ChevronRight, MapPin, Download, ExternalLink, ArrowRight, TreePine, MessageCircle, Image, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -248,7 +249,7 @@ const CalendarEventPopover = ({ event, baseUrl, handleShareToInstagram }: { even
 };
 
 const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
-  const { events: EVENTS_DATA = [], pastEvents: PAST_EVENTS_DATA = [] } = useContext(DataContext) as any;
+  const { events: EVENTS_DATA = [], pastEvents: PAST_EVENTS_DATA = [], loading } = useContext(DataContext) as any;
   // const accentColor = useAccentColor();
   const [searchParams, setSearchParams] = useSearchParams();
   const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
@@ -315,6 +316,7 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
 
   const [selectedDate, setSelectedDate] = useState(getInitialSelectedDate);
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [eventDetailClosing, setEventDetailClosing] = useState(false);
   const [expandedEventId, setExpandedEventId] = useState<string | null>(null);
   const [currentMonth, setCurrentMonth] = useState(getInitialCurrentMonth);
 
@@ -523,6 +525,48 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
     
     return `${weekday} ${day} de ${monthName} ${year}`;
   };
+
+  type ViewMode = 'week' | 'month';
+
+  interface EventsViewHeaderProps {
+    selectedDate: string;
+    viewMode: ViewMode;
+    onChangeView: (mode: ViewMode) => void;
+    className?: string;
+  }
+
+  const EventsViewHeader: React.FC<EventsViewHeaderProps> = ({ selectedDate, viewMode, onChangeView, className }) => (
+    <div className={`flex items-center justify-between gap-4 mb-8 ${className ?? ''}`}>
+      <div className="flex items-center gap-4">
+        <div className="w-3 h-3 bg-black rounded-full animate-pulse" />
+        <h2 className="text-2xl font-bold uppercase tracking-tight">
+          {formatDateWithWeekday(selectedDate)}
+        </h2>
+      </div>
+      <div className="inline-flex bg-white border border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+        <button
+          onClick={() => onChangeView('week')}
+          className={`px-4 py-2 font-mono text-sm uppercase font-bold border-r border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${
+            viewMode === 'week'
+              ? 'bg-[#b4ff6f] text-black'
+              : 'bg-white text-black hover:bg-black hover:text-white'
+          }`}
+        >
+          SEMANAL
+        </button>
+        <button
+          onClick={() => onChangeView('month')}
+          className={`px-4 py-2 font-mono text-sm uppercase font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${
+            viewMode === 'month'
+              ? 'bg-[#b4ff6f] text-black'
+              : 'bg-white text-black hover:bg-black hover:text-white'
+          }`}
+        >
+          MENSUAL
+        </button>
+      </div>
+    </div>
+  );
 
   const getDaysInMonth = (date: Date) => {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
@@ -817,22 +861,7 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
             </p>
           </div>
 
-          <div className="flex justify-end mt-auto">
-            <div className="flex bg-white border border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-              <button
-                onClick={() => setViewMode('week')}
-                className={`px-4 py-2 font-mono text-sm uppercase font-bold border-r border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${viewMode === 'week' ? 'bg-black text-white' : 'bg-white text-black hover:bg-[#ff7e67] hover:text-white'}`}
-              >
-                SEMANAL
-              </button>
-              <button
-                onClick={() => setViewMode('month')}
-                className={`px-4 py-2 font-mono text-sm uppercase font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${viewMode === 'month' ? 'bg-black text-white' : 'bg-white text-black hover:bg-[#ff7e67] hover:text-white'}`}
-              >
-                MENSUAL
-              </button>
-            </div>
-          </div>
+          {/* Selector de vista se muestra junto a la fecha en el listado de eventos */}
         </div>
       </div>
 
@@ -937,9 +966,12 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
           </div>
           <div className="bg-[#f3f4f0] pt-6 pb-6 md:p-6 border-b border-black mb-6 w-full" style={{ marginTop: '24px', marginBottom: '24px', width: '100%', maxWidth: '100%', boxSizing: 'border-box', overflow: 'hidden' }}>
             <div className="w-full px-4 md:px-6" style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box', overflow: 'hidden' }}>
-              <div className="flex flex-row gap-6 min-h-[672px]" style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'row', overflow: 'hidden' }}>
-                {/* Calendario - 75% del ancho */}
-                <div className="flex-shrink-0" style={{ width: '75%', maxWidth: '75%', flexShrink: 0, boxSizing: 'border-box', overflow: 'hidden' }}>
+              {/* Encabezado reutilizable (fecha + selector semana/mes) en la misma posición que en vista semanal */}
+              <EventsViewHeader selectedDate={selectedDate} viewMode={viewMode as ViewMode} onChangeView={setViewMode} className="mb-6" />
+
+              <div className="flex flex-row gap-6 min-h-[672px]" style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box', overflow: 'hidden' }}>
+                {/* Calendario: ocupa 100% en móviles, 75% en pantallas medianas+ */}
+                <div className="flex-shrink-0 w-full md:w-3/4 box-border overflow-hidden">
                   <div className="grid grid-cols-7 gap-px bg-black border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
                     {['LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB', 'DOM'].map(d => (
                       <div key={d} className="bg-black text-white text-center py-1 md:py-2 font-mono text-[10px] md:text-xs font-bold uppercase min-w-[45px] md:min-w-0">{d}</div>
@@ -957,42 +989,62 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
                       const isToday = day.date === todayStr;
 
                       return (
-                        <button
+                        <div
                           key={day.date}
-                          onClick={() => { setSelectedDate(day.date); }}
-                          className={`bg-white h-20 md:h-32 p-1 md:p-2 flex flex-col items-start hover:bg-[#ff7e67]/20 transition-colors relative text-left group min-w-[45px] md:min-w-0
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => setSelectedDate(day.date)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              setSelectedDate(day.date);
+                            }
+                          }}
+                          className={`bg-white h-20 md:h-32 p-1 md:p-2 flex flex-col items-start hover:bg-[#ff7e67]/20 transition-colors relative text-left group min-w-[45px] md:min-w-0 cursor-pointer
                                     ${isSelected ? 'ring-inset ring-4 ring-[#ff7e67]' : ''}
                                     ${isToday ? 'border-b-4 border-[#b4ff6f]' : ''}
                                  `}
                         >
                           <span className={`font-mono font-bold text-xs md:text-sm ${isSelected ? 'text-[#ff7e67]' : isToday ? 'text-black' : 'text-gray-400 group-hover:text-black'}`}>{day.num}</span>
 
-                          <div className="mt-auto w-full space-y-0.5 md:space-y-1">
+                          <div className="mt-auto w-full space-y-0.5 md:space-y-1" onClick={(e) => e.stopPropagation()}>
                             {dayEvents.map((ev: any) => (
-                              <CalendarEventPopover
+                              <span
                                 key={ev.id}
-                                event={ev}
-                                baseUrl={baseUrl}
-                                handleShareToInstagram={handleShareToInstagram}
-                              />
+                                role="button"
+                                tabIndex={0}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedEvent(ev);
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    setSelectedEvent(ev);
+                                  }
+                                }}
+                                className="block w-full truncate text-[8px] md:text-[10px] bg-black text-white px-0.5 md:px-1 py-0.5 rounded-none font-medium cursor-pointer hover:bg-[#ff7e67] transition-colors"
+                              >
+                                {ev.title}
+                              </span>
                             ))}
                           </div>
-                        </button>
+                        </div>
                       );
                     })}
                   </div>
                 </div>
 
-                {/* Eventos del día seleccionado - 25% del ancho */}
-                <div className="flex flex-col flex-shrink-0" style={{ width: '25%', maxWidth: '25%', flexShrink: 0, boxSizing: 'border-box', overflow: 'hidden', display: 'flex', flexDirection: 'column', paddingRight: '16px' }}>
-                  {filteredEvents.length > 0 ? (
+                {/* Eventos del día seleccionado - 25% del ancho (solo en pantallas medianas en adelante) */}
+                <div className="hidden md:flex flex-col flex-shrink-0" style={{ width: '25%', maxWidth: '25%', flexShrink: 0, boxSizing: 'border-box', overflow: 'hidden', flexDirection: 'column', paddingRight: '16px' }}>
+                  {loading ? (
+                    <div className="flex-1 flex flex-col items-center justify-center py-12 md:py-24 text-gray-400 opacity-50 w-full min-h-full">
+                      <div className="w-8 h-8 border-4 border-black border-t-transparent rounded-full animate-spin mb-4" />
+                      <p className="font-mono text-sm md:text-lg uppercase">Cargando eventos…</p>
+                    </div>
+                  ) : filteredEvents.length > 0 ? (
                     <div className="space-y-4 w-full" style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box', overflow: 'hidden' }}>
-                      <div className="flex items-center gap-4 mb-6" style={{ width: '100%', maxWidth: '100%', overflow: 'hidden' }}>
-                        <div className="w-3 h-3 bg-black rounded-full animate-pulse flex-shrink-0" />
-                        <h2 className="text-xl md:text-2xl font-bold uppercase tracking-tight break-words" style={{ wordBreak: 'break-word', overflow: 'hidden', flex: 1, minWidth: 0 }}>
-                          {formatDateWithWeekday(selectedDate)}
-                        </h2>
-                      </div>
 
                       <div className="space-y-3 w-full" style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box', overflow: 'hidden' }}>
                         {filteredEvents.map((event: any) => {
@@ -1120,14 +1172,14 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
 
       {viewMode === 'week' && (
         <div className="flex-1 max-w-5xl mx-auto w-full p-6 md:p-12">
-          {filteredEvents.length > 0 ? (
+          {loading ? (
+            <div className="h-full flex flex-col items-center justify-center py-24 text-gray-400 opacity-50">
+              <div className="w-10 h-10 border-4 border-black border-t-transparent rounded-full animate-spin mb-4" />
+              <p className="font-mono text-sm md:text-lg uppercase tracking-widest">Cargando eventos…</p>
+            </div>
+          ) : filteredEvents.length > 0 ? (
             <div className="space-y-8">
-              <div className="flex items-center gap-4 mb-8">
-                <div className="w-3 h-3 bg-black rounded-full animate-pulse" />
-                <h2 className="text-2xl font-bold uppercase tracking-tight">
-                  {formatDateWithWeekday(selectedDate)}
-                </h2>
-              </div>
+              <EventsViewHeader selectedDate={selectedDate} viewMode={viewMode as ViewMode} onChangeView={setViewMode} />
 
               {filteredEvents.map((event: any) => (
                 <motion.div
@@ -1230,242 +1282,172 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
         </div>
       </div>
 
-      <div className="border-t-4 border-black bg-white">
-        <div className="max-w-6xl mx-auto px-6 py-20">
-          <div className="flex items-end justify-between mb-12 gap-4 border-b border-black pb-4">
-            <div>
-              <span className="font-mono text-xs font-bold uppercase tracking-widest bg-black text-white px-2 py-1">Archivo de Misiones</span>
-              <h2 className="text-4xl md:text-6xl font-black tracking-tighter uppercase mt-2">Bitácora<br />de Impacto</h2>
-            </div>
-            <button className="hidden md:block px-6 py-2 border-2 border-black bg-white text-black font-bold uppercase hover:bg-[#ff7e67] hover:text-white transition-colors shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-              Ver Historial Completo
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {PAST_EVENTS_DATA.map((event: any) => (
-              <div 
-                key={event.id} 
-                onClick={() => {
-                  if (onSelectImpact && event.title) {
-                    const slug = generateSlug(event.title);
-                    onSelectImpact(slug);
+      {/* Overlay evento en vista mensual: desde debajo del navbar; misma transición al abrir y cerrar */}
+      {viewMode === 'month' && (selectedEvent || eventDetailClosing) &&
+        createPortal(
+          <div
+            className="fixed left-0 right-0 bottom-0 cursor-default"
+            style={{
+              top: navbarHeight,
+              isolation: 'isolate',
+              zIndex: 2147483647,
+            }}
+            aria-modal="true"
+            role="presentation"
+          >
+            {/* Backdrop: oscurece y anima al cerrar */}
+            <motion.div
+              className="absolute inset-0"
+              style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+              aria-hidden
+              initial={false}
+              animate={{ opacity: eventDetailClosing ? 0 : 1 }}
+              transition={{ type: 'spring', stiffness: 260, damping: 30 }}
+              onClick={() => setEventDetailClosing(true)}
+            />
+            <AnimatePresence>
+              {/* Bottom sheet: solo móvil; anclado al fondo y misma transición abrir/cerrar */}
+              <motion.div
+                key="event-bottom-sheet"
+                initial={{ y: '100%' }}
+                animate={{ y: eventDetailClosing ? '100%' : 0 }}
+                transition={{ type: 'spring', stiffness: 260, damping: 30 }}
+                onAnimationComplete={() => {
+                  if (eventDetailClosing) {
+                    setSelectedEvent(null);
+                    setEventDetailClosing(false);
                   }
                 }}
-                className="flex flex-col border-2 border-black p-0 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-[12px_12px_0px_0px_#ff7e67] h-full relative overflow-hidden group transition-all cursor-pointer"
+                className="fixed inset-x-0 bottom-0 md:hidden flex flex-col justify-end"
+                style={{ top: navbarHeight, zIndex: 2147483647 }}
+                onClick={() => setEventDetailClosing(true)}
               >
-                {/* Imagen de portada */}
-                {event.portada ? (
-                  <div className="w-full h-48 border-b-2 border-black relative overflow-hidden bg-gray-100">
-                    <img
-                      src={event.portada}
-                      alt={event.title}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                        e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                      }}
-                    />
-                    <div className="hidden absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-400">
-                      <div className="text-center p-4">
-                        <TreePine size={48} className="mx-auto mb-2 opacity-30" />
-                        <p className="text-xs font-mono uppercase opacity-50 line-clamp-2 px-2">{event.title}</p>
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  className="bg-white border-t-2 border-black shadow-[0_-4px_0px_0px_rgba(0,0,0,1)] rounded-t-3xl overflow-y-auto w-full max-w-2xl mx-auto flex flex-col"
+                  style={{ maxHeight: `calc(100vh - ${navbarHeight}px - 1rem)` }}
+                >
+                  <div className="flex justify-center pt-3 pb-1">
+                    <div className="w-10 h-1.5 rounded-full bg-black/40" />
+                  </div>
+                  <button
+                    onClick={() => setEventDetailClosing(true)}
+                    className="absolute top-3 right-4 z-10 p-2 bg-black text-white hover:bg-[#ff7e67] transition-colors border-2 border-black rounded-full"
+                  >
+                    <X size={14} />
+                  </button>
+                  <div className="flex flex-col overflow-hidden">
+                    <div className="w-full h-48 border-b-2 border-black relative overflow-hidden bg-gray-100">
+                      {selectedEvent.image ? (
+                        <img src={selectedEvent.image} alt={selectedEvent.title} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-400">
+                          <Calendar size={48} className="opacity-30" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 p-4 flex flex-col min-w-0 overflow-hidden">
+                      <div className="flex-shrink-0 mb-3">
+                        <div className="flex justify-between items-start mb-2">
+                          <span className="inline-block px-2 py-0.5 border border-black text-[10px] uppercase font-bold bg-gray-100">
+                            {selectedEvent.category}
+                          </span>
+                          <span className="font-mono text-xs flex items-center gap-1 flex-shrink-0">{selectedEvent.time}</span>
+                        </div>
+                        <h3 className="text-lg font-bold mb-2 leading-tight break-words">{selectedEvent.title}</h3>
+                      </div>
+                      <div className="flex-1 min-h-0 mb-3 overflow-y-auto">
+                        <EventDescription description={selectedEvent.description} />
+                      </div>
+                      <div className="flex-shrink-0 border-t border-dashed border-gray-300 pt-3 space-y-3">
+                        <div className="flex items-center gap-2 text-xs font-mono uppercase font-bold text-gray-700">
+                          <MapPin size={14} className="text-[#ff7e67]" />
+                          <span className="break-words">{selectedEvent.location}</span>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <a href={getGoogleCalendarUrl(selectedEvent)} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-black text-white text-xs font-bold uppercase hover:bg-[#ff7e67] transition-colors border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                            <ExternalLink size={12} /> Google
+                          </a>
+                          <a href={shareToWhatsApp(selectedEvent, baseUrl)} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-[#25D366] text-white text-xs font-bold uppercase hover:bg-[#20BA5A] transition-colors border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                            <MessageCircle size={12} /> WhatsApp
+                          </a>
+                        </div>
                       </div>
                     </div>
                   </div>
-                ) : (
-                  <div className="w-full h-48 border-b-2 border-black flex items-center justify-center bg-gray-100 text-gray-400">
-                    <div className="text-center p-4">
-                      <TreePine size={48} className="mx-auto mb-2 opacity-30" />
-                      <p className="text-xs font-mono uppercase opacity-50 line-clamp-2 px-2">{event.title}</p>
-                    </div>
-                  </div>
-                )}
-
-                <div className="p-6 flex flex-col flex-grow">
-                  <div className="absolute -right-4 -top-4 opacity-10 group-hover:opacity-20 transition-opacity rotate-12">
-                    <div className="border-4 border-black rounded-full p-4 w-32 h-32 flex items-center justify-center">
-                      <span className="font-black text-xs uppercase text-center rotate-[-12deg]">Misión<br />Completada</span>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center mb-4 relative z-10">
-                    <span className="bg-[#b4ff6f] border border-black text-black text-[10px] font-mono px-2 py-1 uppercase font-bold">{event.category}</span>
-                    <span className="font-mono text-xs text-gray-500 line-through decoration-black">{event.date}</span>
-                  </div>
-
-                <h3 className="text-xl font-bold mb-2 leading-tight flex-grow transition-colors">{event.title}</h3>
-
-                {event.stats && (
-                  <div className="font-mono text-2xl font-black text-[#ff7e67] mb-4">
-                    {event.stats}
-                  </div>
-                )}
-
-                <div className="font-serif text-sm text-gray-600 mb-6 line-clamp-3 prose prose-sm max-w-none prose-p:mb-2 prose-p:last:mb-0 prose-headings:font-bold prose-headings:text-gray-800 prose-strong:font-bold prose-strong:text-gray-800 prose-ul:list-disc prose-ul:ml-4 prose-ol:list-decimal prose-ol:ml-4 prose-li:mb-1">
-                  {event.content ? (
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {event.content.length > 200 ? event.content.substring(0, 200) + '...' : event.content}
-                    </ReactMarkdown>
-                  ) : (
-                    <p>{event.summary}</p>
-                  )}
                 </div>
+              </motion.div>
 
-                  <div className="mt-auto pt-4 border-t border-dashed border-gray-300 flex justify-between items-center">
-                    <span className="text-xs font-mono uppercase text-gray-400">Estado: Finalizado</span>
-                    <div className="p-2 border border-black group-hover:bg-black  transition-colors pointer-events-none">
-                      <ArrowRight size={14} />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="mt-8 md:hidden">
-            <button className="w-full px-6 py-4 border-2 border-black bg-white text-black font-bold uppercase hover:bg-[#ff7e67] hover:text-white transition-colors shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-              Ver Historial
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-[#ff7e67] border-t-4 border-black py-20 px-6 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, #000 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
-
-        <div className="max-w-4xl mx-auto text-center relative z-10">
-          <div className="inline-block bg-black text-white px-4 py-1 font-mono text-xs uppercase tracking-widest mb-6 rotate-[-2deg]">
-            Boletín Semanal
-          </div>
-          <h2 className="text-4xl md:text-6xl font-black mb-6 leading-[0.9] tracking-tighter text-black">
-            NO TE PIERDAS<br />LA ACCIÓN
-          </h2>
-          <p className="font-serif text-xl mb-10 max-w-2xl mx-auto leading-relaxed">
-            Recibe cada lunes en tu correo la agenda curada de eventos, convocatorias de voluntariado y las noticias ambientales más relevantes.
-          </p>
-
-          <form className="flex flex-col md:flex-row gap-4 max-w-lg mx-auto" onSubmit={(e) => e.preventDefault()}>
-            <input
-              type="email"
-              placeholder="tu@correo.com"
-              className="flex-1 border-2 border-black p-4 text-lg placeholder:text-black/40 focus:outline-none focus:bg-white bg-white/50 transition-colors shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
-            />
-            <button className="bg-black text-white px-8 py-4 text-lg font-bold uppercase tracking-widest hover:bg-[#ff7e67] border-2 border-black transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none">
-              Suscribirme
-            </button>
-          </form>
-          <p className="mt-4 text-xs font-mono opacity-60">Sin spam. Solo contenido verde de calidad.</p>
-        </div>
-      </div>
-
-      {/* Tooltip/Callout para evento seleccionado en vista mensual */}
-      {selectedEvent && viewMode === 'month' && (
-        <AnimatePresence>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 event-tooltip"
-            onClick={() => setSelectedEvent(null)}
-          >
-            <motion.div
-              initial={{ scale: 0.95, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.95, y: 20 }}
-              onClick={(e) => e.stopPropagation()}
-              className="relative bg-white border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col"
-            >
-              {/* Botón cerrar */}
-              <button
-                onClick={() => setSelectedEvent(null)}
-                className="absolute top-4 right-4 z-10 p-2 bg-black text-white hover:bg-[#ff7e67] transition-colors border-2 border-black"
+              {/* Side sheet: solo escritorio; misma transición abrir/cerrar */}
+              <motion.div
+                key="event-side-sheet"
+                initial={{ x: '100%' }}
+                animate={{ x: eventDetailClosing ? '100%' : 0 }}
+                transition={{ type: 'spring', stiffness: 260, damping: 30 }}
+                onAnimationComplete={() => {
+                  if (eventDetailClosing) {
+                    setSelectedEvent(null);
+                    setEventDetailClosing(false);
+                  }
+                }}
+                className="hidden md:block fixed right-0 bottom-0 w-full max-w-md"
+                style={{ top: navbarHeight, zIndex: 2147483647 }}
+                onClick={() => setEventDetailClosing(true)}
               >
-                <X size={16} />
-              </button>
-
-              {/* Contenido del evento */}
-              <div className="flex flex-col md:flex-row overflow-hidden">
-                {/* Imagen */}
-                <div className="w-full md:w-64 h-48 md:h-auto border-b-2 md:border-b-0 md:border-r-2 border-black relative overflow-hidden bg-gray-100">
-                  {selectedEvent.image ? (
-                    <img
-                      src={selectedEvent.image}
-                      alt={selectedEvent.title}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-400">
-                      <Calendar size={48} className="opacity-30" />
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  className="h-full bg-white border-l-2 border-black shadow-[-8px_0_0_0_rgba(0,0,0,1)] rounded-l-3xl overflow-y-auto flex flex-col"
+                >
+                  <button
+                    onClick={() => setEventDetailClosing(true)}
+                    className="absolute top-4 right-4 z-10 p-2 bg-black text-white hover:bg-[#ff7e67] transition-colors border-2 border-black"
+                  >
+                    <X size={16} />
+                  </button>
+                  <div className="flex flex-col overflow-hidden flex-1 min-h-0">
+                    <div className="w-full h-48 border-b-2 border-black relative overflow-hidden bg-gray-100 flex-shrink-0">
+                      {selectedEvent.image ? (
+                        <img src={selectedEvent.image} alt={selectedEvent.title} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-400">
+                          <Calendar size={48} className="opacity-30" />
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-
-                {/* Contenido */}
-                <div className="flex-1 p-6 flex flex-col min-w-0 overflow-hidden">
-                  <div className="flex-shrink-0 mb-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <span className="inline-block px-2 py-0.5 border border-black text-[10px] uppercase font-bold bg-gray-100">
-                        {selectedEvent.category}
-                      </span>
-                      <span className="font-mono text-xs flex items-center gap-1 flex-shrink-0">
-                        {selectedEvent.time}
-                      </span>
-                    </div>
-                    <h3 className="text-xl md:text-2xl font-bold mb-3 leading-tight break-words">
-                      {selectedEvent.title}
-                    </h3>
-                  </div>
-
-                  <div className="flex-1 min-h-0 mb-4 overflow-y-auto">
-                    <EventDescription description={selectedEvent.description} />
-                  </div>
-
-                  <div className="flex-shrink-0 border-t border-dashed border-gray-300 pt-4 space-y-4">
-                    <div className="flex items-center gap-2 text-xs font-mono uppercase font-bold text-gray-700">
-                      <MapPin size={14} className="text-[#ff7e67]" />
-                      <span className="break-words">{selectedEvent.location}</span>
-                    </div>
-
-                    <div className="flex flex-wrap gap-2">
-                      <a
-                        href={getGoogleCalendarUrl(selectedEvent)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-black text-white text-xs font-bold uppercase hover:bg-[#ff7e67] transition-colors border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
-                      >
-                        <ExternalLink size={12} />
-                        Google
-                      </a>
-                      <button
-                        onClick={() => downloadICS(selectedEvent)}
-                        className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 border-2 border-black bg-white text-black text-xs font-bold uppercase hover:bg-[#ff7e67] hover:text-white transition-colors shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
-                      >
-                        <Download size={12} />
-                        .ICS
-                      </button>
-                      <a
-                        href={shareToWhatsApp(selectedEvent, baseUrl)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-[#25D366] text-white text-xs font-bold uppercase hover:bg-[#20BA5A] transition-colors border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
-                      >
-                        <MessageCircle size={12} />
-                        WhatsApp
-                      </a>
-                      <button
-                        onClick={() => handleShareToInstagram(selectedEvent)}
-                        className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-[#833AB4] via-[#FD1D1D] to-[#FCB045] text-white text-xs font-bold uppercase hover:opacity-90 transition-opacity border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
-                      >
-                        <Image size={12} />
-                        Instagram
-                      </button>
+                    <div className="flex-1 p-6 flex flex-col min-w-0 overflow-hidden">
+                      <div className="flex-shrink-0 mb-4">
+                        <div className="flex justify-between items-start mb-2">
+                          <span className="inline-block px-2 py-0.5 border border-black text-[10px] uppercase font-bold bg-gray-100">
+                            {selectedEvent.category}
+                          </span>
+                          <span className="font-mono text-xs flex items-center gap-1 flex-shrink-0">{selectedEvent.time}</span>
+                        </div>
+                        <h3 className="text-xl font-bold mb-3 leading-tight break-words">{selectedEvent.title}</h3>
+                      </div>
+                      <div className="flex-1 min-h-0 mb-4 overflow-y-auto">
+                        <EventDescription description={selectedEvent.description} />
+                      </div>
+                      <div className="flex-shrink-0 border-t border-dashed border-gray-300 pt-4 space-y-4">
+                        <div className="flex items-center gap-2 text-xs font-mono uppercase font-bold text-gray-700">
+                          <MapPin size={14} className="text-[#ff7e67]" />
+                          <span className="break-words">{selectedEvent.location}</span>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <a href={getGoogleCalendarUrl(selectedEvent)} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-black text-white text-xs font-bold uppercase hover:bg-[#ff7e67] transition-colors border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                            <ExternalLink size={12} /> Google
+                          </a>
+                          <a href={shareToWhatsApp(selectedEvent, baseUrl)} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-[#25D366] text-white text-xs font-bold uppercase hover:bg-[#20BA5A] transition-colors border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                            <MessageCircle size={12} /> WhatsApp
+                          </a>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        </AnimatePresence>
+              </motion.div>
+            </AnimatePresence>
+        </div>,
+        document.body
       )}
     </div>
   );
