@@ -73,8 +73,9 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         fetchGoogleCalendarEvents().catch(() => []),
       ]);
 
-      // Misma prioridad que en fetchData(): Supabase → Google Calendar → estáticos
-      let events: any[] = EVENTS_DATA;
+      // Solo actualizar si tenemos datos de fuentes en vivo (Supabase o Google).
+      // Si ambos fallan (p. ej. CORS en producción), no sobrescribir lo ya mostrado.
+      let events: any[] = [];
       if (eventsSupabase && eventsSupabase.length > 0) {
         events = eventsSupabase;
       } else if (Array.isArray(googleCalendarEvents) && googleCalendarEvents.length > 0) {
@@ -86,8 +87,8 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         events = [...events, ...participationEvents];
       }
 
-      // Evitar sobrescribir con vacío (por CORS/red) y evitar renders si no cambió.
-      if (!events || events.length === 0) return;
+      // Si no hay nada de fuentes en vivo, no actualizar estado (mantener eventos ya cargados)
+      if (events.length === 0) return;
       const nextHash = events
         .map((e: any) => `${String(e?.id ?? '')}|${String(e?.isoStart ?? '')}|${String(e?.isoEnd ?? '')}`)
         .join(';;');

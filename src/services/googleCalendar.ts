@@ -370,25 +370,22 @@ export async function fetchGoogleCalendarEvents(): Promise<GoogleCalendarEvent[]
         icalData = await fetchIcalWithFallbacks(calendarUrl);
       }
     } else {
-      // En producción: preferir iCal en vivo para reflejar cambios del calendario sin rebuild.
-      // Si falla por CORS/red, caer al JSON estático generado en build (GitHub Pages).
+      // En producción: usar primero JSON estático (sin CORS). Si falla o está vacío, intentar iCal con proxies.
+      const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '') + '/';
+      const staticUrl = `${base}calendar-events.json`;
       try {
-        icalData = await fetchIcalWithFallbacks(calendarUrl);
-        if (!icalData || icalData.trim().length === 0) {
-          throw new Error('Empty iCal');
+        const res = await fetch(staticUrl, { headers: { Accept: 'application/json' } });
+        if (res?.ok) {
+          const json = await res.json();
+          if (Array.isArray(json) && json.length > 0) return json;
         }
       } catch {
-        const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '') + '/';
-        const staticUrl = `${base}calendar-events.json`;
-        try {
-          const res = await fetch(staticUrl, { headers: { Accept: 'application/json' } });
-          if (res?.ok) {
-            const json = await res.json();
-            if (Array.isArray(json) && json.length > 0) return json;
-          }
-        } catch {
-          // ignorar
-        }
+        // ignorar
+      }
+      try {
+        icalData = await fetchIcalWithFallbacks(calendarUrl);
+        if (!icalData || icalData.trim().length === 0) throw new Error('Empty iCal');
+      } catch {
         return [];
       }
     }
