@@ -15,7 +15,7 @@ import {
   checkSupabaseConnection,
 } from '../lib/supabase';
 import { mapBoletinesToProjects, mapGacetasToDataset } from '../utils/helpers';
-import { fetchGoogleCalendarEvents } from '../services/googleCalendar';
+// import { fetchGoogleCalendarEvents } from '../services/googleCalendar'; // bloqueado por el momento
 import { fetchNotionPages, fetchNotionPageContent, NotionPage } from '../services/notion';
 
 export interface DataContextType {
@@ -67,10 +67,10 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
 
   const fetchAgendaEvents = useCallback(async () => {
     try {
-      const [eventsSupabase, participationEvents, googleCalendarEvents] = await Promise.all([
+      const [eventsSupabase, participationEvents /* , googleCalendarEvents */] = await Promise.all([
         getEvents({ useCache: false, fallback: [] }),
         getParticipationEvents(),
-        fetchGoogleCalendarEvents().catch(() => []),
+        // fetchGoogleCalendarEvents().catch(() => []), // bloqueado por el momento
       ]);
 
       // Solo actualizar si tenemos datos de fuentes en vivo (Supabase o Google).
@@ -78,9 +78,10 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
       let events: any[] = [];
       if (eventsSupabase && eventsSupabase.length > 0) {
         events = eventsSupabase;
-      } else if (Array.isArray(googleCalendarEvents) && googleCalendarEvents.length > 0) {
-        events = googleCalendarEvents;
       }
+      // } else if (Array.isArray(googleCalendarEvents) && googleCalendarEvents.length > 0) {
+      //   events = googleCalendarEvents;
+      // }
 
       // Añadir propuestas ciudadanas de eventos (al final de la lista)
       if (participationEvents && participationEvents.length > 0) {
@@ -138,7 +139,7 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         pastEventsSupabase,
         boletinesResponse,
         gacetasResponse,
-        googleCalendarEvents,
+        // googleCalendarEvents, // bloqueado por el momento
       ] = await Promise.all([
         getAreasDonacionFromJson({ useCache: true, fallback: [] }),
         getAreasDonacion({ useCache: true, fallback: [] }),
@@ -153,7 +154,7 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         getPastEvents({ useCache: true, fallback: [] }),
         fetch(boletinesUrl).then(res => (res.ok ? res.json() : [])).catch(() => []),
         fetch(gacetasUrl).then(res => (res.ok ? res.json() : [])).catch(() => []),
-        fetchGoogleCalendarEvents().catch(() => []),
+        // fetchGoogleCalendarEvents().catch(() => []), // bloqueado por el momento
       ]);
 
       // Ordenar por fecha (más reciente primero); acepta YYYY-MM-DD o similares
@@ -199,9 +200,10 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
       let events: any[] = EVENTS_DATA;
       if (eventsSupabase && eventsSupabase.length > 0) {
         events = eventsSupabase;
-      } else if (Array.isArray(googleCalendarEvents) && googleCalendarEvents.length > 0) {
-        events = googleCalendarEvents;
       }
+      // } else if (Array.isArray(googleCalendarEvents) && googleCalendarEvents.length > 0) {
+      //   events = googleCalendarEvents;
+      // }
 
       // Añadir propuestas ciudadanas de eventos (al final de la lista)
       if (participationEvents && participationEvents.length > 0) {
