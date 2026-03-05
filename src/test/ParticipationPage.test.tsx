@@ -3,9 +3,18 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import ParticipationPage from '../features/participation/components/ParticipationPage';
 
+// Mock Supabase client used by the page
 vi.mock('../lib/supabase', () => {
   return {
     getSupabaseClient: vi.fn(),
+  };
+});
+
+// Mock pigeon-maps to avoid ResizeObserver / DOM APIs during tests
+vi.mock('pigeon-maps', () => {
+  return {
+    Map: (_props: any) => null,
+    Marker: (_props: any) => null,
   };
 });
 
@@ -38,6 +47,9 @@ describe('ParticipationPage form', () => {
 
     setup();
 
+    // Asegurar que estamos en el flujo de área verde
+    fireEvent.click(screen.getByRole('button', { name: /Nueva área verde/i }));
+
     fireEvent.change(screen.getByPlaceholderText(/Escribe tu nombre/i), {
       target: { value: 'Test User' },
     });
@@ -45,7 +57,7 @@ describe('ParticipationPage form', () => {
       target: { value: 'test@example.com' },
     });
 
-    // Área verde (por defecto)
+    // Área verde
     fireEvent.change(
       screen.getByPlaceholderText(/Parque del Barrio, Jardín central/i),
       { target: { value: 'Parque Central' } },
@@ -79,15 +91,23 @@ describe('ParticipationPage form', () => {
       target: { value: 'otra@example.com' },
     });
 
-    // Cambiar a evento
+    // Cambiar explícitamente a evento
     fireEvent.click(screen.getByRole('button', { name: /Evento para agenda/i }));
 
     fireEvent.change(screen.getByPlaceholderText(/Jornada de reforestación/i), {
       target: { value: 'Jornada de limpieza' },
     });
-    fireEvent.change(screen.getByLabelText(/Fecha y hora/i).closest('div')!.querySelector('input[type="date"]')!, {
-      target: { value: '2025-02-20' },
-    });
+    // Seleccionar fecha y horario usando los controles actuales del formulario
+    const dateInput = document.querySelector('input[type="date"]') as HTMLInputElement;
+    fireEvent.change(dateInput, { target: { value: '2025-02-20' } });
+    const allSelects = Array.from(document.querySelectorAll('select'));
+    const [startTimeSelect, endTimeSelect] =
+      allSelects.length >= 2 ? [allSelects[0] as HTMLSelectElement, allSelects[1] as HTMLSelectElement] : [null, null];
+    if (!startTimeSelect || !endTimeSelect) {
+      throw new Error('No se encontraron los selects de horario en el formulario de evento');
+    }
+    fireEvent.change(startTimeSelect, { target: { value: '10:00' } });
+    fireEvent.change(endTimeSelect, { target: { value: '11:00' } });
 
     fireEvent.change(
       screen.getByPlaceholderText(/Dirección o referencia del lugar/i),
@@ -97,13 +117,13 @@ describe('ParticipationPage form', () => {
     fireEvent.click(screen.getByRole('button', { name: /Enviar propuesta/i }));
 
     await waitFor(() => {
-      expect(fromMock).toHaveBeenCalledWith('participation_submissions');
+      expect(fromMock).toHaveBeenCalledWith('events');
       expect(insertMock).toHaveBeenCalledTimes(1);
       const arg = insertMock.mock.calls[0][0];
-      expect(arg.type).toBe('EVENT');
-      expect(arg.data.tipo).toBe('Evento');
-      expect(arg.data.eventTitle).toBe('Jornada de limpieza');
+      expect(arg.title).toBe('Jornada de limpieza');
+      expect(arg.source).toBe('participation');
+      expect(arg.status).toBe('pending');
     });
   });
-}
+});
 

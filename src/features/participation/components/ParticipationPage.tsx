@@ -3,6 +3,7 @@ import { ArrowDown } from 'lucide-react';
 import { getNavbarHeight } from '../../../utils/helpers/layoutHelpers';
 import { getSupabaseClient } from '../../../lib/supabase';
 import { Map, Marker } from 'pigeon-maps';
+import EventLocationField from '../../shared/components/EventLocationField';
 
 const HALF_HOUR_TIME_OPTIONS = Array.from({ length: 24 * 2 }, (_, index) => {
   const hours = Math.floor(index / 2)

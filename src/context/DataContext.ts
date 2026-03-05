@@ -138,8 +138,9 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         getProjects({ useCache: true, fallback: [] }),
         getGazettesFromJson({ useCache: true, fallback: [] }),
         getGazettes({ useCache: true, fallback: [] }),
-        getEvents({ useCache: true, fallback: [] }),
-        getPastEvents({ useCache: true, fallback: [] }),
+        // Eventos y bitácora: sin caché para reflejar siempre los últimos cambios
+        getEvents({ useCache: false, fallback: [] }),
+        getPastEvents({ useCache: false, fallback: [] }),
         fetch(boletinesUrl).then(res => (res.ok ? res.json() : [])).catch(() => []),
         fetch(gacetasUrl).then(res => (res.ok ? res.json() : [])).catch(() => []),
         // fetchGoogleCalendarEvents().catch(() => []), // bloqueado por el momento
@@ -293,6 +294,21 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
       fetchAgendaEvents();
     }, intervalMs);
     return () => window.clearInterval(interval);
+  }, [fetchAgendaEvents]);
+
+  // Escuchar eventos globales del admin para refrescar la agenda sin recargar la página
+  useEffect(() => {
+    const handler = () => {
+      fetchAgendaEvents();
+    };
+    if (typeof window !== 'undefined') {
+      window.addEventListener('mapeo-verde:events-updated', handler);
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('mapeo-verde:events-updated', handler);
+      }
+    };
   }, [fetchAgendaEvents]);
 
   // Función de refresh que recarga los datos
