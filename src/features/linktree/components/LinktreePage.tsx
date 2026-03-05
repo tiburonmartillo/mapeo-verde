@@ -62,7 +62,7 @@ const LinktreePage = () => {
   ];
 
   return (
-    <div className="relative min-h-screen bg-[#f3f4f0] flex flex-col items-center justify-center px-6 pt-6 pb-6 overflow-hidden">
+    <div className="relative min-h-screen bg-[#f3f4f0] flex flex-col items-center justify-center px-6 pt-24 pb-6 overflow-hidden">
       {/* Background - Dot Pattern (mismo que header de inicio) */}
       <motion.div
         initial={{ opacity: 0 }}
@@ -76,7 +76,8 @@ const LinktreePage = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="relative z-10 w-full max-w-md flex flex-col items-center"
+        className="relative z-10 w-full max-w-md flex flex-col items-center pb-10"
+        style={{ paddingTop: 40 }}
       >
         {/* Logo Mapeo Verde */}
         <motion.div

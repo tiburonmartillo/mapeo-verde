@@ -45,8 +45,9 @@ const FeatureList = ({ onFeatureEnter, onFeatureLeave, onNavigate }: FeatureList
   }, [expandedFeature, isMobile]);
   
   const features: Feature[] = [
-    { title: "Agenda", desc: "Actividades de voluntariado y educación." },
-    { title: "Áreas Verdes", desc: "Inventario colaborativo de flora urbana." },
+    { title: "Agenda", desc: "Eventos, actividades y voluntariado para el cuidado ambiental." },
+    { title: "Áreas Verdes", desc: "Inventario colaborativo de parques y espacios verdes." },
+    { title: "Participación", desc: "Contribuye con reportes, propuestas e ideas para tu comunidad." },
   ];
 
   const handleFeatureClick = (title: string) => {

@@ -20,7 +20,7 @@ const TextContentSection = () => {
               Inteligencia Colectiva.
            </p>
            <p className="font-serif text-gray-600 leading-relaxed">
-              No podemos esperar a que otros lo resuelvan. Mapeo Verde empodera a los vecinos para censar, vigilar y exigir el mantenimiento de sus espacios vitales.
+              No podemos esperar a que otros lo resuelvan. Mapeo Verde te invita a sumarte a la agenda de actividades, participar con reportes y propuestas, y explorar el inventario de áreas verdes para censar, vigilar y exigir el mantenimiento de los espacios vitales.
            </p>
         </div>
 

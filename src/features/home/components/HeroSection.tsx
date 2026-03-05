@@ -136,7 +136,7 @@ const HeroSection = () => {
               }}
               className="text-xl md:text-2xl font-serif max-w-2xl leading-relaxed text-gray-800"
             >
-              Combatimos la desigualdad ambiental con datos abiertos. Una herramienta para visibilizar, proteger y expandir nuestras áreas verdes.
+              Agenda de actividades, participación ciudadana y áreas verdes: una plataforma para visibilizar, proteger y combatir la desigualdad ambiental con datos abiertos.
             </motion.p>
           </div>
 
@@ -150,8 +150,17 @@ const HeroSection = () => {
             <motion.button
               whileHover={{ scale: 1.05, backgroundColor: "#ff7e67", color: "#fff" }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => navigate('/manifiesto')}
+              onClick={() => navigate('/agenda')}
               className="px-6 py-3 bg-black text-white font-bold uppercase text-sm tracking-wider transition-colors border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none hover:bg-[#ff7e67] focus:outline-none focus:ring-2 focus:ring-black"
+              aria-label="Ver la agenda de eventos y actividades"
+            >
+              Ver agenda
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate('/manifiesto')}
+              className="px-6 py-3 bg-transparent text-black font-bold uppercase text-sm tracking-wider transition-colors border-2 border-black hover:bg-black hover:text-white focus:outline-none focus:ring-2 focus:ring-black"
               aria-label="Leer el manifiesto de Mapeo Verde"
             >
               Leer manifiesto

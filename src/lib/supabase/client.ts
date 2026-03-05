@@ -3,6 +3,33 @@ import { projectId, publicAnonKey } from '../../utils/supabase/info';
 
 // Singleton pattern para reutilizar la misma instancia del cliente
 let supabaseClient: SupabaseClient | null = null;
+let supabaseAuthClient: SupabaseClient | null = null;
+
+/**
+ * Cliente de Supabase con persistencia de sesión para uso en admin (auth).
+ * Usar este cliente en rutas de administración para login y mutaciones protegidas por RLS.
+ */
+export const getSupabaseAuthClient = (): SupabaseClient | null => {
+  if (supabaseAuthClient) return supabaseAuthClient;
+  if (!projectId || !publicAnonKey) return null;
+  try {
+    const supabaseUrl = `https://${projectId}.supabase.co`;
+    supabaseAuthClient = createClient(supabaseUrl, publicAnonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+      },
+      global: {
+        headers: { 'x-client-info': 'mapeo-verde-admin@1.0.0' },
+      },
+      db: { schema: 'public' },
+    });
+    return supabaseAuthClient;
+  } catch {
+    return null;
+  }
+};
 
 /**
  * Obtiene o crea una instancia única del cliente de Supabase
@@ -54,6 +81,10 @@ export const getSupabaseClient = (): SupabaseClient | null => {
  */
 export const resetSupabaseClient = (): void => {
   supabaseClient = null;
+};
+
+export const resetSupabaseAuthClient = (): void => {
+  supabaseAuthClient = null;
 };
 
 /**

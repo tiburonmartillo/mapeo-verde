@@ -23,6 +23,7 @@ const ParticipationPage = React.lazy(() => import('./features/participation/comp
 const ManifestoPage = React.lazy(() => import('./features/manifesto/components/ManifestoPage'));
 const LinktreePage = React.lazy(() => import('./features/linktree/components/LinktreePage'));
 const PrivacyPage = React.lazy(() => import('./features/legal/components/PrivacyPage'));
+const AdminEventsPage = React.lazy(() => import('./features/admin/components/AdminEventsPage'));
 
 import { FeaturePreview } from './features/home/components';
 
@@ -107,7 +108,7 @@ const MainApp = () => {
   const handleNavigate = (tab: string, id?: string | number) => {
     if (id) {
       if (tab === 'GREEN_AREAS') navigate(`/areas-verdes/${id}`);
-      else if (tab === 'AGENDA') navigate(`/agenda/${id}`);
+      else if (tab === 'AGENDA') navigate(`/agenda?event=${encodeURIComponent(String(id))}`);
       else if (tab === 'NEWSLETTERS') navigate(`/boletines?project=${id}`);
       else if (tab === 'GAZETTES') navigate(`/gacetas?project=${id}`);
     } else {
@@ -275,6 +276,16 @@ const PrivacyPageWrapper = () => {
   );
 };
 
+const AdminEventsPageWrapper = () => {
+  return (
+    <div className="min-h-screen bg-[#f3f4f0] font-sans">
+      <React.Suspense fallback={<PageLoader />}>
+        <AdminEventsPage />
+      </React.Suspense>
+    </div>
+  );
+};
+
 export default function App() {
   return (
     <DataProvider>
@@ -291,6 +302,7 @@ export default function App() {
         <Route path="/manifiesto" element={<ManifestoPageWrapper />} />
         <Route path="/links" element={<LinktreePageWrapper />} />
         <Route path="/aviso-de-privacidad" element={<PrivacyPageWrapper />} />
+        <Route path="/admin" element={<AdminEventsPageWrapper />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </DataProvider>

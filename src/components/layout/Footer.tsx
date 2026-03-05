@@ -45,6 +45,15 @@ const Footer = () => {
                 Enlaces rápidos
               </a>
             </li>
+            <li>
+              <Link
+                to="/admin"
+                className="hover:underline focus:outline-none focus:ring-1 focus:ring-black"
+                aria-label="Administrar eventos (requiere inicio de sesión)"
+              >
+                Administrar eventos
+              </Link>
+            </li>
           </ul>
         </div>
 
@@ -66,7 +75,7 @@ const Footer = () => {
 
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-2 text-xs font-mono uppercase text-gray-500">
         <div className="flex flex-col sm:flex-row items-center gap-2">
-          <p>© 2025 MAPEO VERDE. TODOS LOS DERECHOS RESERVADOS.</p>
+          <p>© 2026 MAPEO VERDE. TODOS LOS DERECHOS RESERVADOS.</p>
           <span
             className="flex items-center gap-1.5"
             title={supabaseError ?? undefined}

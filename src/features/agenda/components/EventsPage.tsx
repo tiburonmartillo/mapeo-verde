@@ -249,7 +249,12 @@ const CalendarEventPopover = ({ event, baseUrl, handleShareToInstagram }: { even
 };
 
 const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
-  const { events: EVENTS_DATA = [], pastEvents: PAST_EVENTS_DATA = [], loading } = useContext(DataContext) as any;
+  const { events: contextEvents = [], pastEvents: PAST_EVENTS_DATA = [], loading } = useContext(DataContext) as any;
+  // Solo mostrar en agenda los eventos publicados (por si el contexto tuviera mezcla)
+  const EVENTS_DATA = useMemo(
+    () => (contextEvents || []).filter((e: any) => e.status !== 'pending'),
+    [contextEvents]
+  );
   // const accentColor = useAccentColor();
   const [searchParams, setSearchParams] = useSearchParams();
   const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
@@ -319,6 +324,23 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
   const [eventDetailClosing, setEventDetailClosing] = useState(false);
   const [expandedEventId, setExpandedEventId] = useState<string | null>(null);
   const [currentMonth, setCurrentMonth] = useState(getInitialCurrentMonth);
+
+  // Abrir side/bottom sheet con un evento cuando se llega desde home con ?event=ID
+  useEffect(() => {
+    const eventIdFromUrl = searchParams.get('event');
+    if (!eventIdFromUrl || loading || !EVENTS_DATA?.length) return;
+    const event = EVENTS_DATA.find((e: any) => String(e.id) === String(eventIdFromUrl));
+    if (event) {
+      setSelectedEvent(event);
+      setEventDetailClosing(false);
+      setViewMode('month');
+      if (event.date && /^\d{4}-\d{2}-\d{2}$/.test(event.date)) {
+        setSelectedDate(event.date);
+        const [y, m] = event.date.split('-').map(Number);
+        setCurrentMonth(new Date(y, m - 1, 1));
+      }
+    }
+  }, [searchParams, loading, EVENTS_DATA]);
 
   // Sincronizar selectedDate con URL (solo en agenda)
   // Solo agregar parámetro 'date' a la URL cuando el usuario selecciona un día que no es hoy
@@ -826,8 +848,8 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
   const monthOffset = getFirstDayOfMonth(currentMonth);
 
   const filteredEvents = useMemo(() => {
-    const filtered = EVENTS_DATA.filter((e: any) => e.date === selectedDate);
-    return filtered;
+    const dateNorm = (d: string) => (d || '').toString().slice(0, 10);
+    return EVENTS_DATA.filter((e: any) => dateNorm(e.date) === dateNorm(selectedDate));
   }, [EVENTS_DATA, selectedDate]);
 
   return (
@@ -857,7 +879,9 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
 
           <div className="mb-6">
             <p className="font-serif text-lg text-black max-w-2xl leading-relaxed">
-              Encuentra actividades, talleres y voluntariados cerca de ti.
+              {EVENTS_DATA.length > 0
+                ? 'Encuentra actividades, talleres y voluntariados cerca de ti.'
+                : 'Aún no hay eventos publicados. Revisa más tarde o participa proponiendo uno desde el formulario.'}
             </p>
           </div>
 
@@ -906,7 +930,8 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
                   );
                 }
 
-                const hasEvent = EVENTS_DATA.some((e: any) => e.date === day.date);
+                const dateNorm = (d: string) => (d || '').toString().slice(0, 10);
+                const hasEvent = EVENTS_DATA.some((e: any) => dateNorm(e.date) === day.date);
                 const isSelected = selectedDate === day.date;
 
                 return (
@@ -984,7 +1009,8 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
                     ))}
 
                     {monthViewDays.map((day) => {
-                      const dayEvents = EVENTS_DATA.filter((e: any) => e.date === day.date);
+                      const dayNorm = (d: string) => (d || '').toString().slice(0, 10);
+                      const dayEvents = EVENTS_DATA.filter((e: any) => dayNorm(e.date) === day.date);
                       const isSelected = selectedDate === day.date;
                       const isToday = day.date === todayStr;
 
@@ -1081,6 +1107,11 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
                                       <span className="inline-block px-2 py-0.5 border border-black text-[10px] uppercase font-bold bg-gray-100 flex-shrink-0">
                                         {event.category}
                                       </span>
+                                      {(event.source === 'participation' || event.category === 'Propuesta ciudadana') && (
+                                        <span className="inline-block px-2 py-0.5 border border-amber-600 text-[10px] uppercase font-bold bg-amber-50 text-amber-800 flex-shrink-0">
+                                          Propuesta ciudadana
+                                        </span>
+                                      )}
                                     </div>
                                     <h3 className="text-base md:text-lg font-bold leading-tight group-hover:text-[#ff7e67] transition-colors break-words" style={{ wordBreak: 'break-word', overflow: 'hidden', textOverflow: isExpanded ? 'clip' : 'ellipsis', display: isExpanded ? 'block' : '-webkit-box', WebkitLineClamp: isExpanded ? 'none' : 2, WebkitBoxOrient: isExpanded ? 'initial' : 'vertical' }}>
                                       {event.title}
@@ -1195,10 +1226,17 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
 
                   <div className="flex-1 p-6 flex flex-col min-w-0 overflow-hidden">
                     <div className="flex-shrink-0">
-                      <div className="flex justify-between items-start mb-2">
-                        <span className="inline-block px-2 py-0.5 border border-black text-[10px] uppercase font-bold bg-gray-100">
-                          {event.category}
-                        </span>
+                      <div className="flex justify-between items-start mb-2 flex-wrap gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="inline-block px-2 py-0.5 border border-black text-[10px] uppercase font-bold bg-gray-100">
+                            {event.category}
+                          </span>
+                          {(event.source === 'participation' || event.category === 'Propuesta ciudadana') && (
+                            <span className="inline-block px-2 py-0.5 border border-amber-600 text-[10px] uppercase font-bold bg-amber-50 text-amber-800">
+                              Propuesta ciudadana
+                            </span>
+                          )}
+                        </div>
                         <span className="font-mono text-xs flex items-center gap-1 flex-shrink-0">
                           {event.time}
                         </span>
@@ -1316,6 +1354,9 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
                   if (eventDetailClosing) {
                     setSelectedEvent(null);
                     setEventDetailClosing(false);
+                    const next = new URLSearchParams(searchParams);
+                    next.delete('event');
+                    setSearchParams(next, { replace: true });
                   }
                 }}
                 className="fixed inset-x-0 bottom-0 md:hidden flex flex-col justify-end"
@@ -1388,6 +1429,9 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
                   if (eventDetailClosing) {
                     setSelectedEvent(null);
                     setEventDetailClosing(false);
+                    const next = new URLSearchParams(searchParams);
+                    next.delete('event');
+                    setSearchParams(next, { replace: true });
                   }
                 }}
                 className="hidden md:block fixed right-0 bottom-0 w-full max-w-md"

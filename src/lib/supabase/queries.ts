@@ -1,7 +1,8 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { getSupabaseClient } from './client';
 import { queryCache } from './cache';
 import { requestDeduplicator } from './requestDeduplication';
-import type { GreenAreaRow, ProjectRow, GazetteRow, EventRow, AreasDonacionRow, DocumentosJsonRow } from './types';
+import type { GreenAreaRow, ProjectRow, GazetteRow, EventRow, EventInsert, EventUpdate, AreasDonacionRow, DocumentosJsonRow } from './types';
 import { mapBoletinesToProjects, mapGacetasToDataset } from '../../utils/helpers';
 import { projectId } from '../../utils/supabase/info';
 
@@ -100,23 +101,57 @@ export interface Event {
   category: string;
   image: string;
   description: string;
+  visible?: boolean | null;
+  status?: 'pending' | 'published' | null;
+  source?: string | null;
+  contactName?: string | null;
+  contactEmail?: string | null;
+}
+
+/** Evita duplicados por id y por contenido (date + iso_start + title) en la lista de eventos. */
+export function deduplicateEventsByIdAndContent(events: Event[]): Event[] {
+  const seen = new Set<string>();
+  return events.filter((e) => {
+    const dateNorm = (e.date ?? '').toString().slice(0, 10);
+    const isoNorm = (e.isoStart ?? '').toString().slice(0, 16);
+    const titleNorm = (e.title ?? '').trim();
+    const key = `${dateNorm}|${isoNorm}|${titleNorm}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 /**
  * Helper para mapear EventRow de Supabase a Event de la aplicación
  */
-const mapEventRowToEvent = (row: EventRow): Event => ({
-  id: row.id,
-  title: row.title,
-  date: row.date,
-  time: row.time,
-  isoStart: row.iso_start,
-  isoEnd: row.iso_end,
-  location: row.location,
-  category: row.category,
-  image: row.image || '',
-  description: row.description || '',
-});
+const mapEventRowToEvent = (row: EventRow): Event => {
+  const source = row.source ?? undefined;
+  const rawStatus = row.status;
+  const status: 'pending' | 'published' =
+    rawStatus === 'pending' || rawStatus === 'published'
+      ? rawStatus
+      : source === 'participation'
+        ? 'pending'
+        : 'published';
+  return {
+    id: row.id,
+    title: row.title,
+    date: row.date,
+    time: row.time,
+    isoStart: row.iso_start,
+    isoEnd: row.iso_end,
+    location: row.location,
+    category: row.category,
+    image: row.image || '',
+    description: row.description || '',
+    visible: row.visible ?? true,
+    status,
+    source,
+    contactName: row.contact_name ?? undefined,
+    contactEmail: row.contact_email ?? undefined,
+  };
+};
 
 /**
  * Helper para mapear GreenAreaRow de Supabase a GreenArea de la aplicación
@@ -201,6 +236,8 @@ interface ParticipationSubmissionRow {
   whatsapp: string | null;
   data: any;
   created_at?: string;
+  /** Si está definido, la propuesta ya fue publicada en la agenda (tabla events). */
+  published_at?: string | null;
 }
 
 /**
@@ -534,18 +571,38 @@ export const getEvents = async (options: QueryOptions = {}): Promise<Event[]> =>
         return fallback;
       }
 
-      const { data, error } = await supabase
+      let data: EventRow[] | null = null;
+      let error: any = null;
+      let query = supabase
         .from('events')
         .select('*')
         .order('date', { ascending: true })
-        .gte('date', new Date().toISOString().split('T')[0])
-        .returns<EventRow[]>(); // Solo eventos futuros
+        .gte('date', new Date().toISOString().split('T')[0]);
+      const withFilters = query.eq('visible', true).eq('status', 'published').returns<EventRow[]>();
+      const res = await withFilters;
+      if (res.error && (res.error as { code?: string }).code === '42703') {
+        const res2 = await supabase.from('events').select('*').order('date', { ascending: true }).gte('date', new Date().toISOString().split('T')[0]).returns<EventRow[]>();
+        data = res2.data;
+        error = res2.error;
+      } else {
+        data = res.data;
+        error = res.error;
+      }
 
       if (error) {
         return fallback;
       }
 
-      const result = (data || []).map(mapEventRowToEvent);
+      const rows = (data || []).filter((row: EventRow) => {
+        if (row.visible === false) return false;
+        if (row.status === 'published') return true;
+        if (row.status === 'pending') return false;
+        return row.source !== 'participation';
+      });
+      const byId = new Map<number, EventRow>();
+      rows.forEach((row: EventRow) => byId.set(row.id, row));
+      let result = Array.from(byId.values()).map(mapEventRowToEvent);
+      result = deduplicateEventsByIdAndContent(result);
 
       if (useCache && result.length > 0) {
         queryCache.set(cacheKey, result, cacheTTL);
@@ -556,72 +613,6 @@ export const getEvents = async (options: QueryOptions = {}): Promise<Event[]> =>
       return fallback;
     }
   });
-};
-
-/**
- * Obtiene eventos ciudadanos desde participation_submissions
- * y los mapea al tipo Event de la aplicación.
- */
-export const getParticipationEvents = async (): Promise<Event[]> => {
-  try {
-    const supabase = getSupabaseClient();
-    if (!supabase) return [];
-
-    const { data, error } = await supabase
-      .from('participation_submissions')
-      .select('*')
-      .eq('type', 'EVENT')
-      .order('id', { ascending: true });
-
-    if (error || !data) return [];
-
-    return (data as ParticipationSubmissionRow[])
-      .map((row) => {
-        const d = row.data ?? {};
-        const date = (d.eventDate || '').toString();
-        const startTime = (d.eventStartTime || d.eventTime || '').toString();
-        const endTime = (d.eventEndTime || '').toString();
-        const title = (d.eventTitle || '').toString();
-        const location = (d.eventLocation || '').toString();
-        const imageUrl = (d.eventImageUrl || '').toString();
-
-        if (!date || !startTime || !title || !location) {
-          return null;
-        }
-
-        const isoStart = (() => {
-          // Espera YYYY-MM-DD y HH:MM
-          const datePart = date.length >= 10 ? date.slice(0, 10) : date;
-          const timePart = startTime.length >= 5 ? startTime.slice(0, 5) : startTime;
-          return `${datePart}T${timePart}:00`;
-        })();
-
-        const isoEnd = (() => {
-          if (!endTime) return isoStart;
-          const datePart = date.length >= 10 ? date.slice(0, 10) : date;
-          const timePart = endTime.length >= 5 ? endTime.slice(0, 5) : endTime;
-          return `${datePart}T${timePart}:00`;
-        })();
-        const idOffset = 100000;
-        const timeLabel = endTime ? `${startTime}–${endTime}` : startTime;
-
-        return {
-          id: idOffset + row.id,
-          title,
-          date,
-          time: timeLabel,
-          isoStart,
-          isoEnd,
-          location,
-          category: 'Propuesta ciudadana',
-          image: imageUrl,
-          description: (d.eventDescription || '').toString(),
-        } as Event;
-      })
-      .filter((x): x is Event => x !== null);
-  } catch {
-    return [];
-  }
 };
 
 /**
@@ -645,18 +636,30 @@ export const getPastEvents = async (options: QueryOptions = {}): Promise<Event[]
         return fallback;
       }
 
-      const { data, error } = await supabase
-        .from('events')
-        .select('*')
-        .order('date', { ascending: false })
-        .lt('date', new Date().toISOString().split('T')[0])
-        .returns<EventRow[]>(); // Solo eventos pasados
-
+      let data: EventRow[] | null = null;
+      let error: any = null;
+      const res = await supabase.from('events').select('*').order('date', { ascending: false }).lt('date', new Date().toISOString().split('T')[0]).eq('visible', true).eq('status', 'published').returns<EventRow[]>();
+      if (res.error && (res.error as { code?: string }).code === '42703') {
+        const res2 = await supabase.from('events').select('*').order('date', { ascending: false }).lt('date', new Date().toISOString().split('T')[0]).returns<EventRow[]>();
+        data = (res2.data || []).filter((row: EventRow) => {
+          if (row.visible === false) return false;
+          if (row.status === 'published') return true;
+          if (row.status === 'pending') return false;
+          return row.source !== 'participation';
+        });
+        error = res2.error;
+      } else {
+        data = res.data;
+        error = res.error;
+      }
       if (error) {
         return fallback;
       }
-
-      const result = (data || []).map(mapEventRowToEvent);
+      const rows = data || [];
+      const byId = new Map<number, EventRow>();
+      rows.forEach((row: EventRow) => byId.set(row.id, row));
+      let result = Array.from(byId.values()).map(mapEventRowToEvent);
+      result = deduplicateEventsByIdAndContent(result);
 
       if (useCache && result.length > 0) {
         queryCache.set(cacheKey, result, cacheTTL);
@@ -674,6 +677,54 @@ export const getPastEvents = async (options: QueryOptions = {}): Promise<Event[]
  */
 export const clearCache = (): void => {
   queryCache.clear();
+};
+
+/**
+ * Admin: obtiene todos los eventos (sin filtro de fecha). Requiere cliente autenticado.
+ */
+export const getEventsAll = async (supabase: SupabaseClient): Promise<Event[]> => {
+  const { data, error } = await supabase
+    .from('events')
+    .select('*')
+    .order('date', { ascending: true })
+    .returns<EventRow[]>();
+  if (error) return [];
+  return (data || []).map(mapEventRowToEvent);
+};
+
+/**
+ * Admin: crea un evento. Requiere cliente autenticado. Limpia caché de eventos.
+ */
+export const insertEvent = async (supabase: SupabaseClient, payload: EventInsert): Promise<{ data?: Event; error: string | null }> => {
+  const { data, error } = await supabase
+    .from('events')
+    .insert(payload)
+    .select('*')
+    .single()
+    .returns<EventRow>();
+  if (error) return { error: error.message };
+  clearCache();
+  return { data: data ? mapEventRowToEvent(data) : undefined, error: null };
+};
+
+/**
+ * Admin: actualiza un evento. Requiere cliente autenticado. Limpia caché de eventos.
+ */
+export const updateEvent = async (supabase: SupabaseClient, id: number, payload: EventUpdate): Promise<{ error: string | null }> => {
+  const { error } = await supabase.from('events').update(payload).eq('id', id);
+  if (error) return { error: error.message };
+  clearCache();
+  return { error: null };
+};
+
+/**
+ * Admin: elimina un evento. Requiere cliente autenticado. Limpia caché de eventos.
+ */
+export const deleteEvent = async (supabase: SupabaseClient, id: number): Promise<{ error: string | null }> => {
+  const { error } = await supabase.from('events').delete().eq('id', id);
+  if (error) return { error: error.message };
+  clearCache();
+  return { error: null };
 };
 
 /**

@@ -7,12 +7,12 @@ import {
   getProjects,
   getGazettes,
   getEvents,
-  getParticipationEvents,
   getPastEvents,
   getAreasDonacionFromJson,
   getProjectsFromJson,
   getGazettesFromJson,
   checkSupabaseConnection,
+  deduplicateEventsByIdAndContent,
 } from '../lib/supabase';
 import { mapBoletinesToProjects, mapGacetasToDataset } from '../utils/helpers';
 // import { fetchGoogleCalendarEvents } from '../services/googleCalendar'; // bloqueado por el momento
@@ -67,36 +67,26 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
 
   const fetchAgendaEvents = useCallback(async () => {
     try {
-      const [eventsSupabase, participationEvents /* , googleCalendarEvents */] = await Promise.all([
+      const [eventsSupabase /* , googleCalendarEvents */] = await Promise.all([
         getEvents({ useCache: false, fallback: [] }),
-        getParticipationEvents(),
+        // getParticipationEvents() ya no se mezcla: los publicados están en la tabla events
         // fetchGoogleCalendarEvents().catch(() => []), // bloqueado por el momento
       ]);
 
-      // Solo actualizar si tenemos datos de fuentes en vivo (Supabase o Google).
-      // Si ambos fallan (p. ej. CORS en producción), no sobrescribir lo ya mostrado.
       let events: any[] = [];
       if (eventsSupabase && eventsSupabase.length > 0) {
         events = eventsSupabase;
       }
-      // } else if (Array.isArray(googleCalendarEvents) && googleCalendarEvents.length > 0) {
-      //   events = googleCalendarEvents;
-      // }
 
-      // Añadir propuestas ciudadanas de eventos (al final de la lista)
-      if (participationEvents && participationEvents.length > 0) {
-        events = [...events, ...participationEvents];
-      }
-
-      // Si no hay nada de fuentes en vivo, no actualizar estado (mantener eventos ya cargados)
       if (events.length === 0) return;
-      const nextHash = events
+      const deduped = deduplicateEventsByIdAndContent(events);
+      const nextHash = deduped
         .map((e: any) => `${String(e?.id ?? '')}|${String(e?.isoStart ?? '')}|${String(e?.isoEnd ?? '')}`)
         .join(';;');
       if (nextHash === lastAgendaEventsHashRef.current) return;
       lastAgendaEventsHashRef.current = nextHash;
 
-      setData((prev) => ({ ...prev, events }));
+      setData((prev) => ({ ...prev, events: deduped }));
     } catch {
       // refresh silencioso: si falla, conservar lo ya mostrado
     }
@@ -135,7 +125,6 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         gazettesFromJson,
         gazettesSupabase,
         eventsSupabase,
-        participationEvents,
         pastEventsSupabase,
         boletinesResponse,
         gacetasResponse,
@@ -150,7 +139,6 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         getGazettesFromJson({ useCache: true, fallback: [] }),
         getGazettes({ useCache: true, fallback: [] }),
         getEvents({ useCache: true, fallback: [] }),
-        getParticipationEvents(),
         getPastEvents({ useCache: true, fallback: [] }),
         fetch(boletinesUrl).then(res => (res.ok ? res.json() : [])).catch(() => []),
         fetch(gacetasUrl).then(res => (res.ok ? res.json() : [])).catch(() => []),
@@ -196,18 +184,10 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
       }
       gazettes = [...gazettes].sort(byDateDesc);
 
-      // Eventos: Supabase → Google Calendar → estáticos
+      // Eventos: solo tabla events (incluye los publicados desde propuestas; no mezclar getParticipationEvents para evitar duplicados)
       let events: any[] = EVENTS_DATA;
       if (eventsSupabase && eventsSupabase.length > 0) {
-        events = eventsSupabase;
-      }
-      // } else if (Array.isArray(googleCalendarEvents) && googleCalendarEvents.length > 0) {
-      //   events = googleCalendarEvents;
-      // }
-
-      // Añadir propuestas ciudadanas de eventos (al final de la lista)
-      if (participationEvents && participationEvents.length > 0) {
-        events = [...events, ...participationEvents];
+        events = deduplicateEventsByIdAndContent(eventsSupabase);
       }
 
       // Bitácora (eventos pasados): Supabase → Notion → estáticos

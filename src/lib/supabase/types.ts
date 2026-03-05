@@ -212,7 +212,7 @@ export interface GazetteUpdate {
   impact?: string | null;
 }
 
-// Events
+// Events (una sola tabla: pendientes del formulario y publicados)
 export interface EventRow {
   id: number;
   title: string;
@@ -226,6 +226,11 @@ export interface EventRow {
   description: string | null;
   created_at: string;
   updated_at: string;
+  visible?: boolean | null;
+  status?: 'pending' | 'published' | null;
+  source?: string | null;
+  contact_name?: string | null;
+  contact_email?: string | null;
 }
 
 export interface EventInsert {
@@ -238,6 +243,11 @@ export interface EventInsert {
   category: string;
   image?: string | null;
   description?: string | null;
+  visible?: boolean | null;
+  status?: 'pending' | 'published' | null;
+  source?: string | null;
+  contact_name?: string | null;
+  contact_email?: string | null;
 }
 
 export interface EventUpdate {
@@ -250,6 +260,8 @@ export interface EventUpdate {
   category?: string;
   image?: string | null;
   description?: string | null;
+  visible?: boolean | null;
+  status?: 'pending' | 'published' | null;
 }
 
 // Documentos JSON unificados (areas_donacion, boletines, gacetas)

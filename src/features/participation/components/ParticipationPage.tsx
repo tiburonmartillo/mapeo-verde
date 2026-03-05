@@ -243,42 +243,53 @@ const ParticipationPage = () => {
                      }
                    }
 
-                   const payload = {
-                     tipo: entryType === 'GREEN_AREA' ? 'Área verde' : 'Evento',
-                     nombre: formData.name,
-                     correo: formData.email,
-                     whatsapp: formData.whatsapp || null,
-                     ...(entryType === 'GREEN_AREA'
-                       ? {
-                           areaName: formData.areaName,
-                           areaAddress: formData.areaAddress,
-                           areaLat: formData.areaLat,
-                           areaLng: formData.areaLng,
-                           areaNeed: formData.areaNeed,
-                         }
-                       : {
-                           eventTitle: formData.eventTitle,
-                           eventDate: formData.eventDate,
-                           eventStartTime: formData.eventStartTime,
-                           eventEndTime: formData.eventEndTime,
-                           eventLocation: formData.eventLocation,
-                           eventDescription: formData.eventDescription,
-                           eventImageUrl: eventImageUrl,
-                         }),
-                   };
-
-                   const { error } = await client
-                     .from('participation_submissions')
-                     .insert({
-                       type: entryType,
-                       name: formData.name,
-                       email: formData.email,
+                   if (entryType === 'GREEN_AREA') {
+                     const payload = {
+                       tipo: 'Área verde',
+                       nombre: formData.name,
+                       correo: formData.email,
                        whatsapp: formData.whatsapp || null,
-                       data: payload,
-                     });
-
-                   if (error) {
-                     throw error;
+                       areaName: formData.areaName,
+                       areaAddress: formData.areaAddress,
+                       areaLat: formData.areaLat,
+                       areaLng: formData.areaLng,
+                       areaNeed: formData.areaNeed,
+                     };
+                     const { error } = await client
+                       .from('participation_submissions')
+                       .insert({
+                         type: entryType,
+                         name: formData.name,
+                         email: formData.email,
+                         whatsapp: formData.whatsapp || null,
+                         data: payload,
+                       });
+                     if (error) throw error;
+                   } else {
+                     const date = (formData.eventDate || '').toString().slice(0, 10);
+                     const startTime = (formData.eventStartTime || '10:00').slice(0, 5);
+                     const endTime = (formData.eventEndTime || formData.eventStartTime || '11:00').slice(0, 5);
+                     const timeLabel = `${startTime}–${endTime}`;
+                     const isoStart = `${date}T${startTime}:00`;
+                     const isoEnd = `${date}T${endTime}:00`;
+                     const { error } = await client
+                       .from('events')
+                       .insert({
+                         title: formData.eventTitle,
+                         date,
+                         time: timeLabel,
+                         iso_start: isoStart,
+                         iso_end: isoEnd,
+                         location: formData.eventLocation,
+                         category: 'Propuesta ciudadana',
+                         description: formData.eventDescription || null,
+                         image: eventImageUrl || null,
+                         status: 'pending',
+                         source: 'participation',
+                         contact_name: formData.name || null,
+                         contact_email: formData.email || null,
+                       });
+                     if (error) throw error;
                    }
 
                    let successMessage =
