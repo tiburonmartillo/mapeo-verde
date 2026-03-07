@@ -249,7 +249,7 @@ const CalendarEventPopover = ({ event, baseUrl, handleShareToInstagram }: { even
 };
 
 const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
-  const { events: contextEvents = [], pastEvents: PAST_EVENTS_DATA = [], loading } = useContext(DataContext) as any;
+  const { events: contextEvents = [], loading } = useContext(DataContext) as any;
   // Solo mostrar en agenda los eventos publicados (por si el contexto tuviera mezcla)
   const EVENTS_DATA = useMemo(
     () => (contextEvents || []).filter((e: any) => e.status !== 'pending'),
@@ -270,6 +270,15 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
   const [todayStr, setTodayStr] = useState(() => {
     return getTodayInCdmx();
   });
+  const BITACORA_EVENTS = useMemo(() => {
+    const normalizeDate = (value: any) => (value ?? '').toString().slice(0, 10);
+    return [...EVENTS_DATA]
+      .filter((event: any) => {
+        const date = normalizeDate(event.date);
+        return date && date < todayStr;
+      })
+      .sort((a: any, b: any) => normalizeDate(b.date).localeCompare(normalizeDate(a.date)));
+  }, [EVENTS_DATA, todayStr]);
 
   // Actualizar la fecha de hoy cada minuto para detectar cambios de día
   useEffect(() => {

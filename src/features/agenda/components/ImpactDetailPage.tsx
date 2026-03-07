@@ -13,11 +13,11 @@ interface ImpactDetailPageProps {
 }
 
 const ImpactDetailPage = ({ eventId, onBack }: ImpactDetailPageProps) => {
-  const { pastEvents, loading } = useContext(DataContext) as any;
+  const { events = [], pastEvents = [], loading } = useContext(DataContext) as any;
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   
   // Buscar el evento por slug o ID (compatibilidad con URLs antiguas)
-  const event = findEventByIdentifier(pastEvents, eventId);
+  const event = findEventByIdentifier([...(events || []), ...(pastEvents || [])], eventId);
   
   
   // Extraer todas las URLs de imágenes del contenido markdown

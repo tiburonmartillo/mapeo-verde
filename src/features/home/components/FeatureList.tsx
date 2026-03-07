@@ -1,10 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { FeaturePreview } from './FeaturePreview';
 
 interface Feature {
   title: string;
   desc: string;
+  path: string;
+  accentClass: string;
 }
 
 interface FeatureListProps {
@@ -14,63 +15,26 @@ interface FeatureListProps {
 }
 
 const FeatureList = ({ onFeatureEnter, onFeatureLeave, onNavigate }: FeatureListProps) => {
-  const [expandedFeature, setExpandedFeature] = useState<string | null>(null);
-  const [isMobile, setIsMobile] = useState(false);
-  const expandedRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
-  
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-  
-  // Scroll al bloque expandido cuando cambia expandedFeature
-  useEffect(() => {
-    if (isMobile && expandedFeature) {
-      const expandedElement = expandedRefs.current[expandedFeature];
-      if (expandedElement) {
-        setTimeout(() => {
-          expandedElement.scrollIntoView({ 
-            behavior: 'smooth', 
-            block: 'start',
-            inline: 'nearest'
-          });
-        }, 100); // Pequeño delay para asegurar que la animación haya comenzado
-      }
-    }
-  }, [expandedFeature, isMobile]);
-  
   const features: Feature[] = [
-    { title: "Agenda", desc: "Eventos, actividades y voluntariado para el cuidado ambiental." },
-    { title: "Áreas Verdes", desc: "Inventario colaborativo de parques y espacios verdes." },
-    { title: "Participación", desc: "Contribuye con reportes, propuestas e ideas para tu comunidad." },
+    {
+      title: "Agenda",
+      desc: "Eventos, actividades y voluntariado para el cuidado ambiental.",
+      path: "AGENDA",
+      accentClass: "bg-[#ff7e67]",
+    },
+    {
+      title: "Áreas Verdes",
+      desc: "Inventario colaborativo de parques y espacios verdes.",
+      path: "GREEN_AREAS",
+      accentClass: "bg-[#b4ff6f]",
+    },
+    {
+      title: "Participación",
+      desc: "Contribuye con reportes, propuestas e ideas para tu comunidad.",
+      path: "PARTICIPATION",
+      accentClass: "bg-[#d89dff]",
+    },
   ];
-
-  const handleFeatureClick = (title: string) => {
-    // En móvil, toggle el estado expandido
-    if (isMobile) {
-      const newExpanded = expandedFeature === title ? null : title;
-      setExpandedFeature(newExpanded);
-    }
-  };
-
-  const handleMouseEnter = (title: string) => {
-    // En desktop, usar hover normal
-    if (!isMobile && onFeatureEnter) {
-      onFeatureEnter(title);
-    }
-  };
-
-  const handleMouseLeave = () => {
-    // En desktop, limpiar hover
-    if (!isMobile && onFeatureLeave) {
-      onFeatureLeave();
-    }
-  };
 
   return (
     <section className="bg-[#0a0a0a] text-white py-24 px-6 border-b border-white/20">
@@ -80,43 +44,38 @@ const FeatureList = ({ onFeatureEnter, onFeatureLeave, onNavigate }: FeatureList
         </div>
         <h3 className="text-3xl md:text-5xl font-light mb-16">TECNOLOGÍA PARA <br/> <span className="font-bold">EL CUIDADO AMBIENTAL</span></h3>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-0 border-t border-l border-white/20">
+        <div className="space-y-6">
           {features.map((f, i) => (
-            <div key={i} className="border-r border-b border-white/20">
-              <div 
-                className="group p-8 hover:bg-white/5 transition-colors cursor-pointer min-h-[250px] flex flex-col justify-between"
-                onMouseEnter={() => handleMouseEnter(f.title)}
-                onMouseLeave={handleMouseLeave}
-                onClick={() => handleFeatureClick(f.title)}
+            <div key={i} className="border-2 border-white/20 bg-black overflow-hidden">
+              <button
+                type="button"
+                className="w-full text-left hover:bg-white/5 transition-colors cursor-pointer border-b border-white/20"
+                onClick={() => onNavigate?.(f.path)}
               >
-                <div className="flex justify-between items-start">
-                  <span className="font-mono text-xs text-white/50">0{i+1}</span>
-                  <ArrowRight className={`w-5 h-5 transition-all ${
-                    expandedFeature === f.title 
-                      ? 'text-[#b4ff6f] translate-x-0' 
-                      : 'text-white/0 -translate-x-4 group-hover:text-[#b4ff6f] group-hover:translate-x-0'
-                  }`} />
+                <div className="grid grid-cols-1 md:grid-cols-[120px_1fr_auto] items-start md:items-center gap-6 p-8 md:p-10">
+                  <div className="flex items-center gap-4">
+                    <span className={`inline-flex h-12 w-12 items-center justify-center border-2 border-black ${f.accentClass} text-black font-mono text-sm font-bold shadow-[4px_4px_0px_0px_rgba(255,255,255,0.15)]`}>
+                      0{i + 1}
+                    </span>
+                  </div>
+                  <div className="max-w-3xl">
+                    <h4 className="text-2xl md:text-3xl font-bold mb-2 uppercase tracking-tight">{f.title}</h4>
+                    <p className="text-base md:text-lg text-zinc-300 leading-relaxed">{f.desc}</p>
+                  </div>
+                  <div className="flex items-center justify-start md:justify-end">
+                    <span className="inline-flex items-center gap-3 font-mono text-xs md:text-sm uppercase tracking-widest text-white/80">
+                      Explorar
+                      <ArrowRight className="w-5 h-5" />
+                    </span>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="text-xl font-bold mb-2">{f.title}</h4>
-                  <p className="text-sm text-zinc-400">{f.desc}</p>
-                </div>
-              </div>
-              
-              {/* En móvil, mostrar el contenido expandido debajo de cada herramienta */}
-              {isMobile && expandedFeature === f.title && (
-                <div 
-                  ref={(el) => { expandedRefs.current[f.title] = el; }}
-                  className="md:hidden border-t border-white/20"
-                >
-                  <FeaturePreview
-                    hoveredFeature={f.title}
-                    onMouseEnter={() => {}}
-                    onMouseLeave={() => {}}
-                    onNavigate={onNavigate || (() => {})}
-                  />
-                </div>
-              )}
+              </button>
+              <FeaturePreview
+                hoveredFeature={f.title}
+                onMouseEnter={() => {}}
+                onMouseLeave={() => {}}
+                onNavigate={onNavigate || (() => {})}
+              />
             </div>
           ))}
         </div>

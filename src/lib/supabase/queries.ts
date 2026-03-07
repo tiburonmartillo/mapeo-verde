@@ -47,6 +47,12 @@ function mapToStorageWebp(filenameOrUrl: string | null | undefined): string {
   return `${baseUrl}/${encodeURIComponent(base)}.webp`;
 }
 
+function getTodayInMexicoCity(): string {
+  return new Date().toLocaleDateString('en-CA', {
+    timeZone: 'America/Mexico_City',
+  });
+}
+
 /**
  * Tipos de datos compatibles con el formato esperado por la aplicación
  * Estos mapean desde los tipos de Supabase al formato usado en la UI
@@ -576,12 +582,11 @@ export const getEvents = async (options: QueryOptions = {}): Promise<Event[]> =>
       let query = supabase
         .from('events')
         .select('*')
-        .order('date', { ascending: true })
-        .gte('date', new Date().toISOString().split('T')[0]);
+        .order('date', { ascending: true });
       const withFilters = query.eq('visible', true).eq('status', 'published').returns<EventRow[]>();
       const res = await withFilters;
       if (res.error && (res.error as { code?: string }).code === '42703') {
-        const res2 = await supabase.from('events').select('*').order('date', { ascending: true }).gte('date', new Date().toISOString().split('T')[0]).returns<EventRow[]>();
+        const res2 = await supabase.from('events').select('*').order('date', { ascending: true }).returns<EventRow[]>();
         data = res2.data;
         error = res2.error;
       } else {
@@ -638,9 +643,9 @@ export const getPastEvents = async (options: QueryOptions = {}): Promise<Event[]
 
       let data: EventRow[] | null = null;
       let error: any = null;
-      const res = await supabase.from('events').select('*').order('date', { ascending: false }).lt('date', new Date().toISOString().split('T')[0]).eq('visible', true).eq('status', 'published').returns<EventRow[]>();
+      const res = await supabase.from('events').select('*').order('date', { ascending: false }).lt('date', getTodayInMexicoCity()).eq('visible', true).eq('status', 'published').returns<EventRow[]>();
       if (res.error && (res.error as { code?: string }).code === '42703') {
-        const res2 = await supabase.from('events').select('*').order('date', { ascending: false }).lt('date', new Date().toISOString().split('T')[0]).returns<EventRow[]>();
+        const res2 = await supabase.from('events').select('*').order('date', { ascending: false }).lt('date', getTodayInMexicoCity()).returns<EventRow[]>();
         data = (res2.data || []).filter((row: EventRow) => {
           if (row.visible === false) return false;
           if (row.status === 'published') return true;
