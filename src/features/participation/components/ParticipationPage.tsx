@@ -293,8 +293,29 @@ const ParticipationPage = () => {
                      if (error) throw error;
                    }
 
+                   // Enviar correo de confirmación al email registrado (no bloquea si falla)
+                   let emailSent = false;
+                   const confirmEmail = formData.email?.trim();
+                   if (confirmEmail) {
+                     try {
+                       const { data, error } = await client.functions.invoke('send-participation-confirmation', {
+                         body: {
+                           to: confirmEmail,
+                           type: entryType,
+                           title: entryType === 'EVENT' ? formData.eventTitle : formData.areaName,
+                         },
+                       });
+                       emailSent = !error && (data as any)?.success === true;
+                     } catch {
+                       // Ignorar fallo del envío; la propuesta ya se guardó
+                     }
+                   }
+
                    let successMessage =
                      'Gracias. Hemos registrado tu propuesta en la base de datos y el equipo la revisará pronto.';
+                   if (emailSent) {
+                     successMessage += ' Te enviamos un correo de confirmación a tu email.';
+                   }
                    if (imageStatusMessage) {
                      successMessage += ' Detalle sobre la imagen: ' + imageStatusMessage;
                    }
