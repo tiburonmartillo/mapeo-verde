@@ -881,8 +881,8 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
           </div>
 
           <div className="mb-6">
-            <h1 className="text-4xl md:text-6xl font-black uppercase leading-[0.9] tracking-tighter text-black">
-              AGENDA<br />AMBIENTAL
+            <h1 className="text-4xl md:text-6xl font-black leading-[0.9] tracking-tighter text-black">
+              La otra Agenda
             </h1>
           </div>
 
