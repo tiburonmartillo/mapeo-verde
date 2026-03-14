@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo, useContext, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { useSearchParams } from 'react-router-dom';
-import { Calendar, ChevronLeft, ChevronRight, MapPin, Download, ExternalLink, ArrowRight, TreePine, MessageCircle, Image, X } from 'lucide-react';
+import { useSearchParams, Link } from 'react-router-dom';
+import { Calendar, ChevronLeft, ChevronRight, MapPin, Download, ExternalLink, ArrowRight, TreePine, MessageCircle, Image, X, PlusCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import * as Popover from '@radix-ui/react-popover';
 import ReactMarkdown from 'react-markdown';
@@ -889,9 +889,22 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
           <div className="mb-6">
             <p className="font-serif text-lg text-black max-w-2xl leading-relaxed">
               {EVENTS_DATA.length > 0
-                ? 'Encuentra actividades, talleres y voluntariados cerca de ti.'
-                : 'Aún no hay eventos publicados. Revisa más tarde o participa proponiendo uno desde el formulario.'}
+                ? 'Encuentra actividades, talleres y voluntariados para el cuidado ambiental cerca de ti. Todas las fechas son públicas y puedes proponer nuevas desde el formulario de participación.'
+                : 'Aún no hay eventos publicados. Si conoces una actividad, taller o jornada de voluntariado, propónla desde el formulario y la revisaremos para sumarla a la agenda.'}
             </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-4">
+            <Link
+              to="/participacion"
+              className="inline-flex items-center gap-2 border-2 border-black bg-black text-white px-5 py-3 font-bold uppercase text-sm tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-[#0a0a0a] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all cursor-pointer"
+            >
+              <PlusCircle size={20} className="flex-shrink-0" />
+              Proponer un evento
+            </Link>
+            <span className="font-mono text-sm text-black/80">
+              ¿Tienes una actividad o taller? Compártela con la comunidad.
+            </span>
           </div>
 
           {/* Selector de vista se muestra junto a la fecha en el listado de eventos */}
