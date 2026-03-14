@@ -1,23 +1,75 @@
+/** Offset de Ciudad de México respecto a UTC, ej. -06:00 (sin horario de verano). */
+const CDMX_OFFSET = '-06:00';
+
 /**
- * Google Calendar TEMPLATE expects dates as YYYYMMDDTHHmmssZ (no hyphens/colons).
- * ISO strings like 2026-03-14T18:00:00+00:00 can be misparsed and show year 1901.
+ * Normaliza una fecha/hora a ISO sin zona (YYYY-MM-DDTHH:mm:ss).
+ * Acepta compacto 20260314T180000 o ISO 2026-03-14T18:00:00.
+ */
+function toLocalISOString(s: string): string | null {
+  const compact = s.replace(/[-:]/g, '');
+  const m = /^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})?/.exec(compact);
+  if (m) {
+    const [, y, mo, d, h, min, sec] = m;
+    return `${y}-${mo}-${d}T${h}:${min}:${sec || '00'}`;
+  }
+  const iso = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?/.exec(s.trim());
+  if (iso) return iso[0];
+  return null;
+}
+
+/**
+ * Convierte hora local CDMX (sin Z) a Date UTC.
+ * Ej: "2026-03-14T18:00:00" = 18:00 CDMX → 00:00 UTC (día siguiente).
+ */
+function localCdmxToUTC(localISO: string): Date {
+  const withOffset = `${localISO.replace(/Z$/, '')}${CDMX_OFFSET}`;
+  return new Date(withOffset);
+}
+
+/**
+ * Google Calendar TEMPLATE espera fechas en UTC: YYYYMMDDTHHmmssZ.
+ * Los eventos se guardan en hora local de Ciudad de México; aquí se convierte a UTC.
  */
 function toGoogleCalendarDate(isoOrCompact: string | null | undefined): string {
   if (!isoOrCompact || typeof isoOrCompact !== 'string') return '';
   const s = isoOrCompact.trim();
-  // Already compact: 20260314T180000 or 20260314T180000Z
-  if (/^\d{8}T\d{6}/.test(s)) {
-    const normalized = s.replace(/[-:]/g, '').slice(0, 15);
-    return normalized.length === 15 ? normalized + 'Z' : s;
+
+  // Ya tiene Z o offset (+/-): interpretar como UTC o con offset y formatear en UTC
+  if (/Z$|[+-]\d{2}:?\d{2}$/.test(s)) {
+    const d = new Date(s);
+    if (Number.isNaN(d.getTime())) return '';
+    const y = d.getUTCFullYear();
+    const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(d.getUTCDate()).padStart(2, '0');
+    const h = String(d.getUTCHours()).padStart(2, '0');
+    const min = String(d.getUTCMinutes()).padStart(2, '0');
+    const sec = String(d.getUTCSeconds()).padStart(2, '0');
+    return `${y}${m}${day}T${h}${min}${sec}Z`;
   }
-  const d = new Date(s);
-  if (Number.isNaN(d.getTime())) return '';
-  const y = d.getUTCFullYear();
-  const m = String(d.getUTCMonth() + 1).padStart(2, '0');
-  const day = String(d.getUTCDate()).padStart(2, '0');
-  const h = String(d.getUTCHours()).padStart(2, '0');
-  const min = String(d.getUTCMinutes()).padStart(2, '0');
-  const sec = String(d.getUTCSeconds()).padStart(2, '0');
+
+  // Sin zona: tratar como hora local CDMX y convertir a UTC
+  const localISO = toLocalISOString(s);
+  if (localISO) {
+    const d = localCdmxToUTC(localISO);
+    if (!Number.isNaN(d.getTime())) {
+      const y = d.getUTCFullYear();
+      const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(d.getUTCDate()).padStart(2, '0');
+      const h = String(d.getUTCHours()).padStart(2, '0');
+      const min = String(d.getUTCMinutes()).padStart(2, '0');
+      const sec = String(d.getUTCSeconds()).padStart(2, '0');
+      return `${y}${m}${day}T${h}${min}${sec}Z`;
+    }
+  }
+
+  const fallback = new Date(s);
+  if (Number.isNaN(fallback.getTime())) return '';
+  const y = fallback.getUTCFullYear();
+  const m = String(fallback.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(fallback.getUTCDate()).padStart(2, '0');
+  const h = String(fallback.getUTCHours()).padStart(2, '0');
+  const min = String(fallback.getUTCMinutes()).padStart(2, '0');
+  const sec = String(fallback.getUTCSeconds()).padStart(2, '0');
   return `${y}${m}${day}T${h}${min}${sec}Z`;
 }
 
