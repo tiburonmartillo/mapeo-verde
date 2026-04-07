@@ -112,6 +112,8 @@ export interface Event {
   source?: string | null;
   contactName?: string | null;
   contactEmail?: string | null;
+  /** UUID de auth.users si el evento lo creó un organizador con sesión */
+  createdBy?: string | null;
 }
 
 /** Evita duplicados por id y por contenido (date + iso_start + title) en la lista de eventos. */
@@ -156,6 +158,7 @@ const mapEventRowToEvent = (row: EventRow): Event => {
     source,
     contactName: row.contact_name ?? undefined,
     contactEmail: row.contact_email ?? undefined,
+    createdBy: row.created_by ?? undefined,
   };
 };
 

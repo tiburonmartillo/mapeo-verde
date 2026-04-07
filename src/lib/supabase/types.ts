@@ -231,6 +231,8 @@ export interface EventRow {
   source?: string | null;
   contact_name?: string | null;
   contact_email?: string | null;
+  /** auth.users.id del organizador; null = formulario público o legado */
+  created_by?: string | null;
 }
 
 export interface EventInsert {

@@ -13,6 +13,7 @@ import {
 } from '../../../lib/supabase/queries';
 import type { EventInsert } from '../../../lib/supabase/types';
 import type { Session } from '@supabase/supabase-js';
+import { isEventsModerator } from '../../../utils/auth/eventsModerator';
 
 const defaultForm: EventInsert = {
   title: '',
@@ -251,7 +252,8 @@ const AdminEventsPage = () => {
   const [imageUploadError, setImageUploadError] = useState<string | null>(null);
   const [imageFileName, setImageFileName] = useState<string | null>(null);
 
-  const pendingEvents = events.filter((e) => e.status === 'pending');
+  const moderator = session ? isEventsModerator(session.user) : false;
+  const pendingEvents = moderator ? events.filter((e) => e.status === 'pending') : [];
   const publishedEvents = events.filter((e) => e.status !== 'pending');
 
   const supabase = getSupabaseAuthClient();
@@ -273,7 +275,8 @@ const AdminEventsPage = () => {
     try {
       const ext = file.name.split('.').pop() || 'jpg';
       const safeExt = ext.toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
-      const path = `event-banners/admin-${Date.now()}-${Math.random()
+      const uid = session?.user?.id ?? 'anon';
+      const path = `event-banners/${uid}/admin-${Date.now()}-${Math.random()
         .toString(36)
         .slice(2)}.${safeExt}`;
 
@@ -347,18 +350,15 @@ const AdminEventsPage = () => {
     }
   }, [session, supabase, loadEvents]);
 
-  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleEmailLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setAuthError(null);
     const formData = new FormData(e.currentTarget);
-    const email = formData.get('email') as string;
+    const email = (formData.get('email') as string)?.trim();
     const password = formData.get('password') as string;
     if (!email || !password || !supabase) return;
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
-      setAuthError(error.message);
-      return;
-    }
+    if (error) setAuthError(error.message);
   };
 
   const handleLogout = async () => {
@@ -504,34 +504,44 @@ const AdminEventsPage = () => {
     return (
       <div className="min-h-screen bg-[#f3f4f0] flex flex-col items-center justify-center px-6">
         <div className="w-full max-w-sm border-2 border-black bg-white p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-          <h1 className="text-2xl font-bold mb-6">Administrar eventos</h1>
-          <p className="text-sm text-gray-600 mb-6">Inicia sesión con tu cuenta de Supabase.</p>
-          <form onSubmit={handleLogin} className="space-y-4">
+          <h1 className="text-2xl font-bold mb-6">Tus eventos en la agenda</h1>
+          <p className="text-sm text-gray-600 mb-4">
+            Inicia sesión con el correo y contraseña de tu cuenta en Supabase para gestionar solo los eventos que crees con esa cuenta.
+          </p>
+          <p className="text-xs text-gray-500 mb-6">
+            Los usuarios se crean en Supabase → <span className="font-mono">Authentication → Users</span> (o registro por invitación, si lo activas). El proveedor Email debe estar habilitado.
+          </p>
+          <form onSubmit={handleEmailLogin} className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium mb-1">Correo</label>
+              <label htmlFor="admin-email" className="block text-sm font-medium mb-1">Correo</label>
               <input
-                id="email"
+                id="admin-email"
                 name="email"
                 type="email"
+                autoComplete="email"
                 required
-                className="w-full mt-1 border-2 border-black px-3 py-2 bg-white"
+                className="w-full border-2 border-black px-3 py-2 bg-white"
                 placeholder="tu@email.com"
               />
             </div>
             <div>
-              <label htmlFor="password" className="block text-sm font-medium mb-1">Contraseña</label>
+              <label htmlFor="admin-password" className="block text-sm font-medium mb-1">Contraseña</label>
               <input
-                id="password"
+                id="admin-password"
                 name="password"
                 type="password"
+                autoComplete="current-password"
                 required
-                className="w-full mt-1 border-2 border-black px-3 py-2 bg-white"
+                className="w-full border-2 border-black px-3 py-2 bg-white"
               />
             </div>
             {authError && (
               <p className="text-sm text-red-600" role="alert">{authError}</p>
             )}
-            <button type="submit" className="w-full bg-black text-white border-2 border-black px-4 py-2 font-medium hover:bg-gray-800 cursor-pointer">
+            <button
+              type="submit"
+              className="w-full bg-black text-white border-2 border-black px-4 py-2 font-medium hover:bg-gray-800 cursor-pointer"
+            >
               Entrar
             </button>
           </form>
@@ -546,10 +556,17 @@ const AdminEventsPage = () => {
       <header className="border-b border-black bg-white px-6 py-4 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Link to="/" className="font-bold hover:underline">Mapeo Verde</Link>
-          <span className="text-gray-500 font-mono text-sm">/ Admin eventos</span>
+          <span className="text-gray-500 font-mono text-sm">/ Mis eventos</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-500">{session.user.email}</span>
+          <span className="text-xs text-gray-500 max-w-[200px] truncate" title={session.user.email ?? undefined}>
+            {session.user.email}
+          </span>
+          {moderator && (
+            <span className="text-[10px] font-mono uppercase tracking-wider text-amber-800 bg-amber-100 px-2 py-0.5 border border-amber-700">
+              Moderación
+            </span>
+          )}
           <button
             type="button"
             className="px-3 py-1.5 text-sm font-medium hover:underline cursor-pointer"
@@ -563,7 +580,12 @@ const AdminEventsPage = () => {
       <main className="max-w-4xl mx-auto px-6 py-8 space-y-12 relative">
         <section>
           <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
-            <h2 className="text-xl font-bold">Eventos publicados</h2>
+            <div>
+              <h2 className="text-xl font-bold">Eventos publicados</h2>
+              {!moderator && (
+                <p className="text-sm text-gray-600 mt-1">Solo aparecen los que creaste con esta cuenta.</p>
+              )}
+            </div>
             <button
               type="button"
               className="bg-black text-white border-2 border-black px-4 py-2 font-medium hover:bg-gray-100 hover:text-black flex items-center gap-2 transition-transform hover:shadow-red-400 cursor-pointer"
@@ -607,7 +629,11 @@ const AdminEventsPage = () => {
                 )}
               </AnimatePresence>
               {publishedEvents.length === 0 && pendingEvents.length === 0 && !formOpen && (
-                <p className="text-gray-600">No hay eventos. Crea uno o revisa los pendientes del formulario de participación.</p>
+                <p className="text-gray-600">
+                  {moderator
+                    ? 'No hay eventos en tu vista. Crea uno o revisa los pendientes del formulario de participación.'
+                    : 'No tienes eventos publicados aún. Usa «Nuevo evento» para añadir uno a la agenda.'}
+                </p>
               )}
               {publishedEvents.filter((e) => e.visible !== false).length > 0 && (
                 <li className="list-none mt-6 mb-2">
@@ -621,7 +647,7 @@ const AdminEventsPage = () => {
                       <div className="min-w-0 flex-1">
                         <p className="font-bold truncate">{event.title}</p>
                         <p className="text-sm text-gray-600">{event.date} · {event.time} · {event.location}</p>
-                        {event.source === 'participation' && (
+                        {moderator && event.source === 'participation' && (
                           <p className="text-xs text-amber-700 mt-1">Desde formulario de participación</p>
                         )}
                       </div>
@@ -639,7 +665,7 @@ const AdminEventsPage = () => {
                             <EyeOff className="w-4 h-4" />
                           )}
                         </button>
-                        {event.source === 'participation' && (
+                        {moderator && event.source === 'participation' && (
                           <button
                             type="button"
                             className="border-2 border-amber-700 text-amber-700 px-3 py-1.5 text-sm font-medium hover:bg-amber-50 cursor-pointer"
@@ -727,7 +753,7 @@ const AdminEventsPage = () => {
                           <p className="font-bold truncate text-gray-700">{event.title}</p>
                           <p className="text-sm text-gray-600">{event.date} · {event.time} · {event.location}</p>
                           <p className="text-xs text-gray-500 mt-1 font-medium">Oculto en la agenda</p>
-                          {event.source === 'participation' && (
+                          {moderator && event.source === 'participation' && (
                             <p className="text-xs text-amber-700 mt-0.5">Desde formulario de participación</p>
                           )}
                         </div>
@@ -745,7 +771,7 @@ const AdminEventsPage = () => {
                               <Eye className="w-4 h-4" />
                             )}
                           </button>
-                          {event.source === 'participation' && (
+                          {moderator && event.source === 'participation' && (
                             <button
                               type="button"
                               className="border-2 border-amber-700 text-amber-700 px-3 py-1.5 text-sm font-medium hover:bg-amber-50 cursor-pointer"
@@ -807,106 +833,108 @@ const AdminEventsPage = () => {
           )}
         </section>
 
-        <section className="pt-4">
-          <h2 className="text-xl font-bold mb-2">Eventos pendientes de aprobación</h2>
-          <p className="text-sm text-gray-600 mb-4">
-            Eventos que se recibieron desde el formulario de participación
-          </p>
-          {pendingEvents.length === 0 ? (
-            <p className="text-gray-600">No hay eventos pendientes.</p>
-          ) : (
-            <ul className="space-y-4">
-              <AnimatePresence>
-                {pendingEvents.map((event) => (
-                  <motion.li key={event.id} layout className="space-y-0">
-                    <div className="border-2 border-amber-700/40 bg-amber-50/50 p-4 shadow-[4px_4px_0px_0px_rgba(180,83,9,0.3)] flex flex-wrap items-center justify-between gap-4">
-                      <div className="min-w-0 flex-1">
-                        <p className="font-bold truncate">{event.title}</p>
-                        <p className="text-sm text-gray-600">{event.date} · {event.time} · {event.location}</p>
-                        {(event.contactName || event.contactEmail) && (
-                          <p className="text-xs text-gray-500 mt-1">Contacto: {[event.contactName, event.contactEmail].filter(Boolean).join(' · ')}</p>
-                        )}
-                      </div>
-                      <div className="flex gap-2 flex-wrap">
-                        <button
-                          type="button"
-                          className="border-2 border-green-700 text-green-700 px-3 py-1.5 text-sm font-medium hover:bg-green-100 disabled:opacity-50 cursor-pointer"
-                          disabled={publishingId !== null}
-                          onClick={() => handlePublishPending(event)}
-                        >
-                          {publishingId === event.id ? 'Publicando...' : 'Publicar'}
-                        </button>
-                        <button
-                          type="button"
-                          className="border-2 border-black px-3 py-1.5 text-sm font-medium hover:bg-gray-100 cursor-pointer"
-                          onClick={() => openEdit(event)}
-                        >
-                          Editar
-                        </button>
-                        <button
-                          type="button"
-                          className="border-2 border-red-600 text-red-600 px-3 py-1.5 text-sm font-medium rounded-full flex items-center justify-center cursor-pointer hover:bg-red-600 hover:text-white"
-                          onClick={() => openDeleteConfirm(event.id)}
-                          aria-label="Eliminar evento pendiente"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                      {deleteId === event.id && (
-                        <div className="w-full flex justify-end gap-2 mt-2">
+        {moderator && (
+          <section className="pt-4">
+            <h2 className="text-xl font-bold mb-2">Eventos pendientes de aprobación</h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Eventos que se recibieron desde el formulario de participación
+            </p>
+            {pendingEvents.length === 0 ? (
+              <p className="text-gray-600">No hay eventos pendientes.</p>
+            ) : (
+              <ul className="space-y-4">
+                <AnimatePresence>
+                  {pendingEvents.map((event) => (
+                    <motion.li key={event.id} layout className="space-y-0">
+                      <div className="border-2 border-amber-700/40 bg-amber-50/50 p-4 shadow-[4px_4px_0px_0px_rgba(180,83,9,0.3)] flex flex-wrap items-center justify-between gap-4">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-bold truncate">{event.title}</p>
+                          <p className="text-sm text-gray-600">{event.date} · {event.time} · {event.location}</p>
+                          {(event.contactName || event.contactEmail) && (
+                            <p className="text-xs text-gray-500 mt-1">Contacto: {[event.contactName, event.contactEmail].filter(Boolean).join(' · ')}</p>
+                          )}
+                        </div>
+                        <div className="flex gap-2 flex-wrap">
                           <button
                             type="button"
-                            className="px-3 py-1 text-xs font-mono border border-black bg-white text-gray-800 rounded-full hover:bg-gray-100 cursor-pointer"
-                            onClick={() => setDeleteId(null)}
+                            className="border-2 border-green-700 text-green-700 px-3 py-1.5 text-sm font-medium hover:bg-green-100 disabled:opacity-50 cursor-pointer"
+                            disabled={publishingId !== null}
+                            onClick={() => handlePublishPending(event)}
                           >
-                            Cancelar
+                            {publishingId === event.id ? 'Publicando...' : 'Publicar'}
                           </button>
                           <button
                             type="button"
-                            className="px-3 py-1 text-xs font-mono border border-black rounded-full bg-[var(--card-foreground)] text-white hover:bg-[#ff7e67] cursor-pointer disabled:opacity-50"
-                            disabled={deleting}
-                            onClick={handleDelete}
+                            className="border-2 border-black px-3 py-1.5 text-sm font-medium hover:bg-gray-100 cursor-pointer"
+                            onClick={() => openEdit(event)}
                           >
-                            {deleting ? 'Borrando…' : 'Borrar'}
+                            Editar
+                          </button>
+                          <button
+                            type="button"
+                            className="border-2 border-red-600 text-red-600 px-3 py-1.5 text-sm font-medium rounded-full flex items-center justify-center cursor-pointer hover:bg-red-600 hover:text-white"
+                            onClick={() => openDeleteConfirm(event.id)}
+                            aria-label="Eliminar evento pendiente"
+                          >
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
-                      )}
-                    </div>
-                    <AnimatePresence>
-                      {editingId === event.id && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.2 }}
-                          className="border-2 border-t-0 border-amber-700/40 bg-amber-50/30 overflow-hidden relative z-10"
-                        >
-                          <div className="p-4 space-y-4" onClick={(e) => e.stopPropagation()}>
-                            <p className="font-bold text-sm">Editar evento pendiente</p>
-                            <AdminEventForm
-                              idPrefix={`edit-pending-${event.id}`}
-                              submitLabel="Guardar"
-                              form={form}
-                              updateForm={updateForm}
-                              formError={formError}
-                              formSaving={formSaving}
-                              onCancel={() => setEditingId(null)}
-                              onSubmit={handleFormSubmit}
-                              imageUploading={imageUploading}
-                              imageUploadError={imageUploadError}
-                              imageFileName={imageFileName}
-                              onImageFileSelected={handleImageFileSelected}
-                            />
+                        {deleteId === event.id && (
+                          <div className="w-full flex justify-end gap-2 mt-2">
+                            <button
+                              type="button"
+                              className="px-3 py-1 text-xs font-mono border border-black bg-white text-gray-800 rounded-full hover:bg-gray-100 cursor-pointer"
+                              onClick={() => setDeleteId(null)}
+                            >
+                              Cancelar
+                            </button>
+                            <button
+                              type="button"
+                              className="px-3 py-1 text-xs font-mono border border-black rounded-full bg-[var(--card-foreground)] text-white hover:bg-[#ff7e67] cursor-pointer disabled:opacity-50"
+                              disabled={deleting}
+                              onClick={handleDelete}
+                            >
+                              {deleting ? 'Borrando…' : 'Borrar'}
+                            </button>
                           </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </motion.li>
-                ))}
-              </AnimatePresence>
-            </ul>
-          )}
-        </section>
+                        )}
+                      </div>
+                      <AnimatePresence>
+                        {editingId === event.id && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="border-2 border-t-0 border-amber-700/40 bg-amber-50/30 overflow-hidden relative z-10"
+                          >
+                            <div className="p-4 space-y-4" onClick={(e) => e.stopPropagation()}>
+                              <p className="font-bold text-sm">Editar evento pendiente</p>
+                              <AdminEventForm
+                                idPrefix={`edit-pending-${event.id}`}
+                                submitLabel="Guardar"
+                                form={form}
+                                updateForm={updateForm}
+                                formError={formError}
+                                formSaving={formSaving}
+                                onCancel={() => setEditingId(null)}
+                                onSubmit={handleFormSubmit}
+                                imageUploading={imageUploading}
+                                imageUploadError={imageUploadError}
+                                imageFileName={imageFileName}
+                                onImageFileSelected={handleImageFileSelected}
+                              />
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </motion.li>
+                  ))}
+                </AnimatePresence>
+              </ul>
+            )}
+          </section>
+        )}
       </main>
 
     </div>

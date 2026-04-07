@@ -105,8 +105,43 @@ CREATE POLICY "anon_insert_events_pending" ON public.events
   FOR INSERT TO anon
   WITH CHECK (status = 'pending');
 
--- Autenticados: ver todo, insertar, actualizar, borrar
-CREATE POLICY "auth_select_events" ON public.events FOR SELECT TO authenticated USING (true);
-CREATE POLICY "auth_insert_events" ON public.events FOR INSERT TO authenticated WITH CHECK (true);
-CREATE POLICY "auth_update_events" ON public.events FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "auth_delete_events" ON public.events FOR DELETE TO authenticated USING (true);
+-- Propietario por cuenta (sesión email/contraseña u otro proveedor) + moderadores: app_metadata.role = 'admin' en el JWT.
+-- Configurar moderadores en Supabase → Authentication → Users → Raw App Meta Data: {"role":"admin"}
+
+ALTER TABLE public.events ADD COLUMN IF NOT EXISTS created_by uuid REFERENCES auth.users (id) ON DELETE SET NULL;
+
+COMMENT ON COLUMN public.events.created_by IS 'auth.users.id del organizador. NULL = propuesta anónima o fila legada.';
+
+ALTER TABLE public.events ALTER COLUMN created_by SET DEFAULT (auth.uid());
+
+CREATE POLICY "auth_select_events" ON public.events FOR SELECT TO authenticated
+  USING (
+    (coalesce((auth.jwt()->'app_metadata'->>'role'), '') = 'admin')
+    OR (created_by = auth.uid())
+  );
+
+CREATE POLICY "auth_insert_events" ON public.events FOR INSERT TO authenticated
+  WITH CHECK (
+    (coalesce((auth.jwt()->'app_metadata'->>'role'), '') = 'admin')
+    OR (created_by = auth.uid())
+  );
+
+CREATE POLICY "auth_update_events" ON public.events FOR UPDATE TO authenticated
+  USING (
+    (coalesce((auth.jwt()->'app_metadata'->>'role'), '') = 'admin')
+    OR (created_by = auth.uid())
+  )
+  WITH CHECK (
+    (coalesce((auth.jwt()->'app_metadata'->>'role'), '') = 'admin')
+    OR (created_by = auth.uid())
+  );
+
+CREATE POLICY "auth_delete_events" ON public.events FOR DELETE TO authenticated
+  USING (
+    (coalesce((auth.jwt()->'app_metadata'->>'role'), '') = 'admin')
+    OR (created_by = auth.uid())
+  );
+
+-- Storage (opcional): si las subidas a bucket event_banners fallan tras este cambio,
+-- en Dashboard → Storage → event_banners → Policies permite INSERT/SELECT a usuarios autenticados
+-- o rutas bajo event-banners/<user_uuid>/...
