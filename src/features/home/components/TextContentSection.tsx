@@ -2,11 +2,11 @@ import { Eye } from 'lucide-react';
 
 const TextContentSection = () => {
   return (
-    <section className="bg-white text-black py-20 px-6 border-b border-black">
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-12">
+    <section className="bg-white text-black py-12 px-4 sm:px-6 md:py-20 border-b border-black">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
         <div className="md:col-span-4">
            <h3 className="text-sm font-bold uppercase tracking-widest mb-6 border-b border-black pb-2 inline-block">El Problema</h3>
-           <p className="text-3xl font-bold leading-tight mb-4">
+           <p className="text-2xl sm:text-3xl font-bold leading-tight mb-4">
               Nuestras ciudades se están calentando.
            </p>
            <p className="font-serif text-gray-600 leading-relaxed">
@@ -16,7 +16,7 @@ const TextContentSection = () => {
         
         <div className="md:col-span-4">
            <h3 className="text-sm font-bold uppercase tracking-widest mb-6 border-b border-black pb-2 inline-block">La Solución</h3>
-           <p className="text-3xl font-bold leading-tight mb-4">
+           <p className="text-2xl sm:text-3xl font-bold leading-tight mb-4">
               Inteligencia Colectiva.
            </p>
            <p className="font-serif text-gray-600 leading-relaxed">

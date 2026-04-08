@@ -36,9 +36,9 @@ export const FeaturePreview = ({
                     onMouseEnter={onMouseEnter}
                     onMouseLeave={onMouseLeave}
                 >
-                    <div className="py-12 px-6">
+                    <div className="py-8 px-4 sm:px-6 md:py-12">
                         <div className="max-w-7xl mx-auto">
-                            <h2 className="text-3xl font-bold mb-8 text-center uppercase text-black">
+                            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-6 md:mb-8 text-center uppercase text-black px-1">
                                 {hoveredFeature === 'Agenda' && 'Próximos eventos'}
                                 {hoveredFeature === 'Participación' && 'Contribuye con tu voz'}
                                 {hoveredFeature === 'Áreas Verdes' && 'Explora nuestras áreas verdes'}

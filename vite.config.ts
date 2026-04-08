@@ -68,6 +68,7 @@ export default defineConfig({
   },
   publicDir: 'public',
   server: {
+    host: true,
     port: 3000,
     open: true,
     proxy: {

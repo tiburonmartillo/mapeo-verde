@@ -37,12 +37,12 @@ const FeatureList = ({ onFeatureEnter, onFeatureLeave, onNavigate }: FeatureList
   ];
 
   return (
-    <section className="bg-[#0a0a0a] text-white py-24 px-6 border-b border-white/20">
+    <section className="bg-[#0a0a0a] text-white py-14 px-4 sm:px-6 md:py-24 border-b border-white/20">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-12 border border-white bg-black px-3 py-1 inline-block shadow-[2px_2px_0px_0px_rgba(255,255,255,0.3)]">
+        <div className="mb-8 md:mb-12 border border-white bg-black px-3 py-1 inline-block shadow-[2px_2px_0px_0px_rgba(255,255,255,0.3)]">
            <p className="font-mono text-xs uppercase tracking-widest text-white">Herramientas</p>
         </div>
-        <h3 className="text-3xl md:text-5xl font-light mb-16">TECNOLOGÍA PARA <br/> <span className="font-bold">EL CUIDADO AMBIENTAL</span></h3>
+        <h3 className="text-2xl sm:text-3xl md:text-5xl font-light mb-10 md:mb-16 leading-tight">TECNOLOGÍA PARA <br /> <span className="font-bold">EL CUIDADO AMBIENTAL</span></h3>
         
         <div className="space-y-6">
           {features.map((f, i) => (
@@ -52,7 +52,7 @@ const FeatureList = ({ onFeatureEnter, onFeatureLeave, onNavigate }: FeatureList
                 className="w-full text-left hover:bg-white/5 transition-colors cursor-pointer border-b border-white/20"
                 onClick={() => onNavigate?.(f.path)}
               >
-                <div className="grid grid-cols-1 md:grid-cols-[120px_1fr_auto] items-start md:items-center gap-6 p-8 md:p-10">
+                <div className="grid grid-cols-1 md:grid-cols-[120px_1fr_auto] items-start md:items-center gap-4 sm:gap-6 p-5 sm:p-8 md:p-10">
                   <div className="flex items-center gap-4">
                     <span className={`inline-flex h-12 w-12 items-center justify-center border-2 border-black ${f.accentClass} text-black font-mono text-sm font-bold shadow-[4px_4px_0px_0px_rgba(255,255,255,0.15)]`}>
                       0{i + 1}

@@ -8,15 +8,15 @@ interface StatCircleProps {
 
 const StatCircle = ({ value, label, description }: StatCircleProps) => {
   return (
-    <div className="relative flex flex-col items-center justify-center py-20">
+    <div className="relative flex flex-col items-center justify-center py-12 md:py-20 px-2 sm:px-4">
       {/* Big Circle */}
       <motion.div 
         initial={{ scale: 0.8, opacity: 0 }}
         whileInView={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.8, type: "spring" }}
-        className="w-[300px] h-[300px] md:w-[500px] md:h-[500px] rounded-full bg-[#fccb4e] flex items-center justify-center border border-black z-10"
+        className="w-[min(100%,280px)] aspect-square md:w-[500px] md:h-[500px] md:aspect-auto rounded-full bg-[#fccb4e] flex items-center justify-center border border-black z-10 shrink-0"
       >
-        <span className="text-[80px] md:text-[180px] font-bold tracking-tighter text-black font-sans">
+        <span className="text-[clamp(3rem,18vw,5rem)] md:text-[180px] font-bold tracking-tighter text-black font-sans">
           {value}
         </span>
       </motion.div>
@@ -26,7 +26,7 @@ const StatCircle = ({ value, label, description }: StatCircleProps) => {
         initial={{ x: 50, opacity: 0 }}
         whileInView={{ x: 0, opacity: 1 }}
         transition={{ delay: 0.5, duration: 0.6 }}
-        className="mt-8 md:mt-0 md:absolute md:right-10 md:top-20 max-w-xs bg-white border border-black p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] z-20"
+        className="mt-8 w-full max-w-xs md:mt-0 md:absolute md:right-10 md:top-20 md:w-auto bg-white border border-black p-4 sm:p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] z-20"
       >
         <div className="flex justify-between items-start mb-4">
           <h4 className="text-xl font-bold leading-tight">{label}</h4>
