@@ -9,7 +9,10 @@
  * 4. Producción sin origen conocido: https://mapeoverde.org/admin
  * 5. Desarrollo sin origen: http://localhost:3000/admin
  *
- * En Supabase: Authentication → URL Configuration → incluye esa URL en "Redirect URLs".
+ * En Supabase: Authentication → URL Configuration → "Redirect URLs" debe incluir al menos:
+ * - la misma URL que uses aquí (p. ej. https://mapeoverde.org/admin), y
+ * - la raíz del sitio (https://mapeoverde.org/) por si el proyecto redirige al "Site URL";
+ *   la app ahora lee el token en la primera carga desde cualquier ruta.
  */
 const CANONICAL_PROD_ADMIN = 'https://mapeoverde.org/admin';
 

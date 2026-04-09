@@ -2,6 +2,8 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { DataProvider } from './context/DataContext';
+import { getSupabaseAuthClient } from './lib/supabase/client';
+import { supabaseAuthTokensWereInInitialUrl } from './utils/auth/authUrlSnapshot';
 import { TAB_ROUTES } from './constants/routes';
 import { pathToTab } from './utils/helpers';
 import { NavBar, Footer } from './components/layout';
@@ -326,9 +328,44 @@ const AdminAccountPageWrapper = () => {
   );
 };
 
+/** Tras enlace mágico que abre en portada, envía a /admin una vez establecida la sesión. */
+const SupabaseMagicLinkLandingRedirect = () => {
+  const navigate = useNavigate();
+  const pathname = useLocation().pathname;
+  const pathRef = React.useRef(pathname);
+  pathRef.current = pathname;
+
+  useEffect(() => {
+    if (!supabaseAuthTokensWereInInitialUrl()) return;
+    const supabase = getSupabaseAuthClient();
+    if (!supabase) return;
+
+    const tryRedirectToAdmin = () => {
+      const p = pathRef.current;
+      if (p !== '/' && p !== '/inicio') return;
+      void supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) navigate('/admin', { replace: true });
+      });
+    };
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) tryRedirectToAdmin();
+    });
+
+    tryRedirectToAdmin();
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
+
+  return null;
+};
+
 export default function App() {
   return (
     <DataProvider>
+      <SupabaseMagicLinkLandingRedirect />
       <Routes>
         <Route path="/" element={<MainApp />} />
         <Route path="/inicio" element={<MainApp />} />

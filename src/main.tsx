@@ -1,9 +1,19 @@
-
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import App from "./App.tsx";
+import { getSupabaseAuthClient } from "./lib/supabase/client";
+import { snapshotSupabaseAuthUrlTokens } from "./utils/auth/authUrlSnapshot";
 import "./index.css";
+
+/**
+ * El enlace mágico suele redirigir a la URL configurada en Supabase; si cae en / o /inicio
+ * (p. ej. Site URL sin /admin o redirect no permitido), antes solo se creaba el cliente
+ * en /ingreso o /admin y los tokens en la URL nunca se leían. Crear el cliente aquí
+ * dispara detectSessionInUrl en la primera carga con la URL completa.
+ */
+snapshotSupabaseAuthUrlTokens();
+getSupabaseAuthClient();
 
 // Detect base path for GitHub Pages
 // If the pathname includes /mapeo-verde, use that as base, otherwise use /
