@@ -24,6 +24,11 @@ const ManifestoPage = React.lazy(() => import('./features/manifesto/components/M
 const LinktreePage = React.lazy(() => import('./features/linktree/components/LinktreePage'));
 const PrivacyPage = React.lazy(() => import('./features/legal/components/PrivacyPage'));
 const AdminEventsPage = React.lazy(() => import('./features/admin/components/AdminEventsPage'));
+const IngresoPage = React.lazy(() => import('./features/admin/components/IngresoPage'));
+const AdminRegisterPage = React.lazy(() => import('./features/admin/components/AdminRegisterPage'));
+const AdminModerationUsersPage = React.lazy(
+  () => import('./features/admin/components/AdminModerationUsersPage'),
+);
 
 import { FeaturePreview } from './features/home/components';
 
@@ -78,17 +83,11 @@ const MainApp = () => {
   // Extract ID from URL if present
   const pathParts = location.pathname.split('/').filter(Boolean);
   const isDetailPage = pathParts.length === 2 && (pathParts[0] === 'areas-verdes' || pathParts[0] === 'agenda');
-  // Para agenda, el ID puede ser string (Notion UUID) o número; para áreas verdes, es número
+  // Para agenda, el ID puede ser string o número; para áreas verdes, es número
   const detailId = isDetailPage 
     ? (pathParts[0] === 'agenda' ? pathParts[1] : parseInt(pathParts[1], 10))
     : null;
   const detailType = isDetailPage ? pathParts[0] : null;
-
-  // Debug: Log routing info (can be removed later)
-  useEffect(() => {
-    if (location.pathname === '/agenda' && location.search) {
-    }
-  }, [location.pathname, location.search, activeTab, location]);
 
   const handleFeatureEnter = (feature: string) => {
     if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
@@ -286,6 +285,36 @@ const AdminEventsPageWrapper = () => {
   );
 };
 
+const IngresoPageWrapper = () => {
+  return (
+    <div className="min-h-screen bg-[#f3f4f0] font-sans">
+      <React.Suspense fallback={<PageLoader />}>
+        <IngresoPage />
+      </React.Suspense>
+    </div>
+  );
+};
+
+const AdminRegisterPageWrapper = () => {
+  return (
+    <div className="min-h-screen bg-[#f3f4f0] font-sans">
+      <React.Suspense fallback={<PageLoader />}>
+        <AdminRegisterPage />
+      </React.Suspense>
+    </div>
+  );
+};
+
+const AdminModerationUsersPageWrapper = () => {
+  return (
+    <div className="min-h-screen bg-[#f3f4f0] font-sans">
+      <React.Suspense fallback={<PageLoader />}>
+        <AdminModerationUsersPage />
+      </React.Suspense>
+    </div>
+  );
+};
+
 export default function App() {
   return (
     <DataProvider>
@@ -302,6 +331,9 @@ export default function App() {
         <Route path="/manifiesto" element={<ManifestoPageWrapper />} />
         <Route path="/links" element={<LinktreePageWrapper />} />
         <Route path="/aviso-de-privacidad" element={<PrivacyPageWrapper />} />
+        <Route path="/ingreso" element={<IngresoPageWrapper />} />
+        <Route path="/admin/registro" element={<AdminRegisterPageWrapper />} />
+        <Route path="/admin/usuarios" element={<AdminModerationUsersPageWrapper />} />
         <Route path="/admin" element={<AdminEventsPageWrapper />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

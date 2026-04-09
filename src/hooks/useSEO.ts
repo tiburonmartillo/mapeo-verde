@@ -59,6 +59,11 @@ const seoByRoute: Record<string, SEOData> = {
     description: 'Nuestros principios, valores y compromisos en la lucha por la justicia ambiental urbana. Datos abiertos, inteligencia colectiva y acción local.',
     keywords: 'manifiesto ambiental, justicia ambiental, datos abiertos, transparencia, participación ciudadana, aguascalientes',
     type: 'website'
+  },
+  '/admin/usuarios': {
+    title: 'Usuarios y permisos (moderación) - Mapeo Verde',
+    description: 'Gestión de moderadores de la agenda para cuentas autorizadas.',
+    type: 'website'
   }
 };
 

@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { ArrowDown } from 'lucide-react';
 import { getNavbarHeight } from '../../../utils/helpers/layoutHelpers';
 import { getSupabaseClient } from '../../../lib/supabase';
 import { Map, Marker } from 'pigeon-maps';
-import EventLocationField from '../../shared/components/EventLocationField';
 
 const HALF_HOUR_TIME_OPTIONS = Array.from({ length: 24 * 2 }, (_, index) => {
   const hours = Math.floor(index / 2)
@@ -57,7 +57,6 @@ const ParticipationPage = () => {
   const [eventImageName, setEventImageName] = useState<string | null>(null);
   const [eventImagePreview, setEventImagePreview] = useState<string | null>(null);
   const [submitStatus, setSubmitStatus] = useState<'success' | 'error' | null>(null);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -72,15 +71,6 @@ const ParticipationPage = () => {
     };
   }, []);
 
-  useEffect(() => {
-    if (submitMessage) {
-      setSnackbarOpen(true);
-      const timeout = setTimeout(() => {
-        setSnackbarOpen(false);
-      }, 6000);
-      return () => clearTimeout(timeout);
-    }
-  }, [submitMessage]);
 
   useEffect(() => {
     const updateNavbarHeight = () => {
@@ -139,13 +129,10 @@ const ParticipationPage = () => {
   return (
     <div className="min-h-screen bg-[#f3f4f0] text-black flex flex-col">
        <div 
-         className="py-24 px-6 border-b border-black relative bg-white"
+         className="py-24 px-6 border-b border-black bg-white"
          style={{ paddingTop: isMobile ? `${navbarHeight + 48}px` : undefined }}
        >
-          <div className="absolute top-0 right-0 w-32 h-32 border-l border-b border-black/10"></div>
-          <div className="absolute bottom-0 left-0 w-32 h-32 border-r border-t border-black/10"></div>
-
-          <div className="max-w-4xl mx-auto relative z-10">
+          <div className="max-w-4xl mx-auto">
               <div className="flex flex-col md:flex-row items-start md:items-center gap-6 mb-12 border-b border-white/20 pb-8">
                 <div className="w-16 h-16 bg-[#d89dff] text-black flex items-center justify-center rounded-full shrink-0 border-2 border-black">
                     <ArrowDown size={32} strokeWidth={3} />
@@ -155,6 +142,22 @@ const ParticipationPage = () => {
                     <p className="font-serif text-gray-700 mt-2 text-lg">
                       Usa este formulario para proponer una nueva área verde al inventario o sugerir un evento para la agenda ambiental.
                     </p>
+                    <div className="mt-6 p-4 border-2 border-black bg-[#eaf7da] text-sm leading-relaxed">
+                      <p className="font-mono text-xs uppercase tracking-widest text-black/80 mb-2">
+                        Cuenta de organizador
+                      </p>
+                      <p className="text-gray-800">
+                        Para <strong>crear tu acceso</strong> con correo (enlace mágico) y <strong>gestionar tus propios eventos</strong> en el panel, entra en{' '}
+                        <Link to="/ingreso" className="font-semibold underline underline-offset-2">
+                          /ingreso
+                        </Link>
+                        {' '}o{' '}
+                        <Link to="/admin/registro" className="font-semibold underline underline-offset-2">
+                          registro de organizadores
+                        </Link>
+                        . Este formulario de participación es otra cosa: envía una propuesta al equipo para revisión.
+                      </p>
+                    </div>
                 </div>
              </div>
              
@@ -352,28 +355,6 @@ const ParticipationPage = () => {
                  }
                }}
              >
-              {submitMessage && snackbarOpen && (
-                <div
-                  role="alert"
-                  className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-4 px-4 py-3 rounded-lg shadow-lg border max-w-[min(90vw,28rem)] min-w-[18rem] animate-in fade-in slide-in-from-bottom-4 duration-300 ${
-                    submitStatus === 'success'
-                      ? 'bg-green-600 border-green-700 text-white'
-                      : 'bg-red-600 border-red-700 text-white'
-                  }`}
-                >
-                  <span className="text-sm flex-1">{submitMessage}</span>
-                  <button
-                    type="button"
-                    className="shrink-0 p-1 rounded hover:bg-white/20 transition-colors focus:outline-none focus:ring-2 focus:ring-white/50"
-                    onClick={() => setSnackbarOpen(false)}
-                    aria-label="Cerrar"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-              )}
                {/* Datos de contacto */}
                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
                  <div className="space-y-4 group">
@@ -961,6 +942,28 @@ const ParticipationPage = () => {
                    la integrará al inventario o a la agenda.
                  </p>
                </div>
+
+               {submitMessage && (
+                 <div
+                   role="alert"
+                   className="mt-6 flex w-full items-start gap-3 border-2 px-4 py-3"
+                   style={{
+                     backgroundColor: submitStatus === 'success' ? '#dcfce7' : '#fee2e2',
+                     borderColor: submitStatus === 'success' ? '#22c55e' : '#ef4444',
+                     color: submitStatus === 'success' ? '#166534' : '#991b1b',
+                   }}
+                 >
+                   <span className="flex-1 text-sm font-medium">{submitMessage}</span>
+                   <button
+                     type="button"
+                     className="shrink-0 rounded border border-current px-2 py-1 text-xs font-mono uppercase tracking-wider"
+                     onClick={() => setSubmitMessage(null)}
+                     aria-label="Cerrar alerta"
+                   >
+                     Cerrar
+                   </button>
+                 </div>
+               )}
 
              </form>
           </div>

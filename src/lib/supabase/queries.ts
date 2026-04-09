@@ -971,3 +971,44 @@ export const getGazettesFromJson = async (options: QueryOptions = {}): Promise<G
   });
 };
 
+/** Fila devuelta por RPC moderator_list_auth_users (solo moderadores de eventos). */
+export type ModeratorAuthUserRow = {
+  user_id: string;
+  email: string;
+  user_created_at: string;
+  jwt_admin: boolean;
+  events_moderator: boolean;
+};
+
+export async function moderatorListAuthUsers(
+  supabase: SupabaseClient,
+  options?: { limit?: number; search?: string | null },
+): Promise<{ data: ModeratorAuthUserRow[] | null; error: string | null }> {
+  const { data, error } = await supabase.rpc('moderator_list_auth_users', {
+    p_limit: options?.limit ?? 150,
+    p_search: options?.search?.trim() || null,
+  });
+  if (error) return { data: null, error: error.message };
+  return { data: (data ?? []) as ModeratorAuthUserRow[], error: null };
+}
+
+export async function moderatorGrantEventsModerator(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<string | null> {
+  const { error } = await supabase.rpc('moderator_grant_events_moderator', {
+    target_user_id: userId,
+  });
+  return error?.message ?? null;
+}
+
+export async function moderatorRevokeEventsModerator(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<string | null> {
+  const { error } = await supabase.rpc('moderator_revoke_events_moderator', {
+    target_user_id: userId,
+  });
+  return error?.message ?? null;
+}
+

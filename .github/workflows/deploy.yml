@@ -33,8 +33,6 @@ jobs:
 
       - name: Build
         env:
-          VITE_NOTION_DATABASE_ID: ${{ secrets.VITE_NOTION_DATABASE_ID }}
-          VITE_NOTION_API_KEY: ${{ secrets.VITE_NOTION_API_KEY }}
           VITE_SERVER_URL: ${{ secrets.VITE_SERVER_URL }}
           CUSTOM_DOMAIN: 'true'
         run: npm run build

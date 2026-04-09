@@ -16,7 +16,6 @@ import {
 } from '../lib/supabase';
 import { mapBoletinesToProjects, mapGacetasToDataset } from '../utils/helpers';
 // import { fetchGoogleCalendarEvents } from '../services/googleCalendar'; // bloqueado por el momento
-import { fetchNotionPages, fetchNotionPageContent, NotionPage } from '../services/notion';
 
 export interface DataContextType {
   greenAreas: any[];
@@ -191,55 +190,10 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         events = deduplicateEventsByIdAndContent(eventsSupabase);
       }
 
-      // Bitácora (eventos pasados): Supabase → Notion → estáticos
+      // Bitácora (eventos pasados): Supabase → estáticos
       let pastEvents: any[] = PAST_EVENTS_DATA;
       if (pastEventsSupabase && pastEventsSupabase.length > 0) {
         pastEvents = pastEventsSupabase;
-      } else {
-      try {
-        const notionPages = await fetchNotionPages();
-        if (notionPages && notionPages.length > 0) {
-          // Obtener contenido completo de cada página desde los bloques
-          const pastEventsWithContent = await Promise.all(
-            notionPages.map(async (page: NotionPage) => {
-              // Siempre obtener el contenido completo desde los bloques de la página
-              let content = '';
-              let images: string[] = [];
-              if (page.id) {
-                try {
-                  const pageData = await fetchNotionPageContent(page.id);
-                  content = pageData.content;
-                  images = pageData.images || [];
-                } catch (contentError: any) {
-                  // Error obteniendo contenido, continuar sin contenido
-                }
-              }
-              
-              return {
-                id: page.id,
-                title: page.title,
-                date: page.date,
-                category: page.category,
-                stats: page.stats,
-                portada: page.portada, // URL de la imagen de portada
-                summary: content.substring(0, 200) + (content.length > 200 ? '...' : ''), // Resumen para la tarjeta
-                content: content, // Contenido completo en markdown desde los bloques
-                images: images, // Array de URLs de imágenes
-                url: page.url,
-              };
-            })
-          );
-          pastEvents = pastEventsWithContent;
-        } else {
-          // Verificar si hay un error registrado
-          if (typeof window !== 'undefined' && (window as any).__NOTION_ERROR__) {
-            // Las variables de entorno no están configuradas o hay un error
-            // Usar datos estáticos como fallback
-          }
-        }
-      } catch (notionError: any) {
-        // Error cargando desde Notion, usar datos estáticos
-      }
       }
 
       // Bitácora: más reciente primero

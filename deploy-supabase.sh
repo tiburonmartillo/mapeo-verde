@@ -34,6 +34,3 @@ echo "📤 Desplegando función 'server'..."
 supabase functions deploy server
 
 echo "✅ Despliegue completado!"
-echo ""
-echo "📝 No olvides configurar el secret NOTION_API_KEY:"
-echo "   supabase secrets set NOTION_API_KEY=tu-api-key-de-notion"

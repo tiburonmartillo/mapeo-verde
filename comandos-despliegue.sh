@@ -24,20 +24,6 @@ echo "📝 Paso 3: Desplegar función 'server'"
 echo "Ejecutando: supabase functions deploy server --project-ref jvwtihesgbzixitfwxaf"
 supabase functions deploy server --project-ref jvwtihesgbzixitfwxaf
 
-# Paso 4: Configurar secret
-echo ""
-echo "📝 Paso 4: Configurar NOTION_API_KEY"
-echo "⚠️  IMPORTANTE: Necesitas tu API Key de Notion"
-read -p "Ingresa tu NOTION_API_KEY: " notion_key
-if [ ! -z "$notion_key" ]; then
-    echo "Configurando secret..."
-    supabase secrets set NOTION_API_KEY="$notion_key" --project-ref jvwtihesgbzixitfwxaf
-    echo "✅ Secret configurado"
-else
-    echo "⚠️  No se configuró el secret. Configúralo manualmente con:"
-    echo "   supabase secrets set NOTION_API_KEY=tu-api-key --project-ref jvwtihesgbzixitfwxaf"
-fi
-
 echo ""
 echo "✅ Despliegue completado!"
 echo ""

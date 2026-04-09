@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import EventLocationField from '../../shared/components/EventLocationField';
 import { EyeOff, Eye, Trash2 } from 'lucide-react';
@@ -13,7 +13,13 @@ import {
 } from '../../../lib/supabase/queries';
 import type { EventInsert } from '../../../lib/supabase/types';
 import type { Session } from '@supabase/supabase-js';
-import { isEventsModerator } from '../../../utils/auth/eventsModerator';
+import { resolveEventsModerator } from '../../../utils/auth/eventsModerator';
+import {
+  META_ADMIN_PASSWORD_DONE,
+  sessionUsedPasswordThisSession,
+  shouldPromptAdminPasswordSetup,
+} from '../../../utils/auth/adminPasswordSetup';
+import { AdminPasswordSetupModal } from './AdminPasswordSetupModal';
 
 const defaultForm: EventInsert = {
   title: '',
@@ -91,10 +97,10 @@ const AdminEventForm: React.FC<AdminEventFormProps> = ({
             <input
               id={`${idPrefix}-time-start`}
               type="time"
-              value={form.time.split(/[–\-]/)[0]?.trim() || ''}
+              value={form.time.split(/[–-]/)[0]?.trim() || ''}
               onChange={(e) => {
                 const start = e.target.value;
-                const [, endPartRaw] = form.time.split(/[–\-]/);
+                const [, endPartRaw] = form.time.split(/[–-]/);
                 const endPart = endPartRaw?.trim() || '';
                 const timeLabel = endPart ? `${start}–${endPart}` : start;
                 updateForm({ time: timeLabel });
@@ -105,10 +111,10 @@ const AdminEventForm: React.FC<AdminEventFormProps> = ({
             <input
               id={`${idPrefix}-time-end`}
               type="time"
-              value={form.time.split(/[–\-]/)[1]?.trim() || ''}
+              value={form.time.split(/[–-]/)[1]?.trim() || ''}
               onChange={(e) => {
                 const end = e.target.value;
-                const [startPartRaw] = form.time.split(/[–\-]/);
+                const [startPartRaw] = form.time.split(/[–-]/);
                 const startPart = startPartRaw?.trim() || '';
                 const timeLabel = startPart ? `${startPart}–${end}` : end;
                 updateForm({ time: timeLabel });
@@ -224,7 +230,7 @@ function buildIso(date: string, time: string): string {
 
 function buildIsoFromTimeRange(date: string, timeStr: string): { iso_start: string; iso_end: string } {
   const d = date.slice(0, 10);
-  const parts = timeStr.split(/[–\-]/).map((s) => s.trim());
+  const parts = timeStr.split(/[–-]/).map((s) => s.trim());
   const start = parts[0] && parts[0].length >= 5 ? parts[0].slice(0, 5) : '10:00';
   const end = parts[1] && parts[1].length >= 5 ? parts[1].slice(0, 5) : start;
   return {
@@ -234,9 +240,10 @@ function buildIsoFromTimeRange(date: string, timeStr: string): { iso_start: stri
 }
 
 const AdminEventsPage = () => {
+  type AdminTab = 'past' | 'active' | 'pending';
+  const PAGE_SIZE = 10;
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [authError, setAuthError] = useState<string | null>(null);
   const [events, setEvents] = useState<Event[]>([]);
   const [eventsLoading, setEventsLoading] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
@@ -251,10 +258,30 @@ const AdminEventsPage = () => {
   const [imageUploading, setImageUploading] = useState(false);
   const [imageUploadError, setImageUploadError] = useState<string | null>(null);
   const [imageFileName, setImageFileName] = useState<string | null>(null);
+  const [moderator, setModerator] = useState(false);
+  const [activeTab, setActiveTab] = useState<AdminTab>('active');
+  const [currentPage, setCurrentPage] = useState(1);
 
-  const moderator = session ? isEventsModerator(session.user) : false;
   const pendingEvents = moderator ? events.filter((e) => e.status === 'pending') : [];
   const publishedEvents = events.filter((e) => e.status !== 'pending');
+  const todayDate = new Date().toISOString().slice(0, 10);
+  const pastEvents = publishedEvents.filter((e) => e.date < todayDate);
+  const activeVisibleEvents = publishedEvents.filter((e) => e.date >= todayDate && e.visible !== false);
+  const activeHiddenEvents = publishedEvents.filter((e) => e.date >= todayDate && e.visible === false);
+  const activeEvents = [...activeVisibleEvents, ...activeHiddenEvents];
+  const tabEvents =
+    activeTab === 'past'
+      ? pastEvents
+      : activeTab === 'pending'
+        ? pendingEvents
+        : activeEvents;
+  const totalPages = Math.max(1, Math.ceil(tabEvents.length / PAGE_SIZE));
+  const safePage = Math.min(currentPage, totalPages);
+  const pageStart = (safePage - 1) * PAGE_SIZE;
+  const pageEnd = pageStart + PAGE_SIZE;
+  const paginatedTabEvents = tabEvents.slice(pageStart, pageEnd);
+  const paginatedActiveVisibleEvents = paginatedTabEvents.filter((e) => e.visible !== false);
+  const paginatedActiveHiddenEvents = paginatedTabEvents.filter((e) => e.visible === false);
 
   const supabase = getSupabaseAuthClient();
 
@@ -301,39 +328,38 @@ const AdminEventsPage = () => {
       } else {
         setImageUploadError('No se recibió información de la ruta de la imagen subida.');
       }
-    } catch (err: any) {
-      setImageUploadError(
-        'Error al subir la imagen: ' + (err?.message || 'sin mensaje de error')
-      );
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'sin mensaje de error';
+      setImageUploadError('Error al subir la imagen: ' + msg);
     } finally {
       setImageUploading(false);
     }
   };
-
-  const loadSession = useCallback(async () => {
-    if (!supabase) return;
-    const { data: { session: s } } = await supabase.auth.getSession();
-    setSession(s);
-  }, [supabase]);
 
   useEffect(() => {
     if (!supabase) {
       setLoading(false);
       return;
     }
-    loadSession();
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
       setSession(s);
+      // Evita redirigir a /ingreso antes de que se procese #access_token en la URL (enlace mágico).
+      if (event === 'INITIAL_SESSION') {
+        setLoading(false);
+      }
     });
     return () => subscription.unsubscribe();
-  }, [supabase, loadSession]);
+  }, [supabase]);
 
+  /** Quien entró con contraseña no debe ver el modal; marcamos metadata para futuras sesiones OTP. */
   useEffect(() => {
-    if (!session || !supabase) {
-      setLoading(false);
-      return;
-    }
-    setLoading(false);
+    if (!session?.user || !supabase) return;
+    if (!sessionUsedPasswordThisSession(session)) return;
+    const meta = session.user.user_metadata ?? {};
+    if (meta[META_ADMIN_PASSWORD_DONE]) return;
+    void supabase.auth.updateUser({
+      data: { ...meta, [META_ADMIN_PASSWORD_DONE]: true },
+    });
   }, [session, supabase]);
 
   const loadEvents = useCallback(async () => {
@@ -350,16 +376,36 @@ const AdminEventsPage = () => {
     }
   }, [session, supabase, loadEvents]);
 
-  const handleEmailLogin = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setAuthError(null);
-    const formData = new FormData(e.currentTarget);
-    const email = (formData.get('email') as string)?.trim();
-    const password = formData.get('password') as string;
-    if (!email || !password || !supabase) return;
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) setAuthError(error.message);
-  };
+  useEffect(() => {
+    if (!session || !supabase) {
+      setModerator(false);
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      const m = await resolveEventsModerator(supabase, session);
+      if (!cancelled) setModerator(m);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [session, supabase]);
+
+  useEffect(() => {
+    if (!moderator && activeTab === 'pending') {
+      setActiveTab('active');
+    }
+  }, [moderator, activeTab]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   const handleLogout = async () => {
     if (supabase) await supabase.auth.signOut();
@@ -501,58 +547,20 @@ const AdminEventsPage = () => {
   }
 
   if (!session) {
-    return (
-      <div className="min-h-screen bg-[#f3f4f0] flex flex-col items-center justify-center px-6">
-        <div className="w-full max-w-sm border-2 border-black bg-white p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-          <h1 className="text-2xl font-bold mb-6">Tus eventos en la agenda</h1>
-          <p className="text-sm text-gray-600 mb-4">
-            Inicia sesión con el correo y contraseña de tu cuenta en Supabase para gestionar solo los eventos que crees con esa cuenta.
-          </p>
-          <p className="text-xs text-gray-500 mb-6">
-            Los usuarios se crean en Supabase → <span className="font-mono">Authentication → Users</span> (o registro por invitación, si lo activas). El proveedor Email debe estar habilitado.
-          </p>
-          <form onSubmit={handleEmailLogin} className="space-y-4">
-            <div>
-              <label htmlFor="admin-email" className="block text-sm font-medium mb-1">Correo</label>
-              <input
-                id="admin-email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                className="w-full border-2 border-black px-3 py-2 bg-white"
-                placeholder="tu@email.com"
-              />
-            </div>
-            <div>
-              <label htmlFor="admin-password" className="block text-sm font-medium mb-1">Contraseña</label>
-              <input
-                id="admin-password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                className="w-full border-2 border-black px-3 py-2 bg-white"
-              />
-            </div>
-            {authError && (
-              <p className="text-sm text-red-600" role="alert">{authError}</p>
-            )}
-            <button
-              type="submit"
-              className="w-full bg-black text-white border-2 border-black px-4 py-2 font-medium hover:bg-gray-800 cursor-pointer"
-            >
-              Entrar
-            </button>
-          </form>
-        </div>
-        <Link to="/" className="mt-6 text-sm underline">Volver al inicio</Link>
-      </div>
-    );
+    return <Navigate to="/ingreso" replace />;
   }
 
+  const showPasswordSetup = supabase && shouldPromptAdminPasswordSetup(session);
+
   return (
-    <div className="min-h-screen bg-[#f3f4f0] text-black">
+    <>
+      {showPasswordSetup ? (
+        <AdminPasswordSetupModal supabase={supabase} session={session} />
+      ) : null}
+    <div
+      className={`min-h-screen bg-[#f3f4f0] text-black ${showPasswordSetup ? 'pointer-events-none opacity-60' : ''}`}
+      aria-hidden={showPasswordSetup ? true : undefined}
+    >
       <header className="border-b border-black bg-white px-6 py-4 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Link to="/" className="font-bold hover:underline">Mapeo Verde</Link>
@@ -563,9 +571,17 @@ const AdminEventsPage = () => {
             {session.user.email}
           </span>
           {moderator && (
-            <span className="text-[10px] font-mono uppercase tracking-wider text-amber-800 bg-amber-100 px-2 py-0.5 border border-amber-700">
-              Moderación
-            </span>
+            <>
+              <Link
+                to="/admin/usuarios"
+                className="text-xs font-mono uppercase tracking-wider border-2 border-amber-800 bg-amber-100 text-amber-900 px-2 py-1 hover:bg-amber-200"
+              >
+                Usuarios y permisos
+              </Link>
+              <span className="text-[10px] font-mono uppercase tracking-wider text-amber-800 bg-amber-100 px-2 py-0.5 border border-amber-700">
+                Moderación
+              </span>
+            </>
           )}
           <button
             type="button"
@@ -581,7 +597,7 @@ const AdminEventsPage = () => {
         <section>
           <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
             <div>
-              <h2 className="text-xl font-bold">Eventos publicados</h2>
+              <h2 className="text-xl font-bold">Gestión de eventos</h2>
               {!moderator && (
                 <p className="text-sm text-gray-600 mt-1">Solo aparecen los que creaste con esta cuenta.</p>
               )}
@@ -593,6 +609,45 @@ const AdminEventsPage = () => {
             >
               <span>+ Nuevo evento</span>
             </button>
+          </div>
+          <div className="mt-8 mb-8">
+            <div className="flex w-full flex-wrap border-2 border-black bg-[#eaf7da] p-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setActiveTab('past')}
+                className={`flex-1 min-w-[140px] px-3 py-3 text-sm font-mono font-bold uppercase tracking-wider border-2 transition-colors cursor-pointer ${
+                  activeTab === 'past'
+                    ? 'bg-[#ff7e67] text-black border-black'
+                    : 'bg-[#d89dff] text-black border-black hover:bg-[#b4ff6f]'
+                }`}
+              >
+                Pasados ({pastEvents.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('active')}
+                className={`flex-1 min-w-[140px] px-3 py-3 text-sm font-mono font-bold uppercase tracking-wider border-2 transition-colors cursor-pointer ${
+                  activeTab === 'active'
+                    ? 'bg-[#ff7e67] text-black border-black'
+                    : 'bg-[#d89dff] text-black border-black hover:bg-[#b4ff6f]'
+                }`}
+              >
+                Activos visibles ({activeVisibleEvents.length})
+              </button>
+              {moderator && (
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('pending')}
+                  className={`flex-1 min-w-[140px] px-3 py-3 text-sm font-mono font-bold uppercase tracking-wider border-2 transition-colors cursor-pointer ${
+                    activeTab === 'pending'
+                      ? 'bg-[#ff7e67] text-black border-black'
+                      : 'bg-[#d89dff] text-black border-black hover:bg-[#b4ff6f]'
+                  }`}
+                >
+                  Por autorizar ({pendingEvents.length})
+                </button>
+              )}
+            </div>
           </div>
           {eventsLoading ? (
             <p className="font-mono text-sm text-gray-500">Cargando eventos...</p>
@@ -628,20 +683,23 @@ const AdminEventsPage = () => {
                   </motion.li>
                 )}
               </AnimatePresence>
-              {publishedEvents.length === 0 && pendingEvents.length === 0 && !formOpen && (
+              {activeTab === 'past' && pastEvents.length === 0 && !formOpen && (
                 <p className="text-gray-600">
-                  {moderator
-                    ? 'No hay eventos en tu vista. Crea uno o revisa los pendientes del formulario de participación.'
-                    : 'No tienes eventos publicados aún. Usa «Nuevo evento» para añadir uno a la agenda.'}
+                  No hay eventos pasados todavía.
                 </p>
               )}
-              {publishedEvents.filter((e) => e.visible !== false).length > 0 && (
-                <li className="list-none mt-6 mb-2">
-                  <p className="text-sm font-mono uppercase tracking-widest text-gray-600">Visibles en la agenda</p>
-                </li>
+              {activeTab === 'active' && activeVisibleEvents.length === 0 && activeHiddenEvents.length === 0 && !formOpen && (
+                <p className="text-gray-600">
+                  {moderator
+                    ? 'No hay eventos activos. Puedes crear uno nuevo o revisar los pendientes por autorizar.'
+                    : 'No tienes eventos activos aún. Usa «Nuevo evento» para añadir uno a la agenda.'}
+                </p>
+              )}
+              {activeTab === 'pending' && moderator && pendingEvents.length === 0 && !formOpen && (
+                <p className="text-gray-600">No hay eventos pendientes por autorizar.</p>
               )}
               <AnimatePresence>
-                {publishedEvents.filter((e) => e.visible !== false).map((event) => (
+                {activeTab === 'active' && paginatedActiveVisibleEvents.map((event) => (
                   <motion.li key={event.id} layout className="space-y-0">
                     <div className="border-2 border-black bg-white p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex flex-wrap items-center justify-between gap-4">
                       <div className="min-w-0 flex-1">
@@ -701,7 +759,7 @@ const AdminEventsPage = () => {
                           </button>
                           <button
                             type="button"
-                            className="px-3 py-1 text-xs font-mono border border-black rounded-full bg-[var(--card-foreground)] text-black hover:text-white hover:bg-[#ff7e67] cursor-pointer disabled:opacity-50"
+                            className="px-3 py-1 text-xs font-mono border border-black rounded-full bg-[#dc2626] text-white hover:text-black hover:bg-[#ff7e67] cursor-pointer disabled:opacity-50"
                             disabled={deleting}
                             onClick={handleDelete}
                           >
@@ -741,12 +799,12 @@ const AdminEventsPage = () => {
                   </motion.li>
                 ))}
               </AnimatePresence>
-              {publishedEvents.filter((e) => e.visible === false).length > 0 && (
+              {activeTab === 'active' && paginatedActiveHiddenEvents.length > 0 && (
                 <>
                   <li className="list-none mt-8 mb-2">
                     <p className="text-sm font-mono uppercase tracking-widest text-gray-500">Ocultos (no se muestran en la agenda)</p>
                   </li>
-                  {publishedEvents.filter((e) => e.visible === false).map((event) => (
+                  {paginatedActiveHiddenEvents.map((event) => (
                     <motion.li key={event.id} layout className="space-y-0">
                       <div className="border-2 border-gray-400 bg-gray-100 p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] flex flex-wrap items-center justify-between gap-4">
                         <div className="min-w-0 flex-1">
@@ -829,115 +887,212 @@ const AdminEventsPage = () => {
                   ))}
                 </>
               )}
-            </ul>
-          )}
-        </section>
-
-        {moderator && (
-          <section className="pt-4">
-            <h2 className="text-xl font-bold mb-2">Eventos pendientes de aprobación</h2>
-            <p className="text-sm text-gray-600 mb-4">
-              Eventos que se recibieron desde el formulario de participación
-            </p>
-            {pendingEvents.length === 0 ? (
-              <p className="text-gray-600">No hay eventos pendientes.</p>
-            ) : (
-              <ul className="space-y-4">
-                <AnimatePresence>
-                  {pendingEvents.map((event) => (
-                    <motion.li key={event.id} layout className="space-y-0">
-                      <div className="border-2 border-amber-700/40 bg-amber-50/50 p-4 shadow-[4px_4px_0px_0px_rgba(180,83,9,0.3)] flex flex-wrap items-center justify-between gap-4">
-                        <div className="min-w-0 flex-1">
-                          <p className="font-bold truncate">{event.title}</p>
-                          <p className="text-sm text-gray-600">{event.date} · {event.time} · {event.location}</p>
-                          {(event.contactName || event.contactEmail) && (
-                            <p className="text-xs text-gray-500 mt-1">Contacto: {[event.contactName, event.contactEmail].filter(Boolean).join(' · ')}</p>
-                          )}
-                        </div>
-                        <div className="flex gap-2 flex-wrap">
-                          <button
-                            type="button"
-                            className="border-2 border-green-700 text-green-700 px-3 py-1.5 text-sm font-medium hover:bg-green-100 disabled:opacity-50 cursor-pointer"
-                            disabled={publishingId !== null}
-                            onClick={() => handlePublishPending(event)}
-                          >
-                            {publishingId === event.id ? 'Publicando...' : 'Publicar'}
-                          </button>
-                          <button
-                            type="button"
-                            className="border-2 border-black px-3 py-1.5 text-sm font-medium hover:bg-gray-100 cursor-pointer"
-                            onClick={() => openEdit(event)}
-                          >
-                            Editar
-                          </button>
-                          <button
-                            type="button"
-                            className="border-2 border-red-600 text-red-600 px-3 py-1.5 text-sm font-medium rounded-full flex items-center justify-center cursor-pointer hover:bg-red-600 hover:text-white"
-                            onClick={() => openDeleteConfirm(event.id)}
-                            aria-label="Eliminar evento pendiente"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                        {deleteId === event.id && (
-                          <div className="w-full flex justify-end gap-2 mt-2">
-                            <button
-                              type="button"
-                              className="px-3 py-1 text-xs font-mono border border-black bg-white text-gray-800 rounded-full hover:bg-gray-100 cursor-pointer"
-                              onClick={() => setDeleteId(null)}
-                            >
-                              Cancelar
-                            </button>
-                            <button
-                              type="button"
-                              className="px-3 py-1 text-xs font-mono border border-black rounded-full bg-[var(--card-foreground)] text-white hover:bg-[#ff7e67] cursor-pointer disabled:opacity-50"
-                              disabled={deleting}
-                              onClick={handleDelete}
-                            >
-                              {deleting ? 'Borrando…' : 'Borrar'}
-                            </button>
-                          </div>
+              <AnimatePresence>
+                {activeTab === 'past' && paginatedTabEvents.map((event) => (
+                  <motion.li key={event.id} layout className="space-y-0">
+                    <div className="border-2 border-gray-400 bg-gray-100 p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] flex flex-wrap items-center justify-between gap-4">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-bold truncate text-gray-700">{event.title}</p>
+                        <p className="text-sm text-gray-600">{event.date} · {event.time} · {event.location}</p>
+                        <p className="text-xs text-gray-500 mt-1 font-medium">Evento pasado</p>
+                        {event.visible === false && (
+                          <p className="text-xs text-gray-500 mt-0.5">Oculto en la agenda</p>
+                        )}
+                        {moderator && event.source === 'participation' && (
+                          <p className="text-xs text-amber-700 mt-0.5">Desde formulario de participación</p>
                         )}
                       </div>
-                      <AnimatePresence>
-                        {editingId === event.id && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.2 }}
-                            className="border-2 border-t-0 border-amber-700/40 bg-amber-50/30 overflow-hidden relative z-10"
+                      <div className="flex gap-2 flex-wrap">
+                        <button
+                          type="button"
+                          className="border-2 border-black px-3 py-1.5 text-sm font-medium hover:bg-gray-100 cursor-pointer"
+                          onClick={() => openEdit(event)}
+                        >
+                          Editar
+                        </button>
+                        <button
+                          type="button"
+                          className="border-2 border-red-600 text-red-600 px-3 py-1.5 text-sm font-medium rounded-full flex items-center justify-center cursor-pointer hover:bg-red-600 hover:text-white"
+                          onClick={() => openDeleteConfirm(event.id)}
+                          aria-label="Borrar evento"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                      {deleteId === event.id && (
+                        <div className="w-full flex justify-end gap-2 mt-2">
+                          <button
+                            type="button"
+                            className="px-3 py-1 text-xs font-mono border border-black bg-white text-gray-800 rounded-full hover:bg-gray-100 cursor-pointer"
+                            onClick={() => setDeleteId(null)}
                           >
-                            <div className="p-4 space-y-4" onClick={(e) => e.stopPropagation()}>
-                              <p className="font-bold text-sm">Editar evento pendiente</p>
-                              <AdminEventForm
-                                idPrefix={`edit-pending-${event.id}`}
-                                submitLabel="Guardar"
-                                form={form}
-                                updateForm={updateForm}
-                                formError={formError}
-                                formSaving={formSaving}
-                                onCancel={() => setEditingId(null)}
-                                onSubmit={handleFormSubmit}
-                                imageUploading={imageUploading}
-                                imageUploadError={imageUploadError}
-                                imageFileName={imageFileName}
-                                onImageFileSelected={handleImageFileSelected}
-                              />
-                            </div>
-                          </motion.div>
+                            Cancelar
+                          </button>
+                          <button
+                            type="button"
+                            className="px-3 py-1 text-xs font-mono border border-black rounded-full bg-[#dc2626] text-white hover:text-black hover:bg-[#ff7e67] cursor-pointer disabled:opacity-50"
+                            disabled={deleting}
+                            onClick={handleDelete}
+                          >
+                            {deleting ? 'Borrando…' : 'Borrar'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    <AnimatePresence>
+                      {editingId === event.id && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="border-2 border-t-0 border-gray-400 bg-gray-50 overflow-hidden relative z-10"
+                        >
+                          <div className="p-4 space-y-4" onClick={(e) => e.stopPropagation()}>
+                            <AdminEventForm
+                              idPrefix={`edit-past-${event.id}`}
+                              submitLabel="Guardar"
+                              form={form}
+                              updateForm={updateForm}
+                              formError={formError}
+                              formSaving={formSaving}
+                              onCancel={() => setEditingId(null)}
+                              onSubmit={handleFormSubmit}
+                              imageUploading={imageUploading}
+                              imageUploadError={imageUploadError}
+                              imageFileName={imageFileName}
+                              onImageFileSelected={handleImageFileSelected}
+                            />
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.li>
+                ))}
+              </AnimatePresence>
+              <AnimatePresence>
+                {activeTab === 'pending' && moderator && paginatedTabEvents.map((event) => (
+                  <motion.li key={event.id} layout className="space-y-0">
+                    <div className="border-2 border-amber-700/40 bg-amber-50/50 p-4 shadow-[4px_4px_0px_0px_rgba(180,83,9,0.3)] flex flex-wrap items-center justify-between gap-4">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-bold truncate">{event.title}</p>
+                        <p className="text-sm text-gray-600">{event.date} · {event.time} · {event.location}</p>
+                        {(event.contactName || event.contactEmail) && (
+                          <p className="text-xs text-gray-500 mt-1">Contacto: {[event.contactName, event.contactEmail].filter(Boolean).join(' · ')}</p>
                         )}
-                      </AnimatePresence>
-                    </motion.li>
-                  ))}
-                </AnimatePresence>
-              </ul>
-            )}
-          </section>
-        )}
+                      </div>
+                      <div className="flex gap-2 flex-wrap">
+                        <button
+                          type="button"
+                          className="border-2 border-green-700 text-green-700 px-3 py-1.5 text-sm font-medium hover:bg-green-100 disabled:opacity-50 cursor-pointer"
+                          disabled={publishingId !== null}
+                          onClick={() => handlePublishPending(event)}
+                        >
+                          {publishingId === event.id ? 'Publicando...' : 'Publicar'}
+                        </button>
+                        <button
+                          type="button"
+                          className="border-2 border-black px-3 py-1.5 text-sm font-medium hover:bg-gray-100 cursor-pointer"
+                          onClick={() => openEdit(event)}
+                        >
+                          Editar
+                        </button>
+                        <button
+                          type="button"
+                          className="border-2 border-red-600 text-red-600 px-3 py-1.5 text-sm font-medium rounded-full flex items-center justify-center cursor-pointer hover:bg-red-600 hover:text-white"
+                          onClick={() => openDeleteConfirm(event.id)}
+                          aria-label="Eliminar evento pendiente"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                      {deleteId === event.id && (
+                        <div className="w-full flex justify-end gap-2 mt-2">
+                          <button
+                            type="button"
+                            className="px-3 py-1 text-xs font-mono border border-black bg-white text-gray-800 rounded-full hover:bg-gray-100 cursor-pointer"
+                            onClick={() => setDeleteId(null)}
+                          >
+                            Cancelar
+                          </button>
+                          <button
+                            type="button"
+                            className="px-3 py-1 text-xs font-mono border border-black rounded-full bg-[#dc2626] text-white hover:text-black hover:bg-[#ff7e67] cursor-pointer disabled:opacity-50"
+                            disabled={deleting}
+                            onClick={handleDelete}
+                          >
+                            {deleting ? 'Borrando…' : 'Borrar'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    <AnimatePresence>
+                      {editingId === event.id && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="border-2 border-t-0 border-amber-700/40 bg-amber-50/30 overflow-hidden relative z-10"
+                        >
+                          <div className="p-4 space-y-4" onClick={(e) => e.stopPropagation()}>
+                            <p className="font-bold text-sm">Editar evento pendiente</p>
+                            <AdminEventForm
+                              idPrefix={`edit-pending-${event.id}`}
+                              submitLabel="Guardar"
+                              form={form}
+                              updateForm={updateForm}
+                              formError={formError}
+                              formSaving={formSaving}
+                              onCancel={() => setEditingId(null)}
+                              onSubmit={handleFormSubmit}
+                              imageUploading={imageUploading}
+                              imageUploadError={imageUploadError}
+                              imageFileName={imageFileName}
+                              onImageFileSelected={handleImageFileSelected}
+                            />
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.li>
+                ))}
+              </AnimatePresence>
+            </ul>
+          )}
+          {!eventsLoading && tabEvents.length > 0 && (
+            <div className="mt-8 mb-8 flex flex-wrap items-center justify-between gap-3 border-2 border-black bg-white px-3 py-3">
+              <p className="text-xs font-mono text-gray-700">
+                Mostrando {pageStart + 1}-{Math.min(pageEnd, tabEvents.length)} de {tabEvents.length}
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                  disabled={safePage <= 1}
+                  className="border-2 border-black px-3 py-1.5 text-sm font-medium bg-white hover:bg-gray-100 disabled:opacity-50 cursor-pointer"
+                >
+                  Anterior
+                </button>
+                <span className="text-xs font-mono text-gray-700">
+                  Página {safePage} de {totalPages}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                  disabled={safePage >= totalPages}
+                  className="border-2 border-black px-3 py-1.5 text-sm font-medium bg-white hover:bg-gray-100 disabled:opacity-50 cursor-pointer"
+                >
+                  Siguiente
+                </button>
+              </div>
+            </div>
+          )}
+        </section>
       </main>
 
     </div>
+    </>
   );
 };
 

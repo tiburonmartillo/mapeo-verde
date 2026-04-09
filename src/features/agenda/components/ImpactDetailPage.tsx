@@ -227,21 +227,38 @@ const ImpactDetailPage = ({ eventId, onBack }: ImpactDetailPageProps) => {
                         />
                       );
                     },
-                    // Estilos para videos de Notion
+                    // Columnas y video embebido; reconoce prefijos antiguos en `class` del HTML guardado y normaliza a `content-*`.
                     div: ({ className, children, ...props }: any) => {
-                      // Manejar columnas primero
-                      if (className?.includes('notion-column-list')) {
+                      const legacyPrefix = 'notion-';
+                      const isColumnList =
+                        new RegExp(`(?:^|\\s)(${legacyPrefix}column-list|content-column-list)(?:\\s|$)`).test(
+                          className ?? ''
+                        );
+                      const isColumn =
+                        new RegExp(`(?:^|\\s)(${legacyPrefix}column|content-column)(?:\\s|$)`).test(
+                          className ?? ''
+                        ) && !isColumnList;
+                      const isVideoEmbed = new RegExp(
+                        `(?:^|\\s)(${legacyPrefix}video|content-video)(?:\\s|$)`
+                      ).test(className ?? '');
+
+                      if (isColumnList) {
+                        const { className: _drop, ...rest } = props;
                         return (
-                          <div className="notion-column-list grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 my-6" {...props}>
+                          <div
+                            className="content-column-list grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 my-6"
+                            {...rest}
+                          >
                             {children}
                           </div>
                         );
                       }
-                      if (className?.includes('notion-column')) {
+                      if (isColumn) {
                         // El contenido de la columna puede tener markdown que necesita procesarse
                         const hasMarkdown = typeof children === 'string' && (children.includes('![') || children.includes('\n\n'));
+                        const { className: _drop, ...rest } = props;
                         return (
-                          <div className="notion-column" {...props}>
+                          <div className="content-column" {...rest}>
                             {hasMarkdown ? (
                               <ReactMarkdown 
                                 remarkPlugins={[remarkGfm]}
@@ -265,10 +282,22 @@ const ImpactDetailPage = ({ eventId, onBack }: ImpactDetailPageProps) => {
                           </div>
                         );
                       }
-                      // Manejar videos de Notion
-                      if (className?.includes('notion-video')) {
+                      if (isVideoEmbed) {
+                        const { className: _drop, ...rest } = props;
+                        const variant =
+                          typeof className === 'string'
+                            ? className
+                                .replace(new RegExp(`\\b${legacyPrefix}`, 'g'), 'content-')
+                                .split(/\s+/)
+                                .filter(Boolean)
+                                .join(' ')
+                            : '';
                         return (
-                          <div className={`notion-video my-6 w-full relative ${className}`} style={{ paddingBottom: '56.25%', height: 0 }} {...props}>
+                          <div
+                            className={`content-video my-6 w-full relative ${variant}`}
+                            style={{ paddingBottom: '56.25%', height: 0 }}
+                            {...rest}
+                          >
                             <div className="absolute top-0 left-0 w-full h-full">
                               {children}
                             </div>

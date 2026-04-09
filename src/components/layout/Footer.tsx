@@ -47,11 +47,29 @@ const Footer = () => {
             </li>
             <li>
               <Link
+                to="/ingreso"
+                className="hover:underline focus:outline-none focus:ring-1 focus:ring-black"
+                aria-label="Ingreso con correo para organizaciones: publicar o administrar eventos en la agenda"
+              >
+                Ingreso para organizaciones
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/admin/registro"
+                className="hover:underline focus:outline-none focus:ring-1 focus:ring-black"
+                aria-label="Registro con correo para organizaciones de la agenda"
+              >
+                Registro para organizaciones
+              </Link>
+            </li>
+            <li>
+              <Link
                 to="/admin"
                 className="hover:underline focus:outline-none focus:ring-1 focus:ring-black"
-                aria-label="Administrar eventos (requiere inicio de sesión)"
+                aria-label="Gestionar mis eventos en la agenda (requiere sesión)"
               >
-                Administrar eventos
+                Gestionar eventos
               </Link>
             </li>
           </ul>

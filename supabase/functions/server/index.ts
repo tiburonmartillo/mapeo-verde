@@ -15,15 +15,14 @@ const app = new Hono();
 // Enable logger
 app.use('*', logger(console.log));
 
-// Custom CORS middleware to ensure Notion-Version header is allowed
-// This must run before any other middleware to set CORS headers correctly
+// CORS para el cliente web
 app.use("*", async (c, next) => {
   const origin = c.req.header("Origin") || "*";
   
   // Set CORS headers for all requests
   c.res.headers.set("Access-Control-Allow-Origin", origin);
   c.res.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  c.res.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization, Notion-Version, notion-version");
+  c.res.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
   c.res.headers.set("Access-Control-Expose-Headers", "Content-Length");
   c.res.headers.set("Access-Control-Max-Age", "600");
   c.res.headers.set("Access-Control-Allow-Credentials", "true");
@@ -156,96 +155,6 @@ app.post("/subscribe", async (c) => {
     
     await kv.set(`subscriber:${email}`, entry);
     return c.json({ success: true });
-  } catch (error) {
-    return c.json({ error: error.message }, 500);
-  }
-});
-
-// Notion API Proxy - Obtener páginas de la base de datos
-app.options("/notion/database/:databaseId/query", async (c) => {
-  const origin = c.req.header("Origin") || "*";
-  c.header("Access-Control-Allow-Origin", origin);
-  c.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  c.header("Access-Control-Allow-Headers", "Content-Type, Authorization, Notion-Version, notion-version");
-  c.header("Access-Control-Expose-Headers", "Content-Length");
-  c.header("Access-Control-Max-Age", "600");
-  return c.text("", 204);
-});
-
-app.post("/notion/database/:databaseId/query", async (c) => {
-  // Set CORS headers explicitly for this endpoint
-  const origin = c.req.header("Origin") || "*";
-  c.header("Access-Control-Allow-Origin", origin);
-  c.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  c.header("Access-Control-Allow-Headers", "Content-Type, Authorization, Notion-Version, notion-version");
-  c.header("Access-Control-Expose-Headers", "Content-Length");
-  c.header("Access-Control-Max-Age", "600");
-  
-  try {
-    const databaseId = c.req.param("databaseId");
-    const apiKey = Deno.env.get("NOTION_API_KEY");
-    
-    if (!apiKey) {
-      return c.json({ error: "NOTION_API_KEY not configured" }, 500);
-    }
-
-    const body = await c.req.json().catch(() => ({}));
-    
-    const response = await fetch(`https://api.notion.com/v1/databases/${databaseId}/query`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Notion-Version': '2022-06-28',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      return c.json({ error: errorText }, response.status);
-    }
-
-    const data = await response.json();
-    return c.json(data);
-  } catch (error) {
-    return c.json({ error: error.message }, 500);
-  }
-});
-
-// Notion API Proxy - Obtener bloques de una página
-app.get("/notion/blocks/:pageId", async (c) => {
-  // Set CORS headers explicitly for this endpoint
-  const origin = c.req.header("Origin") || "*";
-  c.res.headers.set("Access-Control-Allow-Origin", origin);
-  c.res.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  c.res.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization, Notion-Version, notion-version");
-  c.res.headers.set("Access-Control-Expose-Headers", "Content-Length");
-  c.res.headers.set("Access-Control-Max-Age", "600");
-  try {
-    const pageId = c.req.param("pageId");
-    const apiKey = Deno.env.get("NOTION_API_KEY");
-    const startCursor = c.req.query("start_cursor");
-    
-    if (!apiKey) {
-      return c.json({ error: "NOTION_API_KEY not configured" }, 500);
-    }
-
-    const url = `https://api.notion.com/v1/blocks/${pageId}/children${startCursor ? `?start_cursor=${startCursor}` : ''}`;
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Notion-Version': '2022-06-28',
-      },
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      return c.json({ error: errorText }, response.status);
-    }
-
-    const data = await response.json();
-    return c.json(data);
   } catch (error) {
     return c.json({ error: error.message }, 500);
   }

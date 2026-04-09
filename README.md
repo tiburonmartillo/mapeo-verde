@@ -8,7 +8,7 @@
   - Boletines y gacetas
   - Bitácora / participación ciudadana
 
-  El frontend está construido en React + Vite, con una arquitectura por features y una capa de datos que combina Supabase, Notion, Google Calendar y JSON estáticos como fallback.
+  El frontend está construido en React + Vite, con una arquitectura por features y una capa de datos que combina Supabase, Google Calendar y JSON estáticos como fallback.
 
   ---
 
@@ -64,7 +64,7 @@
   - Carga en paralelo:
     - Áreas de donación / áreas verdes (Supabase + JSON).
     - Proyectos y gacetas (Supabase + JSON + mapeo de boletines/gacetas).
-    - Eventos y bitácora (Supabase, Google Calendar, Notion, datos estáticos).
+    - Eventos y bitácora (Supabase y datos estáticos; calendario vía build/JSON donde aplique).
   - Aplica una **prioridad de orígenes** (documentos JSON → Supabase → JSON estático).
   - Expone `loading`, `error`, `supabaseConnected` y `supabaseError` para el UI (por ejemplo en el `Footer`).
 
@@ -82,7 +82,7 @@
   - **Boletines y Gacetas**
     - Transformación de JSON y/o Supabase a un modelo de `projects` y `gazettes`.
   - **Participación / Bitácora**
-    - Fallback a datos estáticos, pero con integración a Notion para contenido rico cuando hay credenciales.
+    - Bitácora desde Supabase con respaldo en datos estáticos; el detalle admite markdown enriquecido.
 
   ---
 
@@ -95,7 +95,7 @@
   - **Lucide React** (iconos)
   - **Pigeon Maps** (mapas)
   - **Motion / Framer Motion** (`motion/react`) para transiciones y loaders
-  - **Supabase**, **Notion API**, **Google Calendar API** (capa de datos)
+  - **Supabase**, **Google Calendar** (vía `.ics` en build) (capa de datos)
 
   ---
 
@@ -105,7 +105,7 @@
   Si alguna integración no está configurada o falla:
 
   - El `DataContext` cae en **datos estáticos** de `src/data/static.ts` como respaldo.
-  - Eventos pasados pueden quedarse solo con la versión estática si Notion falla.
+  - Eventos pasados (bitácora) pueden quedarse solo con la versión estática si Supabase no devuelve filas.
   - El footer muestra el estado de conexión a Supabase.
 
   Este README está pensado para el código actual; la documentación detallada de despliegue, migraciones SQL y guías internas se ha eliminado intencionalmente para dejar el repositorio más ligero.
