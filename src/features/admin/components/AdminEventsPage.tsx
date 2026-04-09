@@ -16,6 +16,7 @@ import type { Session } from '@supabase/supabase-js';
 import { resolveEventsModerator } from '../../../utils/auth/eventsModerator';
 import {
   META_ADMIN_PASSWORD_DONE,
+  sessionDisplayLabel,
   sessionUsedPasswordThisSession,
   shouldPromptAdminPasswordSetup,
 } from '../../../utils/auth/adminPasswordSetup';
@@ -551,6 +552,8 @@ const AdminEventsPage = () => {
   }
 
   const showPasswordSetup = supabase && shouldPromptAdminPasswordSetup(session);
+  const displayLabel = sessionDisplayLabel(session);
+  const userEmail = session.user.email ?? '';
 
   return (
     <>
@@ -566,10 +569,22 @@ const AdminEventsPage = () => {
           <Link to="/" className="font-bold hover:underline">Mapeo Verde</Link>
           <span className="text-gray-500 font-mono text-sm">/ Mis eventos</span>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-500 max-w-[200px] truncate" title={session.user.email ?? undefined}>
-            {session.user.email}
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-xs max-w-[240px] truncate" title={userEmail || undefined}>
+            {displayLabel ? (
+              <>
+                <span className="font-medium text-black">{displayLabel}</span>
+                <span className="text-gray-500"> · </span>
+              </>
+            ) : null}
+            <span className="text-gray-500">{userEmail || '—'}</span>
           </span>
+          <Link
+            to="/admin/cuenta"
+            className="text-xs font-medium underline text-black hover:text-[#ff7e67]"
+          >
+            Mi cuenta
+          </Link>
           {moderator && (
             <>
               <Link

@@ -43,6 +43,9 @@ lint_output.txt
 # Generado en build (eventos de Google Calendar para producción)
 public/calendar-events.json
 
+# Generado desde src/assets/mapeov.jpg (logo para plantillas de correo / Site URL)
+public/mapeov.jpg
+
 # TypeScript
 *.tsbuildinfo
 .supabase/

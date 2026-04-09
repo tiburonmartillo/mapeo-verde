@@ -1,16 +1,22 @@
 /**
- * URL absoluta a la que Supabase redirige tras abrir el enlace del correo (magic link).
+ * URL absoluta a la que Supabase redirige tras validar el magic link (`emailRedirectTo`).
+ * No sustituye `{{ .ConfirmationURL }}` en la plantilla del correo: ese enlace sigue siendo el de Supabase.
  *
- * - En producción el build debe definir `VITE_SITE_URL` (p. ej. https://www.mapeoverde.org)
- *   para que el enlace del correo apunte al dominio público aunque la Site URL del
- *   proyecto en Supabase siga teniendo localhost para desarrollo.
- * - En Supabase: Authentication → URL Configuration → añade la misma URL (y `/**`) en
- *   "Redirect URLs", y pon "Site URL" al dominio de producción si quieres que sea el
- *   predeterminado.
+ * Prioridad:
+ * 1. `VITE_AUTH_EMAIL_REDIRECT_URL` — URL completa (p. ej. https://mapeoverde.org/admin).
+ * 2. `VITE_SITE_URL` + `/admin` (respeta `BASE_URL` si el sitio vive en subruta).
+ * 3. `window.location.origin` + `/admin` (desarrollo o mismo dominio desde el que piden el enlace).
+ * 4. Producción sin origen conocido: https://mapeoverde.org/admin
+ * 5. Desarrollo sin origen: http://localhost:3000/admin
  *
- * Respeta `import.meta.env.BASE_URL` (GitHub Pages en subruta vs raíz con dominio propio).
+ * En Supabase: Authentication → URL Configuration → incluye esa URL en "Redirect URLs".
  */
+const CANONICAL_PROD_ADMIN = 'https://mapeoverde.org/admin';
+
 export function getAuthEmailRedirectUrl(): string {
+  const explicit = import.meta.env.VITE_AUTH_EMAIL_REDIRECT_URL?.trim();
+  if (explicit) return explicit;
+
   const rawBase = import.meta.env.BASE_URL ?? '/';
   const baseSegment =
     rawBase === '/' ? '' : String(rawBase).replace(/\/+$/, '');
@@ -24,6 +30,9 @@ export function getAuthEmailRedirectUrl(): string {
       : '');
 
   if (!origin) {
+    if (import.meta.env.PROD) {
+      return CANONICAL_PROD_ADMIN;
+    }
     return adminPath.startsWith('http') ? adminPath : `http://localhost:3000${adminPath}`;
   }
 

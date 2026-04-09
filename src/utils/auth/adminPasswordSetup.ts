@@ -4,6 +4,23 @@ import type { Session } from '@supabase/supabase-js';
 export const META_ADMIN_PASSWORD_DONE = 'mv_admin_password_done';
 /** user_metadata: el usuario eligió no configurar contraseña por ahora. */
 export const META_SKIP_ADMIN_PASSWORD = 'mv_skip_admin_password';
+/**
+ * user_metadata en Supabase Auth: nombre para mostrar en cabeceras del panel y en `/admin/cuenta`.
+ * Si falta, se usa `full_name` de metadata (p. ej. registro OAuth) antes de mostrar solo el correo.
+ */
+export const META_DISPLAY_NAME = 'mv_display_name';
+
+/**
+ * Etiqueta corta para la barra superior del admin: `mv_display_name`, luego `full_name`, si no cadena vacía.
+ */
+export function sessionDisplayLabel(session: Session): string {
+  const meta = session.user?.user_metadata ?? {};
+  const custom = meta[META_DISPLAY_NAME];
+  if (typeof custom === 'string' && custom.trim()) return custom.trim();
+  const full = meta.full_name;
+  if (typeof full === 'string' && full.trim()) return full.trim();
+  return '';
+}
 
 const PASSWORD_AMR_METHODS = new Set(['password', 'pwd']);
 

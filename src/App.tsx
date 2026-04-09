@@ -29,6 +29,7 @@ const AdminRegisterPage = React.lazy(() => import('./features/admin/components/A
 const AdminModerationUsersPage = React.lazy(
   () => import('./features/admin/components/AdminModerationUsersPage'),
 );
+const AdminAccountPage = React.lazy(() => import('./features/admin/components/AdminAccountPage'));
 
 import { FeaturePreview } from './features/home/components';
 
@@ -315,6 +316,16 @@ const AdminModerationUsersPageWrapper = () => {
   );
 };
 
+const AdminAccountPageWrapper = () => {
+  return (
+    <div className="min-h-screen bg-[#f3f4f0] font-sans">
+      <React.Suspense fallback={<PageLoader />}>
+        <AdminAccountPage />
+      </React.Suspense>
+    </div>
+  );
+};
+
 export default function App() {
   return (
     <DataProvider>
@@ -334,6 +345,7 @@ export default function App() {
         <Route path="/ingreso" element={<IngresoPageWrapper />} />
         <Route path="/admin/registro" element={<AdminRegisterPageWrapper />} />
         <Route path="/admin/usuarios" element={<AdminModerationUsersPageWrapper />} />
+        <Route path="/admin/cuenta" element={<AdminAccountPageWrapper />} />
         <Route path="/admin" element={<AdminEventsPageWrapper />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

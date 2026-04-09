@@ -3,6 +3,7 @@ import { Link, Navigate } from 'react-router-dom';
 import { getSupabaseAuthClient } from '../../../lib/supabase/client';
 import type { Session } from '@supabase/supabase-js';
 import { resolveEventsModerator } from '../../../utils/auth/eventsModerator';
+import { sessionDisplayLabel } from '../../../utils/auth/adminPasswordSetup';
 import {
   moderatorListAuthUsers,
   moderatorGrantEventsModerator,
@@ -122,6 +123,9 @@ const AdminModerationUsersPage = () => {
     );
   }
 
+  const displayLabel = sessionDisplayLabel(session);
+  const userEmail = session.user.email ?? '';
+
   return (
     <div className="min-h-screen bg-[#f3f4f0] text-black">
       <header className="border-b border-black bg-white px-6 py-4 flex flex-wrap items-center justify-between gap-4">
@@ -135,10 +139,22 @@ const AdminModerationUsersPage = () => {
             ← Eventos
           </Link>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-500 max-w-[200px] truncate" title={session.user.email ?? undefined}>
-            {session.user.email}
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-xs max-w-[240px] truncate" title={userEmail || undefined}>
+            {displayLabel ? (
+              <>
+                <span className="font-medium text-black">{displayLabel}</span>
+                <span className="text-gray-500"> · </span>
+              </>
+            ) : null}
+            <span className="text-gray-500">{userEmail || '—'}</span>
           </span>
+          <Link
+            to="/admin/cuenta"
+            className="text-xs font-medium underline text-black hover:text-[#ff7e67]"
+          >
+            Mi cuenta
+          </Link>
           <span className="text-[10px] font-mono uppercase tracking-wider text-amber-800 bg-amber-100 px-2 py-0.5 border border-amber-700">
             Moderación
           </span>

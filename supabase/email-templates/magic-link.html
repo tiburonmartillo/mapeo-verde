@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Iniciar sesión – Mapeo Verde</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f3f4f0;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.55;color:#000000;">
+  <!--
+    Variables de plantilla que expone Supabase (Magic link):
+    {{ .ConfirmationURL }}  {{ .Token }}  {{ .TokenHash }}  {{ .SiteURL }}  {{ .Email }}  {{ .Data }}  {{ .RedirectTo }}
+    En este HTML usamos: .SiteURL (logo/imagen), .ConfirmationURL (botón entrar), .Email (texto informativo).
+    La redirección final a /admin la define la app en signInWithOtp({ options: { emailRedirectTo } }) — ver getAuthEmailRedirectUrl().
+    En Supabase → Redirect URLs debe figurar https://mapeoverde.org/admin (y variantes si aplica).
+  -->
+  <!-- Fondo y contenedor al estilo Mapeo Verde: bordes negros + sombra desplazada -->
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#f3f4f0;padding:40px 16px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:520px;background-color:#ffffff;border:2px solid #000000;box-shadow:4px 4px 0 0 #000000;">
+          <!-- Cabecera negra (logo) -->
+          <tr>
+            <td style="padding:20px 24px;border-bottom:2px solid #000000;background-color:#000000;">
+              <!-- Logo JPG: publicado en la raíz del sitio como /mapeov.jpg (copia desde src/assets/mapeov.jpg en prebuild). Site URL en Supabase → Authentication → URL Configuration -->
+              <a href="{{ .SiteURL }}" style="display:inline-block;text-decoration:none;line-height:0;">
+                <img
+                  src="{{ .SiteURL }}/mapeov.jpg"
+                  width="320"
+                  alt="Mapeo Verde"
+                  style="display:block;max-width:100%;width:320px;height:auto;border:0;outline:none;"
+                />
+              </a>
+              <h1 style="margin:14px 0 0;font-size:22px;font-weight:800;letter-spacing:-0.03em;line-height:1.15;color:#b4ff6f;">Iniciar sesión en mapeoverde.org</h1>
+              <p style="margin:8px 0 0;font-size:14px;color:#d1d5db;font-family:Georgia,'Times New Roman',serif;">Plataforma ciudadana de Aguascalientes</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:28px 24px 24px;">
+              <p style="margin:0 0 8px;font-size:16px;color:#1a1a1a;">Hola,</p>
+              <p style="margin:0 0 16px;font-size:14px;color:#6b7280;">Acceso solicitado para <span style="font-family:ui-monospace,Courier,monospace;font-size:13px;color:#374151;">{{ .Email }}</span></p>
+              <p style="margin:0 0 24px;font-size:16px;color:#374151;">Pulsa el botón para confirmar tu correo y entrar. El enlace deja de ser válido al cabo de unos minutos.</p>
+              <!-- Un solo destino: {{ .ConfirmationURL }} -->
+              <table role="presentation" cellspacing="0" cellpadding="0" style="margin:0;">
+                <tr>
+                  <td style="border:2px solid #000000;background-color:#000000;box-shadow:4px 4px 0 0 #b4ff6f;">
+                    <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:14px 28px;font-size:13px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:#ffffff;text-decoration:none;">Entrar a Mapeo Verde</a>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin:28px 0 0;padding-top:20px;border-top:1px solid #000000;font-size:12px;font-family:ui-monospace,Courier,monospace;letter-spacing:0.06em;text-transform:uppercase;color:#6b7280;">Seguridad</p>
+              <p style="margin:8px 0 0;font-size:14px;color:#6b7280;">Si no solicitaste este correo, no hagas nada: nadie accederá a tu cuenta.</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:14px 24px;border-top:2px solid #000000;background-color:#f3f4f0;">
+              <p style="margin:0;font-size:11px;font-family:ui-monospace,Courier,monospace;letter-spacing:0.08em;text-transform:uppercase;color:#4b5563;text-align:center;">Datos abiertos para la justicia ambiental</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
