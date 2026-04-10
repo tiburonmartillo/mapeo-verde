@@ -3,6 +3,12 @@ import { Link, Navigate } from 'react-router-dom';
 import { LogoMap } from '../../../components/common/LogoMap';
 import { getSupabaseAuthClient } from '../../../lib/supabase/client';
 import { getAuthEmailRedirectUrl } from '../../../utils/auth/authRedirect';
+import {
+  adminDisabled,
+  adminLiftShadow,
+  adminOutlinePressable,
+  adminPressableFocus,
+} from '../../../utils/adminButtonClasses';
 import type { Session } from '@supabase/supabase-js';
 
 const AdminRegisterPage = () => {
@@ -98,7 +104,7 @@ const AdminRegisterPage = () => {
           </p>
           <button
             type="button"
-            className="mb-3 w-full text-center border-2 border-black bg-white px-4 py-2 font-medium hover:bg-gray-100 cursor-pointer"
+            className={`mb-3 w-full text-center border-2 border-black bg-white px-4 py-2 font-medium hover:bg-gray-100 cursor-pointer ${adminOutlinePressable}`}
             onClick={() => {
               setLinkSent(false);
               setSentTo(null);
@@ -108,7 +114,7 @@ const AdminRegisterPage = () => {
           </button>
           <Link
             to="/admin"
-            className="inline-block w-full text-center bg-black text-white border-2 border-black px-4 py-2 font-medium hover:bg-gray-800"
+            className={`inline-block w-full text-center bg-black text-white border-2 border-black px-4 py-2 font-medium hover:bg-[#ff7e67] hover:text-black ${adminPressableFocus} ${adminLiftShadow}`}
           >
             Ir a iniciar sesión
           </Link>
@@ -155,7 +161,7 @@ const AdminRegisterPage = () => {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full bg-black text-white border-2 border-black px-4 py-2 font-medium hover:bg-gray-800 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+            className={`w-full bg-black text-white border-2 border-black px-4 py-2 font-medium hover:bg-[#ff7e67] hover:text-black cursor-pointer disabled:cursor-not-allowed ${adminPressableFocus} ${adminLiftShadow} ${adminDisabled}`}
           >
             {submitting ? 'Enviando enlace…' : 'Enviar enlace de registro'}
           </button>

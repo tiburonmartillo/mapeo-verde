@@ -4,6 +4,13 @@ import { LogoMap } from '../../../components/common/LogoMap';
 import { PasswordField } from '../../../components/common/PasswordField';
 import { getSupabaseAuthClient } from '../../../lib/supabase/client';
 import { getAuthEmailRedirectUrl } from '../../../utils/auth/authRedirect';
+import {
+  adminDisabled,
+  adminLiftShadow,
+  adminOutlinePressable,
+  adminPressableFocus,
+  adminTabPressable,
+} from '../../../utils/adminButtonClasses';
 import type { Session } from '@supabase/supabase-js';
 
 type IngresoMode = 'magic' | 'password';
@@ -130,7 +137,7 @@ const IngresoPage = () => {
           </p>
           <button
             type="button"
-            className="mb-3 w-full text-center border-2 border-black bg-white px-4 py-2 font-medium hover:bg-gray-100 cursor-pointer"
+            className={`mb-3 w-full text-center border-2 border-black bg-white px-4 py-2 font-medium hover:bg-gray-100 cursor-pointer ${adminOutlinePressable}`}
             onClick={() => {
               setMagicLinkSent(false);
               setMagicLinkEmail(null);
@@ -158,9 +165,9 @@ const IngresoPage = () => {
             type="button"
             role="tab"
             aria-selected={mode === 'magic'}
-            className={`flex-1 py-2.5 text-xs font-mono uppercase tracking-wider cursor-pointer transition-colors ${
+            className={`flex-1 py-2.5 text-xs font-mono uppercase tracking-wider cursor-pointer ${adminTabPressable} ${
               mode === 'magic'
-                ? 'bg-[#7FB800] text-black'
+                ? 'bg-[#7FB800] text-black ring-2 ring-inset ring-black/20'
                 : 'bg-white text-gray-700 hover:bg-gray-100'
             }`}
             onClick={() => {
@@ -174,9 +181,9 @@ const IngresoPage = () => {
             type="button"
             role="tab"
             aria-selected={mode === 'password'}
-            className={`flex-1 py-2.5 text-xs font-mono uppercase tracking-wider border-l-2 border-black cursor-pointer transition-colors ${
+            className={`flex-1 py-2.5 text-xs font-mono uppercase tracking-wider border-l-2 border-black cursor-pointer ${adminTabPressable} ${
               mode === 'password'
-                ? 'bg-[#7FB800] text-black'
+                ? 'bg-[#7FB800] text-black ring-2 ring-inset ring-black/20'
                 : 'bg-white text-gray-700 hover:bg-gray-100'
             }`}
             onClick={() => {
@@ -216,7 +223,7 @@ const IngresoPage = () => {
               <button
                 type="submit"
                 disabled={sendingMagicLink}
-                className="w-full bg-black text-white border-2 border-black px-4 py-2 font-medium hover:bg-gray-800 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+                className={`w-full bg-black text-white border-2 border-black px-4 py-2 font-medium hover:bg-[#ff7e67] hover:text-black cursor-pointer disabled:cursor-not-allowed ${adminPressableFocus} ${adminLiftShadow} ${adminDisabled}`}
               >
                 {sendingMagicLink ? 'Enviando enlace…' : 'Enviar enlace al correo'}
               </button>
@@ -259,7 +266,7 @@ const IngresoPage = () => {
               <button
                 type="submit"
                 disabled={signingInPassword}
-                className="w-full bg-black text-white border-2 border-black px-4 py-2 font-medium hover:bg-gray-800 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+                className={`w-full bg-black text-white border-2 border-black px-4 py-2 font-medium hover:bg-[#ff7e67] hover:text-black cursor-pointer disabled:cursor-not-allowed ${adminPressableFocus} ${adminLiftShadow} ${adminDisabled}`}
               >
                 {signingInPassword ? 'Entrando…' : 'Entrar'}
               </button>

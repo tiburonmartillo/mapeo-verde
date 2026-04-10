@@ -1,9 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, Navigate } from 'react-router-dom';
+import { LogOut } from 'lucide-react';
 import { getSupabaseAuthClient } from '../../../lib/supabase/client';
 import type { Session } from '@supabase/supabase-js';
 import { resolveEventsModerator } from '../../../utils/auth/eventsModerator';
 import { sessionDisplayLabel } from '../../../utils/auth/adminPasswordSetup';
+import {
+  adminDisabled,
+  adminGhostPressable,
+  adminLiftShadow,
+  adminOutlinePressable,
+  adminPressableFocus,
+} from '../../../utils/adminButtonClasses';
 import {
   moderatorListAuthUsers,
   moderatorGrantEventsModerator,
@@ -151,7 +159,7 @@ const AdminModerationUsersPage = () => {
           </span>
           <Link
             to="/admin/cuenta"
-            className="text-xs font-medium underline text-black hover:text-[#ff7e67]"
+            className={`inline-flex items-center justify-center border-2 border-black bg-[#b4ff6f] px-4 py-2 text-sm font-bold uppercase tracking-wide text-black hover:bg-[#9adf55] ${adminPressableFocus} ${adminLiftShadow}`}
           >
             Mi cuenta
           </Link>
@@ -160,9 +168,10 @@ const AdminModerationUsersPage = () => {
           </span>
           <button
             type="button"
-            className="px-3 py-1.5 text-sm font-medium hover:underline cursor-pointer"
+            className={`inline-flex items-center justify-center gap-1 border border-gray-400 bg-white px-2.5 py-1.5 text-[11px] font-medium text-gray-600 cursor-pointer hover:border-gray-700 hover:bg-gray-50 hover:text-black ${adminGhostPressable}`}
             onClick={handleLogout}
           >
+            <LogOut className="size-3 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
             Cerrar sesión
           </button>
         </div>
@@ -198,14 +207,14 @@ const AdminModerationUsersPage = () => {
           </div>
           <button
             type="button"
-            className="bg-black text-white border-2 border-black px-4 py-2 font-medium hover:bg-gray-800 cursor-pointer"
+            className={`bg-black text-white border-2 border-black px-4 py-2 font-medium hover:bg-[#ff7e67] hover:text-black cursor-pointer ${adminPressableFocus} ${adminLiftShadow}`}
             onClick={() => setSearch(searchDraft)}
           >
             Buscar
           </button>
           <button
             type="button"
-            className="border-2 border-black px-4 py-2 font-medium hover:bg-gray-100 cursor-pointer"
+            className={`border-2 border-black px-4 py-2 font-medium hover:bg-gray-100 cursor-pointer ${adminOutlinePressable}`}
             onClick={() => {
               setSearchDraft('');
               setSearch('');
@@ -292,7 +301,7 @@ const AdminModerationUsersPage = () => {
                             type="button"
                             disabled={busy || isSelf}
                             title={isSelf ? 'No puedes quitarte a ti mismo este permiso desde aquí.' : undefined}
-                            className="text-xs font-mono uppercase border-2 border-black px-3 py-1.5 hover:bg-red-100 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
+                            className={`text-xs font-mono uppercase border-2 border-black px-3 py-1.5 hover:bg-red-100 cursor-pointer ${adminOutlinePressable} ${adminDisabled} disabled:cursor-not-allowed`}
                             onClick={() => void handleToggleModerator(row, false)}
                           >
                             {busy ? '…' : 'Quitar'}
@@ -301,7 +310,7 @@ const AdminModerationUsersPage = () => {
                           <button
                             type="button"
                             disabled={busy}
-                            className="text-xs font-mono uppercase border-2 border-black px-3 py-1.5 hover:bg-[#b4ff6f] disabled:opacity-40 cursor-pointer"
+                            className={`text-xs font-mono uppercase border-2 border-black px-3 py-1.5 hover:bg-[#b4ff6f] cursor-pointer ${adminOutlinePressable} ${adminDisabled}`}
                             onClick={() => void handleToggleModerator(row, true)}
                           >
                             {busy ? '…' : 'Añadir moderador'}

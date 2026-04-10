@@ -3,6 +3,12 @@ import { PasswordField } from '../../../components/common/PasswordField';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Session } from '@supabase/supabase-js';
 import { META_ADMIN_PASSWORD_DONE, META_SKIP_ADMIN_PASSWORD } from '../../../utils/auth/adminPasswordSetup';
+import {
+  adminDisabled,
+  adminLiftShadow,
+  adminOutlinePressable,
+  adminPressableFocus,
+} from '../../../utils/adminButtonClasses';
 
 type AdminPasswordSetupModalProps = {
   supabase: SupabaseClient;
@@ -68,7 +74,7 @@ export function AdminPasswordSetupModal({ supabase, session }: AdminPasswordSetu
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-4 py-8"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/35 px-4 py-8 backdrop-blur-[2px]"
       role="dialog"
       aria-modal="true"
       aria-labelledby="admin-password-setup-title"
@@ -119,7 +125,7 @@ export function AdminPasswordSetupModal({ supabase, session }: AdminPasswordSetu
           <button
             type="submit"
             disabled={saving || skipping}
-            className="w-full bg-black text-white border-2 border-black px-4 py-2 font-medium hover:bg-gray-800 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+            className={`w-full bg-black text-white border-2 border-black px-4 py-2 font-medium hover:bg-[#ff7e67] hover:text-black cursor-pointer disabled:cursor-not-allowed ${adminPressableFocus} ${adminLiftShadow} ${adminDisabled}`}
           >
             {saving ? 'Guardando…' : 'Guardar contraseña'}
           </button>
@@ -127,7 +133,7 @@ export function AdminPasswordSetupModal({ supabase, session }: AdminPasswordSetu
         <button
           type="button"
           disabled={saving || skipping}
-          className="mt-3 w-full text-center text-sm text-gray-700 underline hover:text-black disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+          className={`mt-3 w-full text-center text-sm text-gray-700 underline hover:text-black disabled:cursor-not-allowed py-2 rounded-sm ${adminOutlinePressable} ${adminDisabled}`}
           onClick={() => void handleSkip()}
         >
           {skipping ? 'Guardando preferencia…' : 'Seguir solo con enlace mágico por ahora'}

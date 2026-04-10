@@ -1,6 +1,8 @@
 -- =============================================================================
 -- FASE 1: Perfiles de organización, visibilidad, consentimientos y directorio.
 -- Ejecutar en Supabase → SQL Editor (después de auth/events existentes).
+-- La app edita estos datos en /admin/cuenta (OrganizationProfileForm).
+-- Logos: crear bucket organization_logos y ejecutar RUN_ORGANIZATION_LOGOS_STORAGE.sql.
 -- =============================================================================
 
 -- Nivel de visibilidad por campo (json field_visibility)

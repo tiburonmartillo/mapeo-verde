@@ -1,15 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { Link, Navigate } from 'react-router-dom';
+import { LogOut } from 'lucide-react';
 import { PasswordField } from '../../../components/common/PasswordField';
 import { getSupabaseAuthClient } from '../../../lib/supabase/client';
 import { META_DISPLAY_NAME, sessionDisplayLabel } from '../../../utils/auth/adminPasswordSetup';
+import { OrganizationProfileForm } from './OrganizationProfileForm';
+import {
+  adminAccountPrimaryButtonLayout,
+  adminDisabled,
+  adminGhostPressable,
+  adminLiftShadow,
+  adminPressableFocus,
+} from '../../../utils/adminButtonClasses';
 import type { Session } from '@supabase/supabase-js';
 
 const MIN_PASSWORD_LEN = 8;
 
 /**
- * Perfil mínimo: nombre para mostrar en metadata y cambio de contraseña.
- * El correo lo gestiona Supabase Auth; aquí solo se muestra.
+ * Cuenta: perfil de organización (tabla organization_profiles), datos de panel en metadata y contraseña.
  */
 const AdminAccountPage = () => {
   const supabase = getSupabaseAuthClient();
@@ -147,59 +155,70 @@ const AdminAccountPage = () => {
           </span>
           <button
             type="button"
-            className="px-3 py-1.5 text-sm font-medium hover:underline cursor-pointer"
+            className={`inline-flex items-center justify-center gap-1 border border-gray-400 bg-white px-2.5 py-1.5 text-[11px] font-medium text-gray-600 cursor-pointer hover:border-gray-700 hover:bg-gray-50 hover:text-black ${adminGhostPressable}`}
             onClick={handleLogout}
           >
+            <LogOut className="size-3 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
             Cerrar sesión
           </button>
         </div>
       </header>
 
-      <main className="max-w-lg mx-auto px-6 py-10 space-y-10">
+      <main className="admin-account-main mx-auto max-w-4xl px-6 py-12">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Tu perfil</h1>
-          <p className="text-sm text-gray-600 mt-2">
-            Estos datos son solo para tu sesión en el panel. El correo de acceso no se cambia desde aquí (hazlo
-            desde el equipo o el panel de Supabase si aplica).
+          <h1 className="text-2xl font-bold tracking-tight">Mi cuenta</h1>
+          <p className="text-sm text-gray-600 mt-2 max-w-2xl leading-relaxed">
+            Perfil público/comunidad de tu organización (directorio y visibilidad por campo), más ajustes solo del
+            panel. El correo de acceso a Supabase no se cambia aquí.
           </p>
         </div>
 
-        <section className="border-2 border-black bg-white p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-4">
-          <h2 className="font-mono text-xs uppercase tracking-widest text-gray-600">Correo</h2>
-          <p className="font-mono text-sm break-all">{session.user.email ?? '—'}</p>
+        <section className="border-2 border-black bg-white p-6 sm:p-8 md:p-10 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <h2 className="font-mono text-xs uppercase tracking-widest text-[#5b21b6] mb-6">
+            Perfil de organización
+          </h2>
+          <OrganizationProfileForm supabase={supabase} userId={session.user.id} authEmail={userEmail} />
         </section>
 
-        <section className="border-2 border-black bg-white p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-          <h2 className="font-mono text-xs uppercase tracking-widest text-gray-600 mb-4">Nombre para mostrar</h2>
-          <form onSubmit={handleSaveDisplayName} className="space-y-4">
-            <div>
-              <label htmlFor="account-display-name" className="block text-sm font-medium mb-1">
-                Cómo te mostramos en el panel (opcional)
-              </label>
-              <input
-                id="account-display-name"
-                type="text"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                className="w-full border-2 border-black px-3 py-2 bg-white"
-                placeholder="Ej. Mariana López"
-                maxLength={120}
-                autoComplete="name"
-              />
-            </div>
-            {nameError && <p className="text-sm text-red-600">{nameError}</p>}
-            {nameMessage && <p className="text-sm text-green-700">{nameMessage}</p>}
-            <button
-              type="submit"
-              disabled={savingName}
-              className="px-4 py-2 border-2 border-black bg-[#b4ff6f] font-bold text-sm uppercase tracking-wider hover:bg-[#ff7e67] hover:text-white disabled:opacity-50 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
-            >
-              {savingName ? 'Guardando…' : 'Guardar nombre'}
-            </button>
-          </form>
+        <section className="border-2 border-black bg-white p-6 sm:p-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <div className="space-y-4">
+            <h2 className="font-mono text-xs uppercase tracking-widest text-gray-600">Correo</h2>
+            <p className="font-mono text-sm break-all">{session.user.email ?? '—'}</p>
+          </div>
+          <div className="admin-account-mail-name-gap space-y-4">
+            <h2 className="font-mono text-xs uppercase tracking-widest text-gray-600">
+              Nombre en el panel
+            </h2>
+            <form onSubmit={handleSaveDisplayName} className="space-y-4">
+              <div>
+                <label htmlFor="account-display-name" className="block text-sm font-medium mb-1">
+                  Cómo te mostramos en el panel (opcional)
+                </label>
+                <input
+                  id="account-display-name"
+                  type="text"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  className="w-full border-2 border-black px-3 py-2 bg-white"
+                  placeholder="Ej. Mariana López"
+                  maxLength={120}
+                  autoComplete="name"
+                />
+              </div>
+              {nameError && <p className="text-sm text-red-600">{nameError}</p>}
+              {nameMessage && <p className="text-sm text-green-700">{nameMessage}</p>}
+              <button
+                type="submit"
+                disabled={savingName}
+                className={`${adminAccountPrimaryButtonLayout} bg-[#b4ff6f] text-black hover:bg-[#9adf55] ${adminPressableFocus} ${adminLiftShadow} ${adminDisabled}`}
+              >
+                {savingName ? 'Guardando…' : 'Guardar nombre'}
+              </button>
+            </form>
+          </div>
         </section>
 
-        <section className="border-2 border-black bg-white p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+        <section className="border-2 border-black bg-white p-6 sm:p-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
           <h2 className="font-mono text-xs uppercase tracking-widest text-gray-600 mb-2">Contraseña</h2>
           <p className="text-sm text-gray-600 mb-4">
             Si entraste solo con enlace mágico, aquí puedes definir o cambiar una contraseña para usar «Correo y
@@ -227,7 +246,7 @@ const AdminAccountPage = () => {
             <button
               type="submit"
               disabled={savingPassword}
-              className="px-4 py-2 border-2 border-black bg-black text-white font-bold text-sm uppercase tracking-wider hover:bg-[#ff7e67] disabled:opacity-50 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+              className={`${adminAccountPrimaryButtonLayout} bg-black text-white hover:bg-[#ff7e67] hover:text-black ${adminPressableFocus} ${adminLiftShadow} ${adminDisabled}`}
             >
               {savingPassword ? 'Actualizando…' : 'Actualizar contraseña'}
             </button>

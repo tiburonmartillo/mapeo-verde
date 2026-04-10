@@ -3309,3 +3309,44 @@ html {
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
 }
+
+/*
+ * Mi cuenta (AdminAccountPage / OrganizationProfileForm):
+ * El bundle Tailwind de este repo no escanea TS ni incluye todas las utilidades;
+ * gap-*/lg:w-1/4/mt-16/etc. no existían en el CSS y los cambios no se veían.
+ */
+.admin-account-main {
+  display: flex;
+  flex-direction: column;
+  gap: 3.5rem;
+}
+@media (width >= 40rem) {
+  .admin-account-main {
+    gap: 5rem;
+  }
+}
+@media (width >= 64rem) {
+  .admin-account-main {
+    gap: 6rem;
+  }
+}
+
+.admin-account-mail-name-gap {
+  margin-top: 3.5rem;
+}
+@media (width >= 40rem) {
+  .admin-account-mail-name-gap {
+    margin-top: 5rem;
+  }
+}
+
+.admin-account-primary-btn {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 4.25rem;
+}
+@media (width >= 64rem) {
+  .admin-account-primary-btn {
+    width: 25%;
+  }
+}

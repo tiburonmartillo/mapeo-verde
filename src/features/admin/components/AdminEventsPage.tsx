@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import EventLocationField from '../../shared/components/EventLocationField';
-import { EyeOff, Eye, Trash2 } from 'lucide-react';
+import { EyeOff, Eye, LogOut, Trash2 } from 'lucide-react';
 import { getSupabaseAuthClient } from '../../../lib/supabase/client';
 import {
   getEventsAll,
@@ -14,6 +14,14 @@ import {
 import type { EventInsert } from '../../../lib/supabase/types';
 import type { Session } from '@supabase/supabase-js';
 import { resolveEventsModerator } from '../../../utils/auth/eventsModerator';
+import {
+  adminDisabled,
+  adminGhostPressable,
+  adminLiftShadow,
+  adminOutlinePressable,
+  adminPressableFocus,
+  adminTabPressable,
+} from '../../../utils/adminButtonClasses';
 import {
   META_ADMIN_PASSWORD_DONE,
   sessionDisplayLabel,
@@ -205,7 +213,7 @@ const AdminEventForm: React.FC<AdminEventFormProps> = ({
       <div className="flex gap-2 justify-end">
         <button
           type="button"
-          className="border-2 border-black px-4 py-2 font-medium hover:bg-gray-100 cursor-pointer"
+          className={`border-2 border-black px-4 py-2 font-medium hover:bg-gray-100 cursor-pointer ${adminOutlinePressable}`}
           onClick={onCancel}
         >
           Cancelar
@@ -213,7 +221,7 @@ const AdminEventForm: React.FC<AdminEventFormProps> = ({
         <button
           type="submit"
           disabled={formSaving}
-          className="bg-black text-white border-2 border-black px-4 py-2 font-medium hover:bg-gray-800 disabled:opacity-50 cursor-pointer"
+          className={`bg-black text-white border-2 border-black px-4 py-2 font-medium hover:bg-[#ff7e67] hover:text-black cursor-pointer ${adminPressableFocus} ${adminLiftShadow} ${adminDisabled}`}
         >
           {formSaving ? 'Guardando...' : submitLabel}
         </button>
@@ -561,7 +569,7 @@ const AdminEventsPage = () => {
         <AdminPasswordSetupModal supabase={supabase} session={session} />
       ) : null}
     <div
-      className={`min-h-screen bg-[#f3f4f0] text-black ${showPasswordSetup ? 'pointer-events-none opacity-60' : ''}`}
+      className="min-h-screen bg-[#f3f4f0] text-black"
       aria-hidden={showPasswordSetup ? true : undefined}
     >
       <header className="border-b border-black bg-white px-6 py-4 flex flex-wrap items-center justify-between gap-4">
@@ -581,7 +589,7 @@ const AdminEventsPage = () => {
           </span>
           <Link
             to="/admin/cuenta"
-            className="text-xs font-medium underline text-black hover:text-[#ff7e67]"
+            className={`inline-flex items-center justify-center border-2 border-black bg-[#b4ff6f] px-4 py-2 text-sm font-bold uppercase tracking-wide text-black hover:bg-[#9adf55] ${adminPressableFocus} ${adminLiftShadow}`}
           >
             Mi cuenta
           </Link>
@@ -589,7 +597,7 @@ const AdminEventsPage = () => {
             <>
               <Link
                 to="/admin/usuarios"
-                className="text-xs font-mono uppercase tracking-wider border-2 border-amber-800 bg-amber-100 text-amber-900 px-2 py-1 hover:bg-amber-200"
+                className={`text-xs font-mono uppercase tracking-wider border-2 border-amber-800 bg-amber-100 text-amber-900 px-2 py-1 hover:bg-amber-200 ${adminPressableFocus} ${adminLiftShadow}`}
               >
                 Usuarios y permisos
               </Link>
@@ -600,9 +608,10 @@ const AdminEventsPage = () => {
           )}
           <button
             type="button"
-            className="px-3 py-1.5 text-sm font-medium hover:underline cursor-pointer"
+            className={`inline-flex items-center justify-center gap-1 border border-gray-400 bg-white px-2.5 py-1.5 text-[11px] font-medium text-gray-600 cursor-pointer hover:border-gray-700 hover:bg-gray-50 hover:text-black ${adminGhostPressable}`}
             onClick={handleLogout}
           >
+            <LogOut className="size-3 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
             Cerrar sesión
           </button>
         </div>
@@ -619,7 +628,7 @@ const AdminEventsPage = () => {
             </div>
             <button
               type="button"
-              className="bg-black text-white border-2 border-black px-4 py-2 font-medium hover:bg-gray-100 hover:text-black flex items-center gap-2 transition-transform hover:shadow-red-400 cursor-pointer"
+              className={`bg-black text-white border-2 border-black px-4 py-2 font-medium hover:bg-[#ff7e67] hover:text-black flex items-center gap-2 cursor-pointer ${adminPressableFocus} ${adminLiftShadow}`}
               onClick={openCreate}
             >
               <span>+ Nuevo evento</span>
@@ -630,9 +639,9 @@ const AdminEventsPage = () => {
               <button
                 type="button"
                 onClick={() => setActiveTab('past')}
-                className={`flex-1 min-w-[140px] px-3 py-3 text-sm font-mono font-bold uppercase tracking-wider border-2 transition-colors cursor-pointer ${
+                className={`flex-1 min-w-[140px] px-3 py-3 text-sm font-mono font-bold uppercase tracking-wider border-2 cursor-pointer ${adminTabPressable} ${
                   activeTab === 'past'
-                    ? 'bg-[#ff7e67] text-black border-black'
+                    ? 'bg-[#ff7e67] text-black border-black ring-2 ring-black ring-offset-2'
                     : 'bg-[#d89dff] text-black border-black hover:bg-[#b4ff6f]'
                 }`}
               >
@@ -641,9 +650,9 @@ const AdminEventsPage = () => {
               <button
                 type="button"
                 onClick={() => setActiveTab('active')}
-                className={`flex-1 min-w-[140px] px-3 py-3 text-sm font-mono font-bold uppercase tracking-wider border-2 transition-colors cursor-pointer ${
+                className={`flex-1 min-w-[140px] px-3 py-3 text-sm font-mono font-bold uppercase tracking-wider border-2 cursor-pointer ${adminTabPressable} ${
                   activeTab === 'active'
-                    ? 'bg-[#ff7e67] text-black border-black'
+                    ? 'bg-[#ff7e67] text-black border-black ring-2 ring-black ring-offset-2'
                     : 'bg-[#d89dff] text-black border-black hover:bg-[#b4ff6f]'
                 }`}
               >
@@ -653,9 +662,9 @@ const AdminEventsPage = () => {
                 <button
                   type="button"
                   onClick={() => setActiveTab('pending')}
-                  className={`flex-1 min-w-[140px] px-3 py-3 text-sm font-mono font-bold uppercase tracking-wider border-2 transition-colors cursor-pointer ${
+                  className={`flex-1 min-w-[140px] px-3 py-3 text-sm font-mono font-bold uppercase tracking-wider border-2 cursor-pointer ${adminTabPressable} ${
                     activeTab === 'pending'
-                      ? 'bg-[#ff7e67] text-black border-black'
+                      ? 'bg-[#ff7e67] text-black border-black ring-2 ring-black ring-offset-2'
                       : 'bg-[#d89dff] text-black border-black hover:bg-[#b4ff6f]'
                   }`}
                 >
@@ -727,7 +736,7 @@ const AdminEventsPage = () => {
                       <div className="flex gap-2 flex-wrap">
                         <button
                           type="button"
-                          className="text-gray-600 px-3 py-1.5 text-sm font-medium hover:bg-gray-200 disabled:opacity-50 flex items-center justify-cente rounded-full cursor-pointer"
+                          className={`text-gray-600 px-3 py-1.5 text-sm font-medium hover:bg-gray-200 disabled:opacity-50 flex items-center justify-center rounded-full cursor-pointer ${adminPressableFocus} ${adminOutlinePressable}`}
                           disabled={togglingVisibleId !== null}
                           onClick={() => handleToggleVisible(event)}
                           aria-label="Ocultar en agenda"
@@ -741,7 +750,7 @@ const AdminEventsPage = () => {
                         {moderator && event.source === 'participation' && (
                           <button
                             type="button"
-                            className="border-2 border-amber-700 text-amber-700 px-3 py-1.5 text-sm font-medium hover:bg-amber-50 cursor-pointer"
+                            className={`border-2 border-amber-700 text-amber-700 px-3 py-1.5 text-sm font-medium hover:bg-amber-50 cursor-pointer ${adminOutlinePressable}`}
                             onClick={() => handleUnpublish(event)}
                           >
                             Pasar a pendiente
@@ -749,14 +758,14 @@ const AdminEventsPage = () => {
                         )}
                         <button
                           type="button"
-                          className="border-2 border-black px-3 py-1.5 text-sm font-medium rounded-full bg-white text-black hover:text-white hover:bg-black cursor-pointer"
+                          className={`border-2 border-black px-3 py-1.5 text-sm font-medium rounded-full bg-white text-black hover:text-white hover:bg-black cursor-pointer ${adminPressableFocus} ${adminLiftShadow}`}
                           onClick={() => openEdit(event)}
                         >
                           Editar
                         </button>
                         <button
                           type="button"
-                          className="text-red-600 px-3 py-1.5 text-sm font-medium bg-pink-500 rounded-full flex items-center justify-center cursor-pointer hover:bg-red-600 hover:text-black"
+                          className={`text-red-600 px-3 py-1.5 text-sm font-medium bg-pink-500 rounded-full flex items-center justify-center cursor-pointer hover:bg-red-600 hover:text-black ${adminPressableFocus} ${adminOutlinePressable}`}
                           onClick={() => openDeleteConfirm(event.id)}
                           aria-label="Borrar evento"
                         >
@@ -767,14 +776,14 @@ const AdminEventsPage = () => {
                         <div className="w-full flex justify-end gap-2 mt-2">
                           <button
                             type="button"
-                            className="px-3 py-1 text-xs font-mono border border-black bg-white text-gray-800 rounded-full hover:bg-black hover:text-white cursor-pointer"
+                            className={`px-3 py-1 text-xs font-mono border border-black bg-white text-gray-800 rounded-full hover:bg-black hover:text-white cursor-pointer ${adminOutlinePressable}`}
                             onClick={() => setDeleteId(null)}
                           >
                             Cancelar
                           </button>
                           <button
                             type="button"
-                            className="px-3 py-1 text-xs font-mono border border-black rounded-full bg-[#dc2626] text-white hover:text-black hover:bg-[#ff7e67] cursor-pointer disabled:opacity-50"
+                            className={`px-3 py-1 text-xs font-mono border border-black rounded-full bg-[#dc2626] text-white hover:text-black hover:bg-[#ff7e67] cursor-pointer ${adminPressableFocus} ${adminOutlinePressable} ${adminDisabled}`}
                             disabled={deleting}
                             onClick={handleDelete}
                           >
@@ -833,7 +842,7 @@ const AdminEventsPage = () => {
                         <div className="flex gap-2 flex-wrap">
                           <button
                             type="button"
-                            className="border-2 border-green-700 text-green-700 px-3 py-1.5 text-sm font-medium hover:bg-green-50 disabled:opacity-50 flex items-center justify-center cursor-pointer"
+                            className={`border-2 border-green-700 text-green-700 px-3 py-1.5 text-sm font-medium hover:bg-green-50 disabled:opacity-50 flex items-center justify-center cursor-pointer ${adminOutlinePressable} ${adminDisabled}`}
                             disabled={togglingVisibleId !== null}
                             onClick={() => handleToggleVisible(event)}
                             aria-label="Mostrar en agenda"
@@ -847,7 +856,7 @@ const AdminEventsPage = () => {
                           {moderator && event.source === 'participation' && (
                             <button
                               type="button"
-                              className="border-2 border-amber-700 text-amber-700 px-3 py-1.5 text-sm font-medium hover:bg-amber-50 cursor-pointer"
+                              className={`border-2 border-amber-700 text-amber-700 px-3 py-1.5 text-sm font-medium hover:bg-amber-50 cursor-pointer ${adminOutlinePressable}`}
                               onClick={() => handleUnpublish(event)}
                             >
                               Pasar a pendiente
@@ -855,14 +864,14 @@ const AdminEventsPage = () => {
                           )}
                           <button
                             type="button"
-                            className="border-2 border-black px-3 py-1.5 text-sm font-medium hover:bg-gray-100 cursor-pointer"
+                            className={`border-2 border-black px-3 py-1.5 text-sm font-medium hover:bg-gray-100 cursor-pointer ${adminOutlinePressable}`}
                             onClick={() => openEdit(event)}
                           >
                             Editar
                           </button>
                           <button
                             type="button"
-                            className="border-2 border-red-600 text-red-600 px-3 py-1.5 text-sm font-medium rounded-full flex items-center justify-center cursor-pointer hover:bg-red-600 hover:text-white"
+                            className={`border-2 border-red-600 text-red-600 px-3 py-1.5 text-sm font-medium rounded-full flex items-center justify-center cursor-pointer hover:bg-red-600 hover:text-white ${adminPressableFocus} ${adminOutlinePressable}`}
                             onClick={() => openDeleteConfirm(event.id)}
                             aria-label="Borrar evento"
                           >
@@ -920,14 +929,14 @@ const AdminEventsPage = () => {
                       <div className="flex gap-2 flex-wrap">
                         <button
                           type="button"
-                          className="border-2 border-black px-3 py-1.5 text-sm font-medium hover:bg-gray-100 cursor-pointer"
+                          className={`border-2 border-black px-3 py-1.5 text-sm font-medium hover:bg-gray-100 cursor-pointer ${adminOutlinePressable}`}
                           onClick={() => openEdit(event)}
                         >
                           Editar
                         </button>
                         <button
                           type="button"
-                          className="border-2 border-red-600 text-red-600 px-3 py-1.5 text-sm font-medium rounded-full flex items-center justify-center cursor-pointer hover:bg-red-600 hover:text-white"
+                          className={`border-2 border-red-600 text-red-600 px-3 py-1.5 text-sm font-medium rounded-full flex items-center justify-center cursor-pointer hover:bg-red-600 hover:text-white ${adminPressableFocus} ${adminOutlinePressable}`}
                           onClick={() => openDeleteConfirm(event.id)}
                           aria-label="Borrar evento"
                         >
@@ -938,14 +947,14 @@ const AdminEventsPage = () => {
                         <div className="w-full flex justify-end gap-2 mt-2">
                           <button
                             type="button"
-                            className="px-3 py-1 text-xs font-mono border border-black bg-white text-gray-800 rounded-full hover:bg-gray-100 cursor-pointer"
+                            className={`px-3 py-1 text-xs font-mono border border-black bg-white text-gray-800 rounded-full hover:bg-gray-100 cursor-pointer ${adminOutlinePressable}`}
                             onClick={() => setDeleteId(null)}
                           >
                             Cancelar
                           </button>
                           <button
                             type="button"
-                            className="px-3 py-1 text-xs font-mono border border-black rounded-full bg-[#dc2626] text-white hover:text-black hover:bg-[#ff7e67] cursor-pointer disabled:opacity-50"
+                            className={`px-3 py-1 text-xs font-mono border border-black rounded-full bg-[#dc2626] text-white hover:text-black hover:bg-[#ff7e67] cursor-pointer ${adminPressableFocus} ${adminOutlinePressable} ${adminDisabled}`}
                             disabled={deleting}
                             onClick={handleDelete}
                           >
@@ -999,7 +1008,7 @@ const AdminEventsPage = () => {
                       <div className="flex gap-2 flex-wrap">
                         <button
                           type="button"
-                          className="border-2 border-green-700 text-green-700 px-3 py-1.5 text-sm font-medium hover:bg-green-100 disabled:opacity-50 cursor-pointer"
+                          className={`border-2 border-green-700 text-green-700 px-3 py-1.5 text-sm font-medium hover:bg-green-100 disabled:opacity-50 cursor-pointer ${adminOutlinePressable} ${adminDisabled}`}
                           disabled={publishingId !== null}
                           onClick={() => handlePublishPending(event)}
                         >
@@ -1007,14 +1016,14 @@ const AdminEventsPage = () => {
                         </button>
                         <button
                           type="button"
-                          className="border-2 border-black px-3 py-1.5 text-sm font-medium hover:bg-gray-100 cursor-pointer"
+                          className={`border-2 border-black px-3 py-1.5 text-sm font-medium hover:bg-gray-100 cursor-pointer ${adminOutlinePressable}`}
                           onClick={() => openEdit(event)}
                         >
                           Editar
                         </button>
                         <button
                           type="button"
-                          className="border-2 border-red-600 text-red-600 px-3 py-1.5 text-sm font-medium rounded-full flex items-center justify-center cursor-pointer hover:bg-red-600 hover:text-white"
+                          className={`border-2 border-red-600 text-red-600 px-3 py-1.5 text-sm font-medium rounded-full flex items-center justify-center cursor-pointer hover:bg-red-600 hover:text-white ${adminPressableFocus} ${adminOutlinePressable}`}
                           onClick={() => openDeleteConfirm(event.id)}
                           aria-label="Eliminar evento pendiente"
                         >
@@ -1025,14 +1034,14 @@ const AdminEventsPage = () => {
                         <div className="w-full flex justify-end gap-2 mt-2">
                           <button
                             type="button"
-                            className="px-3 py-1 text-xs font-mono border border-black bg-white text-gray-800 rounded-full hover:bg-gray-100 cursor-pointer"
+                            className={`px-3 py-1 text-xs font-mono border border-black bg-white text-gray-800 rounded-full hover:bg-gray-100 cursor-pointer ${adminOutlinePressable}`}
                             onClick={() => setDeleteId(null)}
                           >
                             Cancelar
                           </button>
                           <button
                             type="button"
-                            className="px-3 py-1 text-xs font-mono border border-black rounded-full bg-[#dc2626] text-white hover:text-black hover:bg-[#ff7e67] cursor-pointer disabled:opacity-50"
+                            className={`px-3 py-1 text-xs font-mono border border-black rounded-full bg-[#dc2626] text-white hover:text-black hover:bg-[#ff7e67] cursor-pointer ${adminPressableFocus} ${adminOutlinePressable} ${adminDisabled}`}
                             disabled={deleting}
                             onClick={handleDelete}
                           >
@@ -1085,7 +1094,7 @@ const AdminEventsPage = () => {
                   type="button"
                   onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                   disabled={safePage <= 1}
-                  className="border-2 border-black px-3 py-1.5 text-sm font-medium bg-white hover:bg-gray-100 disabled:opacity-50 cursor-pointer"
+                  className={`border-2 border-black px-3 py-1.5 text-sm font-medium bg-white hover:bg-gray-100 cursor-pointer ${adminOutlinePressable} ${adminDisabled}`}
                 >
                   Anterior
                 </button>
@@ -1096,7 +1105,7 @@ const AdminEventsPage = () => {
                   type="button"
                   onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                   disabled={safePage >= totalPages}
-                  className="border-2 border-black px-3 py-1.5 text-sm font-medium bg-white hover:bg-gray-100 disabled:opacity-50 cursor-pointer"
+                  className={`border-2 border-black px-3 py-1.5 text-sm font-medium bg-white hover:bg-gray-100 cursor-pointer ${adminOutlinePressable} ${adminDisabled}`}
                 >
                   Siguiente
                 </button>
