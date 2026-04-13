@@ -3,6 +3,7 @@ import { Link, Navigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import EventLocationField from '../../shared/components/EventLocationField';
 import { EyeOff, Eye, LogOut, Trash2 } from 'lucide-react';
+import { LogoMap } from '../../../components/common/LogoMap';
 import { getSupabaseAuthClient } from '../../../lib/supabase/client';
 import {
   getEventsAll,
@@ -19,6 +20,10 @@ import {
   adminGhostPressable,
   adminLiftShadow,
   adminOutlinePressable,
+  adminPageHeader,
+  adminPageHeaderActions,
+  adminPageHeaderBrand,
+  adminPageHeaderUser,
   adminPressableFocus,
   adminTabPressable,
 } from '../../../utils/adminButtonClasses';
@@ -572,24 +577,31 @@ const AdminEventsPage = () => {
       className="min-h-screen bg-[#f3f4f0] text-black"
       aria-hidden={showPasswordSetup ? true : undefined}
     >
-      <header className="border-b border-black bg-white px-6 py-4 flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <Link to="/" className="font-bold hover:underline">Mapeo Verde</Link>
+      <header className={adminPageHeader}>
+        <div className={adminPageHeaderBrand}>
+          <Link
+            to="/"
+            className="block h-8 w-auto shrink-0 aspect-[835/383] hover:opacity-90 focus-visible:rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+            aria-label="Mapeo Verde, inicio"
+          >
+            <LogoMap className="h-full w-full" />
+          </Link>
           <span className="text-gray-500 font-mono text-sm">/ Mis eventos</span>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs max-w-[240px] truncate" title={userEmail || undefined}>
+        <div className={adminPageHeaderActions}>
+          <div className={adminPageHeaderUser}>
             {displayLabel ? (
-              <>
-                <span className="font-medium text-black">{displayLabel}</span>
-                <span className="text-gray-500"> · </span>
-              </>
+              <span className="text-base font-semibold text-black leading-snug truncate w-full" title={displayLabel}>
+                {displayLabel}
+              </span>
             ) : null}
-            <span className="text-gray-500">{userEmail || '—'}</span>
-          </span>
+            <span className="text-xs text-gray-500 truncate w-full" title={userEmail || undefined}>
+              {userEmail || '—'}
+            </span>
+          </div>
           <Link
             to="/admin/cuenta"
-            className={`inline-flex items-center justify-center border-2 border-black bg-[#b4ff6f] px-4 py-2 text-sm font-bold uppercase tracking-wide text-black hover:bg-[#9adf55] ${adminPressableFocus} ${adminLiftShadow}`}
+            className={`inline-flex shrink-0 items-center justify-center border-2 border-black bg-[#b4ff6f] px-4 py-2 text-sm font-bold uppercase tracking-wide text-black hover:bg-[#9adf55] ${adminPressableFocus} ${adminLiftShadow}`}
           >
             Mi cuenta
           </Link>
@@ -597,11 +609,11 @@ const AdminEventsPage = () => {
             <>
               <Link
                 to="/admin/usuarios"
-                className={`text-xs font-mono uppercase tracking-wider border-2 border-amber-800 bg-amber-100 text-amber-900 px-2 py-1 hover:bg-amber-200 ${adminPressableFocus} ${adminLiftShadow}`}
+                className={`shrink-0 text-xs font-mono uppercase tracking-wider border-2 border-amber-800 bg-amber-100 text-amber-900 px-2 py-1 hover:bg-amber-200 ${adminPressableFocus} ${adminLiftShadow}`}
               >
                 Usuarios y permisos
               </Link>
-              <span className="text-[10px] font-mono uppercase tracking-wider text-amber-800 bg-amber-100 px-2 py-0.5 border border-amber-700">
+              <span className="shrink-0 text-[10px] font-mono uppercase tracking-wider text-amber-800 bg-amber-100 px-2 py-0.5 border border-amber-700">
                 Moderación
               </span>
             </>
@@ -612,15 +624,15 @@ const AdminEventsPage = () => {
             onClick={handleLogout}
           >
             <LogOut className="size-3 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
-            Cerrar sesión
+            Salir
           </button>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-6 py-8 space-y-12 relative">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-10 sm:space-y-12 relative">
         <section>
-          <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
-            <div>
+          <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between mb-4">
+            <div className="min-w-0">
               <h2 className="text-xl font-bold">Gestión de eventos</h2>
               {!moderator && (
                 <p className="text-sm text-gray-600 mt-1">Solo aparecen los que creaste con esta cuenta.</p>
@@ -628,7 +640,7 @@ const AdminEventsPage = () => {
             </div>
             <button
               type="button"
-              className={`bg-black text-white border-2 border-black px-4 py-2 font-medium hover:bg-[#ff7e67] hover:text-black flex items-center gap-2 cursor-pointer ${adminPressableFocus} ${adminLiftShadow}`}
+              className={`w-full sm:w-auto shrink-0 justify-center bg-black text-white border-2 border-black px-4 py-2.5 sm:py-2 font-medium hover:bg-[#ff7e67] hover:text-black inline-flex items-center gap-2 cursor-pointer ${adminPressableFocus} ${adminLiftShadow}`}
               onClick={openCreate}
             >
               <span>+ Nuevo evento</span>
@@ -639,7 +651,7 @@ const AdminEventsPage = () => {
               <button
                 type="button"
                 onClick={() => setActiveTab('past')}
-                className={`flex-1 min-w-[140px] px-3 py-3 text-sm font-mono font-bold uppercase tracking-wider border-2 cursor-pointer ${adminTabPressable} ${
+                className={`flex-1 min-w-[min(100%,9rem)] sm:min-w-[140px] px-3 py-3 text-sm font-mono font-bold uppercase tracking-wider border-2 cursor-pointer ${adminTabPressable} ${
                   activeTab === 'past'
                     ? 'bg-[#ff7e67] text-black border-black ring-2 ring-black ring-offset-2'
                     : 'bg-[#d89dff] text-black border-black hover:bg-[#b4ff6f]'
@@ -650,7 +662,7 @@ const AdminEventsPage = () => {
               <button
                 type="button"
                 onClick={() => setActiveTab('active')}
-                className={`flex-1 min-w-[140px] px-3 py-3 text-sm font-mono font-bold uppercase tracking-wider border-2 cursor-pointer ${adminTabPressable} ${
+                className={`flex-1 min-w-[min(100%,9rem)] sm:min-w-[140px] px-3 py-3 text-sm font-mono font-bold uppercase tracking-wider border-2 cursor-pointer ${adminTabPressable} ${
                   activeTab === 'active'
                     ? 'bg-[#ff7e67] text-black border-black ring-2 ring-black ring-offset-2'
                     : 'bg-[#d89dff] text-black border-black hover:bg-[#b4ff6f]'
@@ -662,7 +674,7 @@ const AdminEventsPage = () => {
                 <button
                   type="button"
                   onClick={() => setActiveTab('pending')}
-                  className={`flex-1 min-w-[140px] px-3 py-3 text-sm font-mono font-bold uppercase tracking-wider border-2 cursor-pointer ${adminTabPressable} ${
+                  className={`flex-1 min-w-[min(100%,9rem)] sm:min-w-[140px] px-3 py-3 text-sm font-mono font-bold uppercase tracking-wider border-2 cursor-pointer ${adminTabPressable} ${
                     activeTab === 'pending'
                       ? 'bg-[#ff7e67] text-black border-black ring-2 ring-black ring-offset-2'
                       : 'bg-[#d89dff] text-black border-black hover:bg-[#b4ff6f]'

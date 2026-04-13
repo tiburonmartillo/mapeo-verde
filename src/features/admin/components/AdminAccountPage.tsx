@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { LogOut } from 'lucide-react';
+import { LogoMap } from '../../../components/common/LogoMap';
 import { PasswordField } from '../../../components/common/PasswordField';
 import { getSupabaseAuthClient } from '../../../lib/supabase/client';
 import { META_DISPLAY_NAME, sessionDisplayLabel } from '../../../utils/auth/adminPasswordSetup';
@@ -10,6 +11,10 @@ import {
   adminDisabled,
   adminGhostPressable,
   adminLiftShadow,
+  adminPageHeader,
+  adminPageHeaderActions,
+  adminPageHeaderBrand,
+  adminPageHeaderUser,
   adminPressableFocus,
 } from '../../../utils/adminButtonClasses';
 import type { Session } from '@supabase/supabase-js';
@@ -133,38 +138,46 @@ const AdminAccountPage = () => {
 
   return (
     <div className="min-h-screen bg-[#f3f4f0] text-black">
-      <header className="border-b border-black bg-white px-6 py-4 flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-4 flex-wrap">
-          <Link to="/" className="font-bold hover:underline">
-            Mapeo Verde
+      <header className={adminPageHeader}>
+        <div className={adminPageHeaderBrand}>
+          <Link
+            to="/"
+            className="block h-8 w-auto shrink-0 aspect-[835/383] hover:opacity-90 focus-visible:rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+            aria-label="Mapeo Verde, inicio"
+          >
+            <LogoMap className="h-full w-full" />
           </Link>
           <span className="text-gray-500 font-mono text-sm">/ Mi cuenta</span>
-          <Link to="/admin" className="text-sm font-medium underline">
-            ← Eventos
-          </Link>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs max-w-[240px] truncate" title={userEmail || undefined}>
+        <div className={adminPageHeaderActions}>
+          <div className={adminPageHeaderUser}>
             {displayLabel ? (
-              <>
-                <span className="font-medium text-black">{displayLabel}</span>
-                <span className="text-gray-500"> · </span>
-              </>
+              <span className="text-base font-semibold text-black leading-snug truncate w-full" title={displayLabel}>
+                {displayLabel}
+              </span>
             ) : null}
-            <span className="text-gray-500">{userEmail || '—'}</span>
-          </span>
+            <span
+              className="text-xs text-gray-500 truncate w-full"
+              title={userEmail || undefined}
+            >
+              {userEmail || '—'}
+            </span>
+          </div>
           <button
             type="button"
             className={`inline-flex items-center justify-center gap-1 border border-gray-400 bg-white px-2.5 py-1.5 text-[11px] font-medium text-gray-600 cursor-pointer hover:border-gray-700 hover:bg-gray-50 hover:text-black ${adminGhostPressable}`}
             onClick={handleLogout}
           >
             <LogOut className="size-3 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
-            Cerrar sesión
+            Salir
           </button>
         </div>
       </header>
 
-      <main className="admin-account-main mx-auto max-w-4xl px-6 py-12">
+      <main className="admin-account-main mx-auto max-w-4xl px-4 sm:px-6 py-8 sm:py-12">
+        <Link to="/admin" className="text-sm font-medium underline inline-block mb-4">
+          ← Eventos
+        </Link>
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Mi cuenta</h1>
           <p className="text-sm text-gray-600 mt-2 max-w-2xl leading-relaxed">
@@ -180,7 +193,7 @@ const AdminAccountPage = () => {
           <OrganizationProfileForm supabase={supabase} userId={session.user.id} authEmail={userEmail} />
         </section>
 
-        <section className="border-2 border-black bg-white p-6 sm:p-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+        <section className="mt-8 mb-8 border-2 border-black bg-white p-6 sm:p-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
           <div className="space-y-4">
             <h2 className="font-mono text-xs uppercase tracking-widest text-gray-600">Correo</h2>
             <p className="font-mono text-sm break-all">{session.user.email ?? '—'}</p>

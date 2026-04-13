@@ -74,7 +74,7 @@ export function AdminPasswordSetupModal({ supabase, session }: AdminPasswordSetu
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/35 px-4 py-8 backdrop-blur-[2px]"
+      className="admin-password-setup-overlay fixed inset-0 z-[100] flex items-center justify-center px-4 py-8"
       role="dialog"
       aria-modal="true"
       aria-labelledby="admin-password-setup-title"

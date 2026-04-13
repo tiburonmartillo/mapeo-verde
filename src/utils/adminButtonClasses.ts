@@ -49,3 +49,19 @@ export const adminOutlinePressable =
  */
 export const adminAccountPrimaryButtonLayout =
   'admin-account-primary-btn inline-flex items-center justify-center px-8 py-4 text-sm font-bold uppercase tracking-widest border-2 border-black';
+
+/**
+ * Layout compartido del panel (/admin, /admin/cuenta, /admin/usuarios):
+ * en vista estrecha la marca y las acciones se apilan; evita solapamientos y mejora el wrap.
+ */
+export const adminPageHeader =
+  'border-b border-black bg-white px-4 sm:px-6 py-4 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between';
+
+export const adminPageHeaderBrand =
+  'flex min-w-0 items-center gap-3 sm:gap-4 flex-wrap';
+
+export const adminPageHeaderActions =
+  'flex w-full min-w-0 flex-wrap items-center justify-end gap-4 sm:gap-6 sm:w-auto sm:max-w-full';
+
+export const adminPageHeaderUser =
+  'flex min-w-0 max-w-full sm:max-w-[20rem] flex-col items-end gap-1.5 text-right';

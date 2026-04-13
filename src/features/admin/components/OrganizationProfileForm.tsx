@@ -173,7 +173,7 @@ function OrgAccordionPanel({
         id={headingId}
         aria-expanded={isOpen}
         aria-controls={panelId}
-        className="flex w-full items-center justify-between gap-4 px-6 py-5 sm:px-8 sm:py-5 text-left transition-colors duration-200 border-b-2 border-black bg-[#d89dff] text-black hover:bg-[#ff7e67] hover:text-white"
+        className="flex w-full items-center justify-between gap-3 sm:gap-4 px-4 py-5 sm:px-8 sm:py-5 text-left transition-colors duration-200 border-b-2 border-black bg-[#d89dff] text-black hover:bg-[#ff7e67] hover:text-white"
         onClick={onToggle}
       >
         <div className="min-w-0 flex-1">
@@ -194,7 +194,7 @@ function OrgAccordionPanel({
         hidden={!isOpen}
         className={isOpen ? 'block' : 'hidden'}
       >
-        <div className="px-6 pt-8 pb-14 sm:px-8 sm:pt-9 sm:pb-16">{children}</div>
+        <div className="px-4 pt-8 pb-14 sm:px-8 sm:pt-9 sm:pb-16">{children}</div>
       </div>
     </div>
   );

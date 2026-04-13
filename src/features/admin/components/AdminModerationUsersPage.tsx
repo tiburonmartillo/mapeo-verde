@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { LogOut } from 'lucide-react';
+import { LogoMap } from '../../../components/common/LogoMap';
 import { getSupabaseAuthClient } from '../../../lib/supabase/client';
 import type { Session } from '@supabase/supabase-js';
 import { resolveEventsModerator } from '../../../utils/auth/eventsModerator';
@@ -10,6 +11,10 @@ import {
   adminGhostPressable,
   adminLiftShadow,
   adminOutlinePressable,
+  adminPageHeader,
+  adminPageHeaderActions,
+  adminPageHeaderBrand,
+  adminPageHeaderUser,
   adminPressableFocus,
 } from '../../../utils/adminButtonClasses';
 import {
@@ -136,9 +141,15 @@ const AdminModerationUsersPage = () => {
 
   return (
     <div className="min-h-screen bg-[#f3f4f0] text-black">
-      <header className="border-b border-black bg-white px-6 py-4 flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-4 flex-wrap">
-          <Link to="/" className="font-bold hover:underline">Mapeo Verde</Link>
+      <header className={adminPageHeader}>
+        <div className={adminPageHeaderBrand}>
+          <Link
+            to="/"
+            className="block h-8 w-auto shrink-0 aspect-[835/383] hover:opacity-90 focus-visible:rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+            aria-label="Mapeo Verde, inicio"
+          >
+            <LogoMap className="h-full w-full" />
+          </Link>
           <span className="text-gray-500 font-mono text-sm">/ Usuarios y permisos</span>
           <Link
             to="/admin"
@@ -147,23 +158,24 @@ const AdminModerationUsersPage = () => {
             ← Eventos
           </Link>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs max-w-[240px] truncate" title={userEmail || undefined}>
+        <div className={adminPageHeaderActions}>
+          <div className={adminPageHeaderUser}>
             {displayLabel ? (
-              <>
-                <span className="font-medium text-black">{displayLabel}</span>
-                <span className="text-gray-500"> · </span>
-              </>
+              <span className="text-base font-semibold text-black leading-snug truncate w-full" title={displayLabel}>
+                {displayLabel}
+              </span>
             ) : null}
-            <span className="text-gray-500">{userEmail || '—'}</span>
-          </span>
+            <span className="text-xs text-gray-500 truncate w-full" title={userEmail || undefined}>
+              {userEmail || '—'}
+            </span>
+          </div>
           <Link
             to="/admin/cuenta"
-            className={`inline-flex items-center justify-center border-2 border-black bg-[#b4ff6f] px-4 py-2 text-sm font-bold uppercase tracking-wide text-black hover:bg-[#9adf55] ${adminPressableFocus} ${adminLiftShadow}`}
+            className={`inline-flex shrink-0 items-center justify-center border-2 border-black bg-[#b4ff6f] px-4 py-2 text-sm font-bold uppercase tracking-wide text-black hover:bg-[#9adf55] ${adminPressableFocus} ${adminLiftShadow}`}
           >
             Mi cuenta
           </Link>
-          <span className="text-[10px] font-mono uppercase tracking-wider text-amber-800 bg-amber-100 px-2 py-0.5 border border-amber-700">
+          <span className="shrink-0 text-[10px] font-mono uppercase tracking-wider text-amber-800 bg-amber-100 px-2 py-0.5 border border-amber-700">
             Moderación
           </span>
           <button
@@ -172,12 +184,12 @@ const AdminModerationUsersPage = () => {
             onClick={handleLogout}
           >
             <LogOut className="size-3 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
-            Cerrar sesión
+            Salir
           </button>
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-6 py-8 space-y-6">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
         <div>
           <h1 className="text-2xl font-bold">Usuarios y permisos</h1>
           <p className="text-sm text-gray-700 mt-2 max-w-2xl leading-relaxed">
@@ -186,8 +198,8 @@ const AdminModerationUsersPage = () => {
           </p>
         </div>
 
-        <div className="flex flex-wrap items-end gap-3 border-2 border-black bg-white p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-          <div className="flex-1 min-w-[200px]">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end border-2 border-black bg-white p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <div className="w-full min-w-0 flex-1 sm:min-w-[200px]">
             <label htmlFor="mod-user-search" className="block text-xs font-mono uppercase tracking-widest mb-1">
               Buscar por correo
             </label>
@@ -205,23 +217,25 @@ const AdminModerationUsersPage = () => {
               placeholder="fragmento del correo…"
             />
           </div>
-          <button
-            type="button"
-            className={`bg-black text-white border-2 border-black px-4 py-2 font-medium hover:bg-[#ff7e67] hover:text-black cursor-pointer ${adminPressableFocus} ${adminLiftShadow}`}
-            onClick={() => setSearch(searchDraft)}
-          >
-            Buscar
-          </button>
-          <button
-            type="button"
-            className={`border-2 border-black px-4 py-2 font-medium hover:bg-gray-100 cursor-pointer ${adminOutlinePressable}`}
-            onClick={() => {
-              setSearchDraft('');
-              setSearch('');
-            }}
-          >
-            Limpiar
-          </button>
+          <div className="flex w-full flex-wrap gap-3 sm:w-auto sm:justify-end">
+            <button
+              type="button"
+              className={`w-full sm:w-auto min-h-[44px] sm:min-h-0 bg-black text-white border-2 border-black px-4 py-2 font-medium hover:bg-[#ff7e67] hover:text-black cursor-pointer ${adminPressableFocus} ${adminLiftShadow}`}
+              onClick={() => setSearch(searchDraft)}
+            >
+              Buscar
+            </button>
+            <button
+              type="button"
+              className={`w-full sm:w-auto min-h-[44px] sm:min-h-0 border-2 border-black px-4 py-2 font-medium hover:bg-gray-100 cursor-pointer ${adminOutlinePressable}`}
+              onClick={() => {
+                setSearchDraft('');
+                setSearch('');
+              }}
+            >
+              Limpiar
+            </button>
+          </div>
         </div>
 
         {listError && (
