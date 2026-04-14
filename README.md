@@ -112,6 +112,43 @@
 
   ---
 
+  ## 🛡️ React performance + security scan
+
+  Este repositorio integra `react-perf-analyzer` para detectar anti-patrones de rendimiento y riesgos de seguridad en componentes React.
+
+  ### Instalación local del CLI
+
+  El scanner es un binario de Rust. Instálalo una vez:
+
+  ```bash
+  cargo install react-perf-analyzer
+  ```
+
+  ### Comandos disponibles
+
+  ```bash
+  npm run perf:scan      # escaneo completo con umbral high
+  npm run perf:changed   # solo archivos modificados (ideal pre-commit)
+  npm run perf:ci        # genera SARIF local: react-perf-results.sarif
+  npm run perf:baseline  # genera baseline: .sast-baseline.json
+  ```
+
+  ### Política inicial de severidad
+
+  - El proyecto inicia con `--fail-on high` en local y CI para bloquear solo riesgos importantes.
+  - Cuando el repositorio reduzca deuda técnica, se puede subir a `medium`.
+
+  ### Estrategia de baseline
+
+  - Decisión actual: **no commitear baseline al inicio** para observar el estado real del código.
+  - Si el ruido inicial es alto, generar `.sast-baseline.json` con `npm run perf:baseline` y versionarlo para fallar solo por regresiones nuevas.
+
+  ### CI en GitHub
+
+  El workflow [`/.github/workflows/react-perf-analyzer.yml`](.github/workflows/react-perf-analyzer.yml) corre en `pull_request` hacia `main` y publica resultados SARIF para anotaciones en PR/Security.
+
+  ---
+
   ## 🤝 Contribución
 
   - Usa TypeScript de forma estricta donde sea posible.

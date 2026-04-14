@@ -1,0 +1,26 @@
+name: React Perf Analyzer
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  react-perf-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: React performance and security scan
+        uses: rashvish18/react-perf-analyzer@v0.5
+        with:
+          path: './src'
+          fail-on: 'high'
+          upload-sarif: 'true'
