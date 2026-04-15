@@ -18,8 +18,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # La acción compuesta instala el binario vía `cargo install`; en ubuntu-latest no viene Rust por defecto.
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      # No existe el tag v0.5 en el repo de la acción; usar rama main (o un SHA fijo si se quiere pin).
       - name: React performance and security scan
-        uses: rashvish18/react-perf-analyzer@v0.5
+        uses: rashvish18/react-perf-analyzer@main
         with:
           path: './src'
           fail-on: 'high'
