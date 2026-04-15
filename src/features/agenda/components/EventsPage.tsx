@@ -401,6 +401,9 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
   const [shareNotification, setShareNotification] = useState<string | null>(null);
   const lastScrollYRef = useRef(0);
   const [cdmxTime, setCdmxTime] = useState<string>('');
+  const touchStartXRef = useRef(0);
+  const touchStartYRef = useRef(0);
+  const suppressDayTapUntilRef = useRef(0);
 
   // Función para obtener la hora de CDMX
   const getCdmxTime = useCallback(() => {
@@ -760,6 +763,47 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
     }, 150);
   }, [todayStr]);
 
+  const handleDaySelect = useCallback((date: string) => {
+    // Evita seleccionar por tap accidental tras un swipe horizontal.
+    if (Date.now() < suppressDayTapUntilRef.current) return;
+    setSelectedDate(date);
+  }, []);
+
+  const handleDaysTouchStart = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    const touch = e.touches[0];
+    if (!touch) return;
+    touchStartXRef.current = touch.clientX;
+    touchStartYRef.current = touch.clientY;
+  }, []);
+
+  const handleDaysTouchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    const touch = e.touches[0];
+    if (!touch) return;
+    const deltaX = touch.clientX - touchStartXRef.current;
+    const deltaY = touch.clientY - touchStartYRef.current;
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 12) {
+      e.preventDefault();
+    }
+  }, []);
+
+  const handleDaysTouchEnd = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    const touch = e.changedTouches[0];
+    if (!touch) return;
+
+    const deltaX = touch.clientX - touchStartXRef.current;
+    const deltaY = touch.clientY - touchStartYRef.current;
+    const isHorizontalSwipe = Math.abs(deltaX) > 56 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2;
+
+    if (!isHorizontalSwipe) return;
+
+    suppressDayTapUntilRef.current = Date.now() + 350;
+    if (deltaX < 0) {
+      goToNextMonth();
+    } else {
+      goToPreviousMonth();
+    }
+  }, [goToNextMonth, goToPreviousMonth]);
+
   // Centrar el día de hoy cuando se carga inicialmente o cuando se cambia a vista semanal
   useEffect(() => {
     if (viewMode === 'week' && scrollContainerRef.current) {
@@ -931,7 +975,14 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
             </div>
           </div>
 
-          <div ref={scrollContainerRef} className="overflow-x-auto scrollbar-hide w-full scroll-smooth [scrollbar-width:none] [-ms-overflow-style:none]" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          <div
+            ref={scrollContainerRef}
+            className="overflow-x-auto scrollbar-hide w-full scroll-smooth [scrollbar-width:none] [-ms-overflow-style:none]"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', touchAction: 'pan-x' }}
+            onTouchStart={handleDaysTouchStart}
+            onTouchMove={handleDaysTouchMove}
+            onTouchEnd={handleDaysTouchEnd}
+          >
             <div className="flex w-full">
               {visibleDays.map((day, index) => {
                 if (!day.date) {
@@ -951,7 +1002,7 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
                   <button
                     key={day.date}
                     ref={(el) => { if (el) selectedDayRefs.current[day.date] = el; }}
-                    onClick={() => setSelectedDate(day.date)}
+                    onClick={() => handleDaySelect(day.date)}
                     className={`flex-1 py-4 px-2 flex flex-col items-center justify-center border-r border-white/20 transition-colors relative min-w-0
                              ${isSelected ? 'bg-white text-black' : day.isToday ? 'bg-white/10' : 'hover:bg-zinc-800'}
                            `}

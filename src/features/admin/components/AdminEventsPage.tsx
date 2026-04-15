@@ -253,6 +253,12 @@ function buildIsoFromTimeRange(date: string, timeStr: string): { iso_start: stri
   };
 }
 
+function escapeCsvValue(value: unknown): string {
+  if (value === null || value === undefined) return '';
+  const stringValue = String(value).replace(/"/g, '""');
+  return `"${stringValue}"`;
+}
+
 const AdminEventsPage = () => {
   type AdminTab = 'past' | 'active' | 'pending';
   const PAGE_SIZE = 10;
@@ -552,6 +558,58 @@ const AdminEventsPage = () => {
     notifyEventsUpdated();
   };
 
+  const handleExportPublishedCsv = () => {
+    const rows = publishedEvents
+      .slice()
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .map((event) => [
+        event.id,
+        event.title,
+        event.date,
+        event.time,
+        event.location,
+        event.category,
+        event.visible === false ? 'no' : 'si',
+        event.status ?? 'published',
+        event.source ?? '',
+        event.contactName ?? '',
+        event.contactEmail ?? '',
+        event.image ?? '',
+        event.description ?? '',
+      ]);
+
+    const headers = [
+      'id',
+      'titulo',
+      'fecha',
+      'horario',
+      'ubicacion',
+      'categoria',
+      'visible',
+      'estatus',
+      'origen',
+      'contacto_nombre',
+      'contacto_email',
+      'imagen_url',
+      'descripcion',
+    ];
+
+    const csvContent = [headers, ...rows]
+      .map((row) => row.map((cell) => escapeCsvValue(cell)).join(','))
+      .join('\n');
+
+    const blob = new Blob([`\uFEFF${csvContent}`], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const dateStamp = new Date().toISOString().slice(0, 10);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `eventos-publicados-${dateStamp}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#f3f4f0] flex items-center justify-center">
@@ -638,13 +696,24 @@ const AdminEventsPage = () => {
                 <p className="text-sm text-gray-600 mt-1">Solo aparecen los que creaste con esta cuenta.</p>
               )}
             </div>
-            <button
-              type="button"
-              className={`w-full sm:w-auto shrink-0 justify-center bg-black text-white border-2 border-black px-4 py-2.5 sm:py-2 font-medium hover:bg-[#ff7e67] hover:text-black inline-flex items-center gap-2 cursor-pointer ${adminPressableFocus} ${adminLiftShadow}`}
-              onClick={openCreate}
-            >
-              <span>+ Nuevo evento</span>
-            </button>
+            <div className="flex w-full sm:w-auto flex-col sm:flex-row gap-2">
+              {moderator && (
+                <button
+                  type="button"
+                  className={`w-full sm:w-auto shrink-0 justify-center border-2 border-black bg-white px-4 py-2.5 sm:py-2 font-medium text-black hover:bg-[#b4ff6f] inline-flex items-center gap-2 cursor-pointer ${adminPressableFocus} ${adminOutlinePressable}`}
+                  onClick={handleExportPublishedCsv}
+                >
+                  <span>Exportar publicados (CSV)</span>
+                </button>
+              )}
+              <button
+                type="button"
+                className={`w-full sm:w-auto shrink-0 justify-center bg-black text-white border-2 border-black px-4 py-2.5 sm:py-2 font-medium hover:bg-[#ff7e67] hover:text-black inline-flex items-center gap-2 cursor-pointer ${adminPressableFocus} ${adminLiftShadow}`}
+                onClick={openCreate}
+              >
+                <span>+ Nuevo evento</span>
+              </button>
+            </div>
           </div>
           <div className="mt-8 mb-8">
             <div className="flex w-full flex-wrap border-2 border-black bg-[#eaf7da] p-2 gap-2">

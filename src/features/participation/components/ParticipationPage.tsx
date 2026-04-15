@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowDown } from 'lucide-react';
 import { getNavbarHeight } from '../../../utils/helpers/layoutHelpers';
+import { adminLiftShadow, adminPressableFocus } from '../../../utils/adminButtonClasses';
 import { getSupabaseClient } from '../../../lib/supabase';
 import { Map, Marker } from 'pigeon-maps';
 
@@ -133,6 +134,15 @@ const ParticipationPage = () => {
          style={{ paddingTop: isMobile ? `${navbarHeight + 48}px` : undefined }}
        >
           <div className="max-w-4xl mx-auto">
+              <div className="flex justify-end mb-8">
+                <Link
+                  to="/ingreso"
+                  className={`inline-flex items-center justify-center bg-black text-white border-2 border-black px-4 py-2.5 text-xs font-mono uppercase tracking-wider hover:bg-[#ff7e67] hover:text-black ${adminPressableFocus} ${adminLiftShadow}`}
+                  aria-label="Iniciar sesión para organizaciones"
+                >
+                  Iniciar sesión
+                </Link>
+              </div>
               <div className="flex flex-col md:flex-row items-start md:items-center gap-6 mb-12 border-b border-white/20 pb-8">
                 <div className="w-16 h-16 bg-[#d89dff] text-black flex items-center justify-center rounded-full shrink-0 border-2 border-black">
                     <ArrowDown size={32} strokeWidth={3} />
