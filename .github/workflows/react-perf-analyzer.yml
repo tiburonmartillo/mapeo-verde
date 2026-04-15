@@ -28,4 +28,7 @@ jobs:
         with:
           path: './src'
           fail-on: 'high'
+          # Sin baseline el CLI sale con error si hay *cualquier* hallazgo (cientos en src).
+          # El JSON en repo suprime lo conocido; CI falla solo si aparecen issues nuevos.
+          baseline: '.sast-baseline.json'
           upload-sarif: 'true'

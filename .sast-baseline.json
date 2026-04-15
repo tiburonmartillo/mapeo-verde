@@ -1,0 +1,3970 @@
+[
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onBack' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleBack = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/App.tsx",
+    "line": 141,
+    "column": 21,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onBack' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleBack = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/App.tsx",
+    "line": 154,
+    "column": 21,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onMouseEnter' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleMouseEnter = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/App.tsx",
+    "line": 178,
+    "column": 31,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onMouseLeave' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleMouseLeave = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/App.tsx",
+    "line": 179,
+    "column": 31,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onSelectArea' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleSelectArea = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/App.tsx",
+    "line": 189,
+    "column": 43,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onSelectImpact' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleSelectImpact = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/App.tsx",
+    "line": 207,
+    "column": 41,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onNavigate' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleNavigate = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/App.tsx",
+    "line": 231,
+    "column": 49,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'animate' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Animate = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/App.tsx",
+    "line": 41,
+    "column": 16,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'transition' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Transition = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/App.tsx",
+    "line": 45,
+    "column": 19,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'initial' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Initial = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/App.tsx",
+    "line": 53,
+    "column": 16,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'animate' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Animate = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/App.tsx",
+    "line": 54,
+    "column": 16,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'transition' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Transition = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/App.tsx",
+    "line": 55,
+    "column": 19,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/App.tsx",
+    "line": 230,
+    "column": 109,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/App.tsx",
+    "line": 232,
+    "column": 20,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'initial' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Initial = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/App.tsx",
+    "line": 236,
+    "column": 22,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'animate' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Animate = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/App.tsx",
+    "line": 237,
+    "column": 22,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'exit' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Exit = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/App.tsx",
+    "line": 238,
+    "column": 19,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'transition' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Transition = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/App.tsx",
+    "line": 239,
+    "column": 25,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/App.tsx",
+    "line": 240,
+    "column": 20,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_useless_memo",
+    "message": "`useCallback` with empty `[]` deps never recomputes — equivalent to a module-level function. Move the value outside the component to eliminate hook overhead.",
+    "file": "/workspaces/mapeo-verde/src/context/DataContext.ts",
+    "line": 67,
+    "column": 29,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_useless_memo",
+    "message": "`useCallback` with empty `[]` deps never recomputes — equivalent to a module-level function. Move the value outside the component to eliminate hook overhead.",
+    "file": "/workspaces/mapeo-verde/src/context/DataContext.ts",
+    "line": 94,
+    "column": 21,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/home/components/CtaSection.tsx",
+    "line": 19,
+    "column": 20,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'initial' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Initial = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/home/components/StatCircle.tsx",
+    "line": 14,
+    "column": 18,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'whileInView' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const WhileInView = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/home/components/StatCircle.tsx",
+    "line": 15,
+    "column": 22,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'transition' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Transition = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/home/components/StatCircle.tsx",
+    "line": 16,
+    "column": 21,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'initial' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Initial = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/home/components/StatCircle.tsx",
+    "line": 26,
+    "column": 18,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'whileInView' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const WhileInView = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/home/components/StatCircle.tsx",
+    "line": 27,
+    "column": 22,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'transition' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Transition = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/home/components/StatCircle.tsx",
+    "line": 28,
+    "column": 21,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/home/components/FeatureList.tsx",
+    "line": 53,
+    "column": 26,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onMouseEnter' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleMouseEnter = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/home/components/FeatureList.tsx",
+    "line": 75,
+    "column": 31,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onMouseLeave' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleMouseLeave = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/home/components/FeatureList.tsx",
+    "line": 76,
+    "column": 31,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onNavigate' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleNavigate = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/home/components/FeatureList.tsx",
+    "line": 77,
+    "column": 44,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_array_index_key",
+    "message": "Array index used as 'key' prop causes incorrect reconciliation when items are added, removed, or reordered. Use a stable unique ID from the data instead (e.g. `key={item.id}`).",
+    "file": "/workspaces/mapeo-verde/src/features/home/components/FeatureList.tsx",
+    "line": 49,
+    "column": 23,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/home/components/HeroSection.tsx",
+    "line": 153,
+    "column": 24,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/home/components/HeroSection.tsx",
+    "line": 162,
+    "column": 24,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/home/components/HeroSection.tsx",
+    "line": 83,
+    "column": 14,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'initial' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Initial = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/home/components/HeroSection.tsx",
+    "line": 87,
+    "column": 18,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'animate' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Animate = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/home/components/HeroSection.tsx",
+    "line": 88,
+    "column": 18,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'transition' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Transition = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/home/components/HeroSection.tsx",
+    "line": 89,
+    "column": 21,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/home/components/HeroSection.tsx",
+    "line": 91,
+    "column": 16,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'variants' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Variants = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/home/components/HeroSection.tsx",
+    "line": 98,
+    "column": 19,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'variants' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Variants = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/home/components/HeroSection.tsx",
+    "line": 113,
+    "column": 25,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'variants' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Variants = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/home/components/HeroSection.tsx",
+    "line": 122,
+    "column": 25,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'variants' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Variants = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/home/components/HeroSection.tsx",
+    "line": 133,
+    "column": 25,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'variants' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Variants = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/home/components/HeroSection.tsx",
+    "line": 144,
+    "column": 23,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'whileHover' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const WhileHover = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/home/components/HeroSection.tsx",
+    "line": 151,
+    "column": 27,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'whileTap' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const WhileTap = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/home/components/HeroSection.tsx",
+    "line": 152,
+    "column": 25,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'whileHover' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const WhileHover = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/home/components/HeroSection.tsx",
+    "line": 160,
+    "column": 27,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'whileTap' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const WhileTap = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/home/components/HeroSection.tsx",
+    "line": 161,
+    "column": 25,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'initial' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Initial = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/home/components/HeroSection.tsx",
+    "line": 174,
+    "column": 18,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'animate' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Animate = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/home/components/HeroSection.tsx",
+    "line": 175,
+    "column": 18,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'transition' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Transition = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/home/components/HeroSection.tsx",
+    "line": 176,
+    "column": 21,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/home/components/FeaturePreview.tsx",
+    "line": 49,
+    "column": 50,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/home/components/FeaturePreview.tsx",
+    "line": 90,
+    "column": 54,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onError' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleError = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/home/components/FeaturePreview.tsx",
+    "line": 105,
+    "column": 66,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'initial' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Initial = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/home/components/FeaturePreview.tsx",
+    "line": 31,
+    "column": 30,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'animate' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Animate = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/home/components/FeaturePreview.tsx",
+    "line": 32,
+    "column": 30,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'exit' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Exit = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/home/components/FeaturePreview.tsx",
+    "line": 33,
+    "column": 27,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'transition' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Transition = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/home/components/FeaturePreview.tsx",
+    "line": 34,
+    "column": 33,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_unsafe_href",
+    "message": "`src` prop is set from a dynamic expression — validate the URL to prevent open redirect or XSS",
+    "file": "/workspaces/mapeo-verde/src/features/home/components/FeaturePreview.tsx",
+    "line": 102,
+    "column": 62,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/newsletters/components/NewslettersPage.tsx",
+    "line": 292,
+    "column": 25,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/newsletters/components/NewslettersPage.tsx",
+    "line": 309,
+    "column": 25,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/newsletters/components/NewslettersPage.tsx",
+    "line": 318,
+    "column": 22,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/newsletters/components/NewslettersPage.tsx",
+    "line": 324,
+    "column": 22,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/newsletters/components/NewslettersPage.tsx",
+    "line": 355,
+    "column": 34,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleClick = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/newsletters/components/NewslettersPage.tsx",
+    "line": 382,
+    "column": 40,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/newsletters/components/NewslettersPage.tsx",
+    "line": 406,
+    "column": 30,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleClick = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/newsletters/components/NewslettersPage.tsx",
+    "line": 424,
+    "column": 93,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleClick = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/newsletters/components/NewslettersPage.tsx",
+    "line": 429,
+    "column": 36,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/newsletters/components/NewslettersPage.tsx",
+    "line": 450,
+    "column": 28,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/newsletters/components/NewslettersPage.tsx",
+    "line": 460,
+    "column": 28,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onBoundsChanged' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleBoundsChanged = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/newsletters/components/NewslettersPage.tsx",
+    "line": 482,
+    "column": 32,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/newsletters/components/NewslettersPage.tsx",
+    "line": 495,
+    "column": 30,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/newsletters/components/NewslettersPage.tsx",
+    "line": 249,
+    "column": 16,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/newsletters/components/NewslettersPage.tsx",
+    "line": 280,
+    "column": 16,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/newsletters/components/NewslettersPage.tsx",
+    "line": 472,
+    "column": 90,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Array literal in 'anchor' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Anchor = useMemo(() => [...], [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/newsletters/components/NewslettersPage.tsx",
+    "line": 493,
+    "column": 49,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Array literal in 'offset' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Offset = useMemo(() => [...], [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/newsletters/components/NewslettersPage.tsx",
+    "line": 493,
+    "column": 81,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/newsletters/components/NewslettersPage.tsx",
+    "line": 705,
+    "column": 153,
+    "severity": "medium"
+  },
+  {
+    "rule": "large_component",
+    "message": "Component 'NewslettersPage' is 714 lines (618 logical, 62 blank) — limit is 300. Render complexity: 131 JSX elements, 24 hooks. With 24 hooks and 131 JSX elements, this component has too many responsibilities. Extract each major UI section into its own sub-component, and consider a custom hook to consolidate related state.",
+    "file": "/workspaces/mapeo-verde/src/features/newsletters/components/NewslettersPage.tsx",
+    "line": 16,
+    "column": 25,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_array_index_key",
+    "message": "Array index used as 'key' prop causes incorrect reconciliation when items are added, removed, or reordered. Use a stable unique ID from the data instead (e.g. `key={item.id}`).",
+    "file": "/workspaces/mapeo-verde/src/features/newsletters/components/NewslettersPage.tsx",
+    "line": 269,
+    "column": 21,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_useless_memo",
+    "message": "`useCallback` with empty `[]` deps never recomputes — equivalent to a module-level function. Move the value outside the component to eliminate hook overhead.",
+    "file": "/workspaces/mapeo-verde/src/features/newsletters/components/NewslettersPage.tsx",
+    "line": 186,
+    "column": 31,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_useless_memo",
+    "message": "`useCallback` with empty `[]` deps never recomputes — equivalent to a module-level function. Move the value outside the component to eliminate hook overhead.",
+    "file": "/workspaces/mapeo-verde/src/features/newsletters/components/NewslettersPage.tsx",
+    "line": 203,
+    "column": 20,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_unsafe_href",
+    "message": "`href` prop is set from a dynamic expression — validate the URL to prevent open redirect or XSS",
+    "file": "/workspaces/mapeo-verde/src/features/newsletters/components/NewslettersPage.tsx",
+    "line": 645,
+    "column": 31,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminAccountPage.tsx",
+    "line": 214,
+    "column": 29,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminAccountPage.tsx",
+    "line": 247,
+    "column": 25,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminAccountPage.tsx",
+    "line": 255,
+    "column": 25,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminPasswordSetupModal.tsx",
+    "line": 101,
+    "column": 23,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminPasswordSetupModal.tsx",
+    "line": 115,
+    "column": 23,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminPasswordSetupModal.tsx",
+    "line": 137,
+    "column": 20,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 88,
+    "column": 21,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 103,
+    "column": 23,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 115,
+    "column": 25,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 129,
+    "column": 25,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 143,
+    "column": 19,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 152,
+    "column": 21,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 164,
+    "column": 21,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 185,
+    "column": 27,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 199,
+    "column": 23,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 722,
+    "column": 26,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 733,
+    "column": 26,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 745,
+    "column": 28,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onCancel' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleCancel = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 780,
+    "column": 35,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 822,
+    "column": 36,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 835,
+    "column": 38,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 843,
+    "column": 36,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 850,
+    "column": 36,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 861,
+    "column": 38,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleClick = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 885,
+    "column": 67,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onCancel' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleCancel = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 893,
+    "column": 41,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 928,
+    "column": 38,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 941,
+    "column": 40,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 949,
+    "column": 38,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 956,
+    "column": 38,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleClick = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 972,
+    "column": 69,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onCancel' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleCancel = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 980,
+    "column": 43,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 1014,
+    "column": 36,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 1021,
+    "column": 36,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 1032,
+    "column": 38,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleClick = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 1056,
+    "column": 67,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onCancel' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleCancel = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 1064,
+    "column": 41,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 1094,
+    "column": 36,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 1101,
+    "column": 36,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 1108,
+    "column": 36,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 1119,
+    "column": 38,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleClick = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 1143,
+    "column": 67,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onCancel' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleCancel = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 1152,
+    "column": 41,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 1176,
+    "column": 28,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 1187,
+    "column": 28,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'initial' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Initial = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 765,
+    "column": 30,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'animate' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Animate = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 766,
+    "column": 30,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'exit' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Exit = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 767,
+    "column": 27,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'transition' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Transition = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 768,
+    "column": 33,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'initial' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Initial = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 879,
+    "column": 36,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'animate' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Animate = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 880,
+    "column": 36,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'exit' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Exit = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 881,
+    "column": 33,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'transition' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Transition = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 882,
+    "column": 39,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'initial' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Initial = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 966,
+    "column": 38,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'animate' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Animate = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 967,
+    "column": 38,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'exit' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Exit = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 968,
+    "column": 35,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'transition' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Transition = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 969,
+    "column": 41,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'initial' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Initial = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 1050,
+    "column": 36,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'animate' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Animate = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 1051,
+    "column": 36,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'exit' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Exit = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 1052,
+    "column": 33,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'transition' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Transition = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 1053,
+    "column": 39,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'initial' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Initial = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 1137,
+    "column": 36,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'animate' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Animate = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 1138,
+    "column": 36,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'exit' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Exit = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 1139,
+    "column": 33,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'transition' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Transition = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 1140,
+    "column": 39,
+    "severity": "medium"
+  },
+  {
+    "rule": "large_component",
+    "message": "Component 'AdminEventsPage' is 941 lines (905 logical, 34 blank) — limit is 300. Render complexity: 137 JSX elements, 27 hooks. With 27 hooks and 137 JSX elements, this component has too many responsibilities. Extract each major UI section into its own sub-component, and consider a custom hook to consolidate related state.",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminEventsPage.tsx",
+    "line": 262,
+    "column": 25,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/OrganizationProfileForm.tsx",
+    "line": 132,
+    "column": 21,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onToggle' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleToggle = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/OrganizationProfileForm.tsx",
+    "line": 510,
+    "column": 21,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/OrganizationProfileForm.tsx",
+    "line": 520,
+    "column": 27,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/OrganizationProfileForm.tsx",
+    "line": 536,
+    "column": 31,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/OrganizationProfileForm.tsx",
+    "line": 546,
+    "column": 29,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/OrganizationProfileForm.tsx",
+    "line": 559,
+    "column": 31,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/OrganizationProfileForm.tsx",
+    "line": 568,
+    "column": 29,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/OrganizationProfileForm.tsx",
+    "line": 581,
+    "column": 31,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/OrganizationProfileForm.tsx",
+    "line": 590,
+    "column": 29,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/OrganizationProfileForm.tsx",
+    "line": 601,
+    "column": 27,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onToggle' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleToggle = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/OrganizationProfileForm.tsx",
+    "line": 615,
+    "column": 21,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/OrganizationProfileForm.tsx",
+    "line": 631,
+    "column": 33,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/OrganizationProfileForm.tsx",
+    "line": 639,
+    "column": 31,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/OrganizationProfileForm.tsx",
+    "line": 653,
+    "column": 33,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/OrganizationProfileForm.tsx",
+    "line": 661,
+    "column": 31,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/OrganizationProfileForm.tsx",
+    "line": 674,
+    "column": 33,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/OrganizationProfileForm.tsx",
+    "line": 683,
+    "column": 31,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/OrganizationProfileForm.tsx",
+    "line": 702,
+    "column": 33,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/OrganizationProfileForm.tsx",
+    "line": 711,
+    "column": 31,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/OrganizationProfileForm.tsx",
+    "line": 724,
+    "column": 33,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/OrganizationProfileForm.tsx",
+    "line": 733,
+    "column": 31,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/OrganizationProfileForm.tsx",
+    "line": 755,
+    "column": 34,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/OrganizationProfileForm.tsx",
+    "line": 779,
+    "column": 33,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/OrganizationProfileForm.tsx",
+    "line": 787,
+    "column": 34,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/OrganizationProfileForm.tsx",
+    "line": 809,
+    "column": 29,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/OrganizationProfileForm.tsx",
+    "line": 829,
+    "column": 37,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/OrganizationProfileForm.tsx",
+    "line": 839,
+    "column": 37,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/OrganizationProfileForm.tsx",
+    "line": 849,
+    "column": 36,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/OrganizationProfileForm.tsx",
+    "line": 867,
+    "column": 29,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleChange = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/OrganizationProfileForm.tsx",
+    "line": 897,
+    "column": 35,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/OrganizationProfileForm.tsx",
+    "line": 916,
+    "column": 31,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/OrganizationProfileForm.tsx",
+    "line": 934,
+    "column": 31,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/OrganizationProfileForm.tsx",
+    "line": 952,
+    "column": 31,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/OrganizationProfileForm.tsx",
+    "line": 970,
+    "column": 31,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/OrganizationProfileForm.tsx",
+    "line": 989,
+    "column": 33,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/OrganizationProfileForm.tsx",
+    "line": 1006,
+    "column": 31,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/OrganizationProfileForm.tsx",
+    "line": 1015,
+    "column": 33,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/OrganizationProfileForm.tsx",
+    "line": 1032,
+    "column": 31,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onToggle' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleToggle = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/OrganizationProfileForm.tsx",
+    "line": 1068,
+    "column": 21,
+    "severity": "medium"
+  },
+  {
+    "rule": "large_component",
+    "message": "Component 'OrganizationProfileForm' is 885 lines (857 logical, 28 blank) — limit is 300. Render complexity: 154 JSX elements, 36 hooks. With 36 hooks and 154 JSX elements, this component has too many responsibilities. Extract each major UI section into its own sub-component, and consider a custom hook to consolidate related state.",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/OrganizationProfileForm.tsx",
+    "line": 209,
+    "column": 8,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_array_index_key",
+    "message": "Array index used as 'key' prop causes incorrect reconciliation when items are added, removed, or reordered. Use a stable unique ID from the data instead (e.g. `key={item.id}`).",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/OrganizationProfileForm.tsx",
+    "line": 822,
+    "column": 28,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_unsafe_href",
+    "message": "`src` prop is set from a dynamic expression — validate the URL to prevent open redirect or XSS",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/OrganizationProfileForm.tsx",
+    "line": 748,
+    "column": 30,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminRegisterPage.tsx",
+    "line": 108,
+    "column": 22,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminRegisterPage.tsx",
+    "line": 150,
+    "column": 25,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/IngresoPage.tsx",
+    "line": 141,
+    "column": 22,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/IngresoPage.tsx",
+    "line": 173,
+    "column": 22,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/IngresoPage.tsx",
+    "line": 189,
+    "column": 22,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminModerationUsersPage.tsx",
+    "line": 210,
+    "column": 25,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onKeyDown' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleKeyDown = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminModerationUsersPage.tsx",
+    "line": 211,
+    "column": 26,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminModerationUsersPage.tsx",
+    "line": 224,
+    "column": 24,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminModerationUsersPage.tsx",
+    "line": 231,
+    "column": 24,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminModerationUsersPage.tsx",
+    "line": 319,
+    "column": 38,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminModerationUsersPage.tsx",
+    "line": 328,
+    "column": 38,
+    "severity": "medium"
+  },
+  {
+    "rule": "large_component",
+    "message": "Component 'AdminModerationUsersPage' is 318 lines (301 logical, 17 blank) — limit is 300. Render complexity: 65 JSX elements, 14 hooks. With 14 hooks and 65 JSX elements, this component has too many responsibilities. Extract each major UI section into its own sub-component, and consider a custom hook to consolidate related state.",
+    "file": "/workspaces/mapeo-verde/src/features/admin/components/AdminModerationUsersPage.tsx",
+    "line": 27,
+    "column": 34,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onError' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleError = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/linktree/components/LinktreePage.tsx",
+    "line": 172,
+    "column": 24,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onLoad' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleLoad = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/linktree/components/LinktreePage.tsx",
+    "line": 173,
+    "column": 23,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'initial' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Initial = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/linktree/components/LinktreePage.tsx",
+    "line": 68,
+    "column": 18,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'animate' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Animate = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/linktree/components/LinktreePage.tsx",
+    "line": 69,
+    "column": 18,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'transition' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Transition = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/linktree/components/LinktreePage.tsx",
+    "line": 70,
+    "column": 21,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/linktree/components/LinktreePage.tsx",
+    "line": 72,
+    "column": 16,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'initial' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Initial = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/linktree/components/LinktreePage.tsx",
+    "line": 76,
+    "column": 18,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'animate' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Animate = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/linktree/components/LinktreePage.tsx",
+    "line": 77,
+    "column": 18,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'transition' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Transition = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/linktree/components/LinktreePage.tsx",
+    "line": 78,
+    "column": 21,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/linktree/components/LinktreePage.tsx",
+    "line": 80,
+    "column": 16,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'initial' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Initial = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/linktree/components/LinktreePage.tsx",
+    "line": 84,
+    "column": 20,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'animate' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Animate = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/linktree/components/LinktreePage.tsx",
+    "line": 85,
+    "column": 20,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'transition' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Transition = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/linktree/components/LinktreePage.tsx",
+    "line": 86,
+    "column": 23,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'initial' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Initial = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/linktree/components/LinktreePage.tsx",
+    "line": 96,
+    "column": 20,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'animate' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Animate = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/linktree/components/LinktreePage.tsx",
+    "line": 97,
+    "column": 20,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'transition' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Transition = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/linktree/components/LinktreePage.tsx",
+    "line": 98,
+    "column": 23,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'initial' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Initial = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/linktree/components/LinktreePage.tsx",
+    "line": 116,
+    "column": 26,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'animate' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Animate = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/linktree/components/LinktreePage.tsx",
+    "line": 117,
+    "column": 26,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'transition' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Transition = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/linktree/components/LinktreePage.tsx",
+    "line": 118,
+    "column": 29,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'whileHover' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const WhileHover = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/linktree/components/LinktreePage.tsx",
+    "line": 119,
+    "column": 29,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'whileTap' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const WhileTap = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/linktree/components/LinktreePage.tsx",
+    "line": 120,
+    "column": 27,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'initial' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Initial = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/linktree/components/LinktreePage.tsx",
+    "line": 142,
+    "column": 20,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'animate' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Animate = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/linktree/components/LinktreePage.tsx",
+    "line": 143,
+    "column": 20,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'transition' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Transition = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/linktree/components/LinktreePage.tsx",
+    "line": 144,
+    "column": 23,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/linktree/components/LinktreePage.tsx",
+    "line": 164,
+    "column": 22,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_unsafe_href",
+    "message": "`href` prop is set from a dynamic expression — validate the URL to prevent open redirect or XSS",
+    "file": "/workspaces/mapeo-verde/src/features/linktree/components/LinktreePage.tsx",
+    "line": 113,
+    "column": 23,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_unsafe_href",
+    "message": "`src` prop is set from a dynamic expression — validate the URL to prevent open redirect or XSS",
+    "file": "/workspaces/mapeo-verde/src/features/linktree/components/LinktreePage.tsx",
+    "line": 126,
+    "column": 26,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_unsafe_href",
+    "message": "`href` prop is set from a dynamic expression — validate the URL to prevent open redirect or XSS",
+    "file": "/workspaces/mapeo-verde/src/features/linktree/components/LinktreePage.tsx",
+    "line": 152,
+    "column": 23,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_unsafe_href",
+    "message": "`src` prop is set from a dynamic expression — validate the URL to prevent open redirect or XSS",
+    "file": "/workspaces/mapeo-verde/src/features/linktree/components/LinktreePage.tsx",
+    "line": 163,
+    "column": 20,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/shared/components/EventLocationField.tsx",
+    "line": 123,
+    "column": 21,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/shared/components/EventLocationField.tsx",
+    "line": 138,
+    "column": 26,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'provider' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useCallback",
+    "file": "/workspaces/mapeo-verde/src/features/shared/components/EventLocationField.tsx",
+    "line": 156,
+    "column": 21,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onBoundsChanged' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleBoundsChanged = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/shared/components/EventLocationField.tsx",
+    "line": 157,
+    "column": 28,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleClick = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/shared/components/EventLocationField.tsx",
+    "line": 161,
+    "column": 20,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/gazettes/components/GazettesPage.tsx",
+    "line": 198,
+    "column": 25,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/gazettes/components/GazettesPage.tsx",
+    "line": 214,
+    "column": 25,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/gazettes/components/GazettesPage.tsx",
+    "line": 222,
+    "column": 22,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/gazettes/components/GazettesPage.tsx",
+    "line": 228,
+    "column": 22,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/gazettes/components/GazettesPage.tsx",
+    "line": 258,
+    "column": 34,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleClick = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/gazettes/components/GazettesPage.tsx",
+    "line": 280,
+    "column": 40,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/gazettes/components/GazettesPage.tsx",
+    "line": 305,
+    "column": 30,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleClick = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/gazettes/components/GazettesPage.tsx",
+    "line": 325,
+    "column": 93,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleClick = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/gazettes/components/GazettesPage.tsx",
+    "line": 327,
+    "column": 36,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/gazettes/components/GazettesPage.tsx",
+    "line": 349,
+    "column": 28,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/gazettes/components/GazettesPage.tsx",
+    "line": 359,
+    "column": 28,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/gazettes/components/GazettesPage.tsx",
+    "line": 156,
+    "column": 16,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/gazettes/components/GazettesPage.tsx",
+    "line": 187,
+    "column": 16,
+    "severity": "medium"
+  },
+  {
+    "rule": "large_component",
+    "message": "Component 'GazettesPage' is 454 lines (406 logical, 37 blank) — limit is 300. Render complexity: 110 JSX elements, 16 hooks. With 16 hooks and 110 JSX elements, this component has too many responsibilities. Extract each major UI section into its own sub-component, and consider a custom hook to consolidate related state.",
+    "file": "/workspaces/mapeo-verde/src/features/gazettes/components/GazettesPage.tsx",
+    "line": 8,
+    "column": 22,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_array_index_key",
+    "message": "Array index used as 'key' prop causes incorrect reconciliation when items are added, removed, or reordered. Use a stable unique ID from the data instead (e.g. `key={item.id}`).",
+    "file": "/workspaces/mapeo-verde/src/features/gazettes/components/GazettesPage.tsx",
+    "line": 176,
+    "column": 21,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_useless_memo",
+    "message": "`useCallback` with empty `[]` deps never recomputes — equivalent to a module-level function. Move the value outside the component to eliminate hook overhead.",
+    "file": "/workspaces/mapeo-verde/src/features/gazettes/components/GazettesPage.tsx",
+    "line": 140,
+    "column": 31,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onError' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleError = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 31,
+    "column": 20,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleClick = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 140,
+    "column": 20,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 218,
+    "column": 30,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 234,
+    "column": 30,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 573,
+    "column": 20,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 583,
+    "column": 20,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'ref' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useCallback",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1004,
+    "column": 26,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1005,
+    "column": 30,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1086,
+    "column": 36,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onKeyDown' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleKeyDown = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1087,
+    "column": 38,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleClick = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1100,
+    "column": 93,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleClick = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1106,
+    "column": 42,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onKeyDown' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleKeyDown = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1110,
+    "column": 44,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1162,
+    "column": 40,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onError' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleError = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1212,
+    "column": 54,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleClick = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1227,
+    "column": 52,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleClick = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1238,
+    "column": 52,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1408,
+    "column": 24,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onAnimationComplete' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleAnimationComplete = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1417,
+    "column": 38,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1428,
+    "column": 26,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleClick = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1431,
+    "column": 28,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1439,
+    "column": 30,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onAnimationComplete' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleAnimationComplete = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1492,
+    "column": 38,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1503,
+    "column": 26,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleClick = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1506,
+    "column": 28,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1510,
+    "column": 30,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'dangerouslySetInnerHTML' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const DangerouslySetInnerHTML = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 112,
+    "column": 32,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 900,
+    "column": 87,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 908,
+    "column": 16,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 952,
+    "column": 18,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 981,
+    "column": 20,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1009,
+    "column": 42,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1011,
+    "column": 25,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1030,
+    "column": 20,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1056,
+    "column": 99,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1057,
+    "column": 57,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1061,
+    "column": 73,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1130,
+    "column": 79,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1137,
+    "column": 62,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1139,
+    "column": 64,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'initial' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Initial = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1145,
+    "column": 40,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'animate' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Animate = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1146,
+    "column": 40,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'whileHover' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const WhileHover = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1151,
+    "column": 43,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1156,
+    "column": 38,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1165,
+    "column": 111,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1166,
+    "column": 90,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1180,
+    "column": 162,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1184,
+    "column": 144,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1186,
+    "column": 126,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1190,
+    "column": 73,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'initial' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Initial = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1199,
+    "column": 46,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'animate' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Animate = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1200,
+    "column": 46,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'exit' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Exit = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1201,
+    "column": 43,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'transition' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Transition = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1202,
+    "column": 49,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1203,
+    "column": 44,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1221,
+    "column": 96,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1228,
+    "column": 50,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1239,
+    "column": 50,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'initial' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Initial = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1282,
+    "column": 28,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'animate' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Animate = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1283,
+    "column": 28,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1322,
+    "column": 75,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1328,
+    "column": 34,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1338,
+    "column": 34,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1392,
+    "column": 20,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1403,
+    "column": 22,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'animate' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Animate = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1406,
+    "column": 24,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'transition' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Transition = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1407,
+    "column": 27,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'initial' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Initial = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1414,
+    "column": 26,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'animate' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Animate = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1415,
+    "column": 26,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'transition' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Transition = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1416,
+    "column": 29,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1427,
+    "column": 24,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1433,
+    "column": 26,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'initial' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Initial = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1489,
+    "column": 26,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'animate' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Animate = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1490,
+    "column": 26,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'transition' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Transition = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1491,
+    "column": 29,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1502,
+    "column": 24,
+    "severity": "medium"
+  },
+  {
+    "rule": "large_component",
+    "message": "Component 'EventsPage' is 1312 lines (1127 logical, 116 blank) — limit is 300. Render complexity: 201 JSX elements, 46 hooks. With 46 hooks and 201 JSX elements, this component has too many responsibilities. Extract each major UI section into its own sub-component, and consider a custom hook to consolidate related state.",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 251,
+    "column": 20,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_array_index_key",
+    "message": "Array index used as 'key' prop causes incorrect reconciliation when items are added, removed, or reordered. Use a stable unique ID from the data instead (e.g. `key={item.id}`).",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 991,
+    "column": 37,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_array_index_key",
+    "message": "Array index used as 'key' prop causes incorrect reconciliation when items are added, removed, or reordered. Use a stable unique ID from the data instead (e.g. `key={item.id}`).",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1070,
+    "column": 42,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_component_in_component",
+    "message": "Component `EventsViewHeader` is defined inside another component. React creates a new component type on every render, causing the subtree to unmount and remount. Move `EventsViewHeader` outside the parent component.",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 563,
+    "column": 61,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_useless_memo",
+    "message": "`useCallback` with empty `[]` deps never recomputes — equivalent to a module-level function. Move the value outside the component to eliminate hook overhead.",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 263,
+    "column": 26,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_useless_memo",
+    "message": "`useCallback` with empty `[]` deps never recomputes — equivalent to a module-level function. Move the value outside the component to eliminate hook overhead.",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 288,
+    "column": 24,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_useless_memo",
+    "message": "`useCallback` with empty `[]` deps never recomputes — equivalent to a module-level function. Move the value outside the component to eliminate hook overhead.",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 409,
+    "column": 23,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_useless_memo",
+    "message": "`useCallback` with empty `[]` deps never recomputes — equivalent to a module-level function. Move the value outside the component to eliminate hook overhead.",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 766,
+    "column": 27,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_useless_memo",
+    "message": "`useCallback` with empty `[]` deps never recomputes — equivalent to a module-level function. Move the value outside the component to eliminate hook overhead.",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 772,
+    "column": 32,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_useless_memo",
+    "message": "`useCallback` with empty `[]` deps never recomputes — equivalent to a module-level function. Move the value outside the component to eliminate hook overhead.",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 779,
+    "column": 31,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_unsafe_href",
+    "message": "`src` prop is set from a dynamic expression — validate the URL to prevent open redirect or XSS",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 28,
+    "column": 16,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_unsafe_href",
+    "message": "`src` prop is set from a dynamic expression — validate the URL to prevent open redirect or XSS",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 170,
+    "column": 24,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_unsafe_href",
+    "message": "`href` prop is set from a dynamic expression — validate the URL to prevent open redirect or XSS",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 209,
+    "column": 27,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_unsafe_href",
+    "message": "`href` prop is set from a dynamic expression — validate the URL to prevent open redirect or XSS",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 225,
+    "column": 27,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_unsafe_href",
+    "message": "`src` prop is set from a dynamic expression — validate the URL to prevent open redirect or XSS",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1209,
+    "column": 50,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_unsafe_href",
+    "message": "`href` prop is set from a dynamic expression — validate the URL to prevent open redirect or XSS",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1223,
+    "column": 49,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_unsafe_href",
+    "message": "`href` prop is set from a dynamic expression — validate the URL to prevent open redirect or XSS",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1234,
+    "column": 49,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_unsafe_href",
+    "message": "`href` prop is set from a dynamic expression — validate the URL to prevent open redirect or XSS",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1324,
+    "column": 33,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_unsafe_href",
+    "message": "`href` prop is set from a dynamic expression — validate the URL to prevent open redirect or XSS",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1334,
+    "column": 33,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_unsafe_href",
+    "message": "`src` prop is set from a dynamic expression — validate the URL to prevent open redirect or XSS",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1447,
+    "column": 35,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_unsafe_href",
+    "message": "`href` prop is set from a dynamic expression — validate the URL to prevent open redirect or XSS",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1473,
+    "column": 36,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_unsafe_href",
+    "message": "`href` prop is set from a dynamic expression — validate the URL to prevent open redirect or XSS",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1476,
+    "column": 36,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_unsafe_href",
+    "message": "`src` prop is set from a dynamic expression — validate the URL to prevent open redirect or XSS",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1518,
+    "column": 35,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_unsafe_href",
+    "message": "`href` prop is set from a dynamic expression — validate the URL to prevent open redirect or XSS",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1544,
+    "column": 36,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_unsafe_href",
+    "message": "`href` prop is set from a dynamic expression — validate the URL to prevent open redirect or XSS",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 1547,
+    "column": 36,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_dangerously_set_inner_html_unescaped",
+    "message": "Raw expression in `dangerouslySetInnerHTML.__html` — sanitise with DOMPurify.sanitize() to prevent XSS",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/EventsPage.tsx",
+    "line": 112,
+    "column": 42,
+    "severity": "critical"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onError' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleError = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/ImpactDetailPage.tsx",
+    "line": 127,
+    "column": 23,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/ImpactDetailPage.tsx",
+    "line": 222,
+    "column": 36,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/ImpactDetailPage.tsx",
+    "line": 368,
+    "column": 26,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleClick = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/ImpactDetailPage.tsx",
+    "line": 372,
+    "column": 28,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleClick = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/ImpactDetailPage.tsx",
+    "line": 376,
+    "column": 30,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleClick = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/ImpactDetailPage.tsx",
+    "line": 390,
+    "column": 32,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleClick = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/ImpactDetailPage.tsx",
+    "line": 405,
+    "column": 32,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleClick = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/ImpactDetailPage.tsx",
+    "line": 427,
+    "column": 30,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/ImpactDetailPage.tsx",
+    "line": 133,
+    "column": 98,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Array literal in 'remarkPlugins' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const RemarkPlugins = useMemo(() => [...], [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/ImpactDetailPage.tsx",
+    "line": 166,
+    "column": 34,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Array literal in 'rehypePlugins' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const RehypePlugins = useMemo(() => [...], [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/ImpactDetailPage.tsx",
+    "line": 167,
+    "column": 34,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'components' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Components = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/ImpactDetailPage.tsx",
+    "line": 168,
+    "column": 31,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Array literal in 'remarkPlugins' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const RemarkPlugins = useMemo(() => [...], [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/ImpactDetailPage.tsx",
+    "line": 264,
+    "column": 48,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Array literal in 'rehypePlugins' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const RehypePlugins = useMemo(() => [...], [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/ImpactDetailPage.tsx",
+    "line": 265,
+    "column": 48,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'components' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Components = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/ImpactDetailPage.tsx",
+    "line": 266,
+    "column": 45,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/ImpactDetailPage.tsx",
+    "line": 298,
+    "column": 36,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/ImpactDetailPage.tsx",
+    "line": 314,
+    "column": 32,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/ImpactDetailPage.tsx",
+    "line": 325,
+    "column": 32,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/ImpactDetailPage.tsx",
+    "line": 382,
+    "column": 28,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/ImpactDetailPage.tsx",
+    "line": 396,
+    "column": 30,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/ImpactDetailPage.tsx",
+    "line": 411,
+    "column": 30,
+    "severity": "medium"
+  },
+  {
+    "rule": "large_component",
+    "message": "Component 'ImpactDetailPage' is 428 lines (378 logical, 26 blank) — limit is 300. Render complexity: 81 JSX elements, 3 hooks. 81 JSX elements make this hard to memoize selectively. Split the render into 2-3 focused sub-components, each wrapped in `React.memo` for fine-grained update control.",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/ImpactDetailPage.tsx",
+    "line": 15,
+    "column": 26,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_unsafe_href",
+    "message": "`src` prop is set from a dynamic expression — validate the URL to prevent open redirect or XSS",
+    "file": "/workspaces/mapeo-verde/src/features/agenda/components/ImpactDetailPage.tsx",
+    "line": 424,
+    "column": 26,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/manifesto/components/ManifestoPage.tsx",
+    "line": 209,
+    "column": 24,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/manifesto/components/ManifestoPage.tsx",
+    "line": 127,
+    "column": 16,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'initial' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Initial = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/manifesto/components/ManifestoPage.tsx",
+    "line": 155,
+    "column": 24,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'animate' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Animate = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/manifesto/components/ManifestoPage.tsx",
+    "line": 156,
+    "column": 24,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'transition' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Transition = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/manifesto/components/ManifestoPage.tsx",
+    "line": 157,
+    "column": 27,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'initial' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Initial = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/manifesto/components/ManifestoPage.tsx",
+    "line": 176,
+    "column": 22,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'animate' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Animate = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/manifesto/components/ManifestoPage.tsx",
+    "line": 177,
+    "column": 22,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'transition' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Transition = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/manifesto/components/ManifestoPage.tsx",
+    "line": 178,
+    "column": 25,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'initial' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Initial = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/manifesto/components/ManifestoPage.tsx",
+    "line": 198,
+    "column": 22,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'animate' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Animate = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/manifesto/components/ManifestoPage.tsx",
+    "line": 199,
+    "column": 22,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'transition' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Transition = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/manifesto/components/ManifestoPage.tsx",
+    "line": 200,
+    "column": 25,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'whileHover' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const WhileHover = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/manifesto/components/ManifestoPage.tsx",
+    "line": 207,
+    "column": 27,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'whileTap' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const WhileTap = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/manifesto/components/ManifestoPage.tsx",
+    "line": 208,
+    "column": 25,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_array_index_key",
+    "message": "Array index used as 'key' prop causes incorrect reconciliation when items are added, removed, or reordered. Use a stable unique ID from the data instead (e.g. `key={item.id}`).",
+    "file": "/workspaces/mapeo-verde/src/features/manifesto/components/ManifestoPage.tsx",
+    "line": 154,
+    "column": 20,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_array_index_key",
+    "message": "Array index used as 'key' prop causes incorrect reconciliation when items are added, removed, or reordered. Use a stable unique ID from the data instead (e.g. `key={item.id}`).",
+    "file": "/workspaces/mapeo-verde/src/features/manifesto/components/ManifestoPage.tsx",
+    "line": 167,
+    "column": 27,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_array_index_key",
+    "message": "Array index used as 'key' prop causes incorrect reconciliation when items are added, removed, or reordered. Use a stable unique ID from the data instead (e.g. `key={item.id}`).",
+    "file": "/workspaces/mapeo-verde/src/features/manifesto/components/ManifestoPage.tsx",
+    "line": 188,
+    "column": 28,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_useless_memo",
+    "message": "`useMemo` with empty `[]` deps never recomputes — equivalent to a module-level constant or variable. Move the value outside the component to eliminate hook overhead.",
+    "file": "/workspaces/mapeo-verde/src/features/manifesto/components/ManifestoPage.tsx",
+    "line": 51,
+    "column": 20,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/legal/components/PrivacyPage.tsx",
+    "line": 28,
+    "column": 16,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onSubmit' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleSubmit = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/participation/components/ParticipationPage.tsx",
+    "line": 176,
+    "column": 26,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/participation/components/ParticipationPage.tsx",
+    "line": 379,
+    "column": 32,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/participation/components/ParticipationPage.tsx",
+    "line": 392,
+    "column": 32,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/participation/components/ParticipationPage.tsx",
+    "line": 407,
+    "column": 32,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/participation/components/ParticipationPage.tsx",
+    "line": 425,
+    "column": 31,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/participation/components/ParticipationPage.tsx",
+    "line": 436,
+    "column": 31,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/participation/components/ParticipationPage.tsx",
+    "line": 464,
+    "column": 36,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/participation/components/ParticipationPage.tsx",
+    "line": 477,
+    "column": 36,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/participation/components/ParticipationPage.tsx",
+    "line": 493,
+    "column": 38,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/participation/components/ParticipationPage.tsx",
+    "line": 502,
+    "column": 38,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'provider' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useCallback",
+    "file": "/workspaces/mapeo-verde/src/features/participation/components/ParticipationPage.tsx",
+    "line": 524,
+    "column": 37,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onBoundsChanged' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleBoundsChanged = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/participation/components/ParticipationPage.tsx",
+    "line": 527,
+    "column": 44,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleClick = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/participation/components/ParticipationPage.tsx",
+    "line": 531,
+    "column": 36,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/participation/components/ParticipationPage.tsx",
+    "line": 587,
+    "column": 36,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/participation/components/ParticipationPage.tsx",
+    "line": 609,
+    "column": 36,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/participation/components/ParticipationPage.tsx",
+    "line": 624,
+    "column": 38,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/participation/components/ParticipationPage.tsx",
+    "line": 633,
+    "column": 40,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/participation/components/ParticipationPage.tsx",
+    "line": 653,
+    "column": 40,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/participation/components/ParticipationPage.tsx",
+    "line": 684,
+    "column": 36,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/participation/components/ParticipationPage.tsx",
+    "line": 703,
+    "column": 39,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/participation/components/ParticipationPage.tsx",
+    "line": 750,
+    "column": 37,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/participation/components/ParticipationPage.tsx",
+    "line": 864,
+    "column": 42,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'provider' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useCallback",
+    "file": "/workspaces/mapeo-verde/src/features/participation/components/ParticipationPage.tsx",
+    "line": 891,
+    "column": 37,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onBoundsChanged' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleBoundsChanged = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/participation/components/ParticipationPage.tsx",
+    "line": 894,
+    "column": 44,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleClick = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/participation/components/ParticipationPage.tsx",
+    "line": 898,
+    "column": 36,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/participation/components/ParticipationPage.tsx",
+    "line": 970,
+    "column": 31,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/participation/components/ParticipationPage.tsx",
+    "line": 134,
+    "column": 17,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Array literal in 'center' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Center = useMemo(() => [...], [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/participation/components/ParticipationPage.tsx",
+    "line": 516,
+    "column": 33,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Array literal in 'anchor' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Anchor = useMemo(() => [...], [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/participation/components/ParticipationPage.tsx",
+    "line": 566,
+    "column": 39,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/participation/components/ParticipationPage.tsx",
+    "line": 960,
+    "column": 27,
+    "severity": "medium"
+  },
+  {
+    "rule": "large_component",
+    "message": "Component 'ParticipationPage' is 960 lines (914 logical, 34 blank) — limit is 300. Render complexity: 107 JSX elements, 19 hooks. With 19 hooks and 107 JSX elements, this component has too many responsibilities. Extract each major UI section into its own sub-component, and consider a custom hook to consolidate related state.",
+    "file": "/workspaces/mapeo-verde/src/features/participation/components/ParticipationPage.tsx",
+    "line": 24,
+    "column": 27,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_array_index_key",
+    "message": "Array index used as 'key' prop causes incorrect reconciliation when items are added, removed, or reordered. Use a stable unique ID from the data instead (e.g. `key={item.id}`).",
+    "file": "/workspaces/mapeo-verde/src/features/participation/components/ParticipationPage.tsx",
+    "line": 861,
+    "column": 77,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_unsafe_href",
+    "message": "`src` prop is set from a dynamic expression — validate the URL to prevent open redirect or XSS",
+    "file": "/workspaces/mapeo-verde/src/features/participation/components/ParticipationPage.tsx",
+    "line": 730,
+    "column": 35,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/green-areas/components/GreenAreasPage.tsx",
+    "line": 224,
+    "column": 26,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onMouseEnter' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleMouseEnter = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/green-areas/components/GreenAreasPage.tsx",
+    "line": 230,
+    "column": 31,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onMouseLeave' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleMouseLeave = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/green-areas/components/GreenAreasPage.tsx",
+    "line": 235,
+    "column": 31,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/green-areas/components/GreenAreasPage.tsx",
+    "line": 263,
+    "column": 25,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/green-areas/components/GreenAreasPage.tsx",
+    "line": 276,
+    "column": 25,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onChange' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleChange = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/green-areas/components/GreenAreasPage.tsx",
+    "line": 291,
+    "column": 25,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/green-areas/components/GreenAreasPage.tsx",
+    "line": 299,
+    "column": 22,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/green-areas/components/GreenAreasPage.tsx",
+    "line": 305,
+    "column": 22,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/green-areas/components/GreenAreasPage.tsx",
+    "line": 332,
+    "column": 34,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/green-areas/components/GreenAreasPage.tsx",
+    "line": 369,
+    "column": 30,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onError' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleError = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/green-areas/components/GreenAreasPage.tsx",
+    "line": 381,
+    "column": 36,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/green-areas/components/GreenAreasPage.tsx",
+    "line": 421,
+    "column": 28,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/green-areas/components/GreenAreasPage.tsx",
+    "line": 431,
+    "column": 28,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onBoundsChanged' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleBoundsChanged = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/green-areas/components/GreenAreasPage.tsx",
+    "line": 448,
+    "column": 32,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/green-areas/components/GreenAreasPage.tsx",
+    "line": 456,
+    "column": 30,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/green-areas/components/GreenAreasPage.tsx",
+    "line": 534,
+    "column": 32,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/green-areas/components/GreenAreasPage.tsx",
+    "line": 175,
+    "column": 16,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/green-areas/components/GreenAreasPage.tsx",
+    "line": 252,
+    "column": 16,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Array literal in 'anchor' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Anchor = useMemo(() => [...], [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/green-areas/components/GreenAreasPage.tsx",
+    "line": 454,
+    "column": 49,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Array literal in 'offset' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Offset = useMemo(() => [...], [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/green-areas/components/GreenAreasPage.tsx",
+    "line": 454,
+    "column": 81,
+    "severity": "medium"
+  },
+  {
+    "rule": "large_component",
+    "message": "Component 'GreenAreasPage' is 543 lines (497 logical, 40 blank) — limit is 300. Render complexity: 128 JSX elements, 25 hooks. With 25 hooks and 128 JSX elements, this component has too many responsibilities. Extract each major UI section into its own sub-component, and consider a custom hook to consolidate related state.",
+    "file": "/workspaces/mapeo-verde/src/features/green-areas/components/GreenAreasPage.tsx",
+    "line": 13,
+    "column": 24,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_array_index_key",
+    "message": "Array index used as 'key' prop causes incorrect reconciliation when items are added, removed, or reordered. Use a stable unique ID from the data instead (e.g. `key={item.id}`).",
+    "file": "/workspaces/mapeo-verde/src/features/green-areas/components/GreenAreasPage.tsx",
+    "line": 194,
+    "column": 21,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_array_index_key",
+    "message": "Array index used as 'key' prop causes incorrect reconciliation when items are added, removed, or reordered. Use a stable unique ID from the data instead (e.g. `key={item.id}`).",
+    "file": "/workspaces/mapeo-verde/src/features/green-areas/components/GreenAreasPage.tsx",
+    "line": 404,
+    "column": 38,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_array_index_key",
+    "message": "Array index used as 'key' prop causes incorrect reconciliation when items are added, removed, or reordered. Use a stable unique ID from the data instead (e.g. `key={item.id}`).",
+    "file": "/workspaces/mapeo-verde/src/features/green-areas/components/GreenAreasPage.tsx",
+    "line": 516,
+    "column": 36,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_useless_memo",
+    "message": "`useCallback` with empty `[]` deps never recomputes — equivalent to a module-level function. Move the value outside the component to eliminate hook overhead.",
+    "file": "/workspaces/mapeo-verde/src/features/green-areas/components/GreenAreasPage.tsx",
+    "line": 167,
+    "column": 20,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_unsafe_href",
+    "message": "`src` prop is set from a dynamic expression — validate the URL to prevent open redirect or XSS",
+    "file": "/workspaces/mapeo-verde/src/features/green-areas/components/GreenAreasPage.tsx",
+    "line": 378,
+    "column": 32,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_unsafe_href",
+    "message": "`src` prop is set from a dynamic expression — validate the URL to prevent open redirect or XSS",
+    "file": "/workspaces/mapeo-verde/src/features/green-areas/components/GreenAreasPage.tsx",
+    "line": 497,
+    "column": 28,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onError' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleError = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/green-areas/components/GreenAreaDetailPage.tsx",
+    "line": 51,
+    "column": 22,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/green-areas/components/GreenAreaDetailPage.tsx",
+    "line": 157,
+    "column": 29,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onError' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleError = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/green-areas/components/GreenAreaDetailPage.tsx",
+    "line": 166,
+    "column": 31,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Array literal in 'center' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Center = useMemo(() => [...], [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/green-areas/components/GreenAreaDetailPage.tsx",
+    "line": 124,
+    "column": 22,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Array literal in 'anchor' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Anchor = useMemo(() => [...], [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/green-areas/components/GreenAreaDetailPage.tsx",
+    "line": 133,
+    "column": 33,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Array literal in 'offset' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Offset = useMemo(() => [...], [deps])`",
+    "file": "/workspaces/mapeo-verde/src/features/green-areas/components/GreenAreaDetailPage.tsx",
+    "line": 133,
+    "column": 63,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_unsafe_href",
+    "message": "`src` prop is set from a dynamic expression — validate the URL to prevent open redirect or XSS",
+    "file": "/workspaces/mapeo-verde/src/features/green-areas/components/GreenAreaDetailPage.tsx",
+    "line": 48,
+    "column": 18,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_unsafe_href",
+    "message": "`src` prop is set from a dynamic expression — validate the URL to prevent open redirect or XSS",
+    "file": "/workspaces/mapeo-verde/src/features/green-areas/components/GreenAreaDetailPage.tsx",
+    "line": 163,
+    "column": 27,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_hardcoded_secret_in_jsx",
+    "message": "Variable `META_ADMIN_PASSWORD_DONE` appears to contain a hardcoded secret — use process.env or a secrets manager",
+    "file": "/workspaces/mapeo-verde/src/utils/auth/adminPasswordSetup.ts",
+    "line": 4,
+    "column": 41,
+    "severity": "high"
+  },
+  {
+    "rule": "no_hardcoded_secret_in_jsx",
+    "message": "Variable `META_SKIP_ADMIN_PASSWORD` appears to contain a hardcoded secret — use process.env or a secrets manager",
+    "file": "/workspaces/mapeo-verde/src/utils/auth/adminPasswordSetup.ts",
+    "line": 6,
+    "column": 41,
+    "severity": "high"
+  },
+  {
+    "rule": "no_hardcoded_secret_in_jsx",
+    "message": "Variable `publicAnonKey` appears to contain a hardcoded secret — use process.env or a secrets manager",
+    "file": "/workspaces/mapeo-verde/src/utils/supabase/info.tsx",
+    "line": 4,
+    "column": 30,
+    "severity": "high"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/components/layout/NavBar.tsx",
+    "line": 80,
+    "column": 22,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/components/layout/NavBar.tsx",
+    "line": 86,
+    "column": 22,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/components/layout/NavBar.tsx",
+    "line": 116,
+    "column": 22,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/components/layout/NavBar.tsx",
+    "line": 127,
+    "column": 24,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/components/layout/NavBar.tsx",
+    "line": 149,
+    "column": 22,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Wrap with useCallback to stabilize the reference: `const handleClick = useCallback((e) => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/components/layout/NavBar.tsx",
+    "line": 157,
+    "column": 24,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/components/layout/NavBar.tsx",
+    "line": 162,
+    "column": 28,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/components/layout/NavBar.tsx",
+    "line": 168,
+    "column": 28,
+    "severity": "medium"
+  },
+  {
+    "rule": "no_inline_jsx_fn",
+    "message": "Inline arrow function in 'onClick' prop creates a new reference on every render. Extract to a named handler or wrap with useCallback: `const handleClick = useCallback(() => { ... }, [deps])`",
+    "file": "/workspaces/mapeo-verde/src/components/layout/NavBar.tsx",
+    "line": 184,
+    "column": 30,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'initial' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Initial = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/components/layout/NavBar.tsx",
+    "line": 98,
+    "column": 18,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'animate' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Animate = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/components/layout/NavBar.tsx",
+    "line": 99,
+    "column": 18,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'transition' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Transition = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/components/layout/NavBar.tsx",
+    "line": 100,
+    "column": 21,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/components/layout/NavBar.tsx",
+    "line": 103,
+    "column": 16,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'style' prop creates a new reference on every render. Extract to a module-level constant or wrap with useMemo: `const Style = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/components/layout/NavBar.tsx",
+    "line": 112,
+    "column": 18,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'initial' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Initial = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/components/layout/NavBar.tsx",
+    "line": 124,
+    "column": 24,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'animate' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Animate = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/components/layout/NavBar.tsx",
+    "line": 125,
+    "column": 24,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'transition' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Transition = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/components/layout/NavBar.tsx",
+    "line": 126,
+    "column": 27,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'initial' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Initial = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/components/layout/NavBar.tsx",
+    "line": 144,
+    "column": 22,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'animate' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Animate = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/components/layout/NavBar.tsx",
+    "line": 145,
+    "column": 22,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'exit' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Exit = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/components/layout/NavBar.tsx",
+    "line": 146,
+    "column": 19,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'transition' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Transition = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/components/layout/NavBar.tsx",
+    "line": 147,
+    "column": 25,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'initial' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Initial = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/components/layout/NavBar.tsx",
+    "line": 152,
+    "column": 24,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'animate' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Animate = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/components/layout/NavBar.tsx",
+    "line": 153,
+    "column": 24,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'exit' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Exit = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/components/layout/NavBar.tsx",
+    "line": 154,
+    "column": 21,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'transition' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Transition = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/components/layout/NavBar.tsx",
+    "line": 155,
+    "column": 27,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'initial' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Initial = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/components/layout/NavBar.tsx",
+    "line": 181,
+    "column": 30,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'animate' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Animate = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/components/layout/NavBar.tsx",
+    "line": 182,
+    "column": 30,
+    "severity": "medium"
+  },
+  {
+    "rule": "unstable_props",
+    "message": "Object literal in 'transition' prop creates a new reference on every render. Extract to a stable variable outside the component or wrap with useMemo: `const Transition = useMemo(() => ({ ... }), [deps])`",
+    "file": "/workspaces/mapeo-verde/src/components/layout/NavBar.tsx",
+    "line": 183,
+    "column": 33,
+    "severity": "medium"
+  }
+]
