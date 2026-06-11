@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { Check, ChevronDown, Eye, Upload } from 'lucide-react';
+import { SafeImage } from '../../../components/common/SafeImage';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import {
   DEFAULT_FIELD_VISIBILITY,
@@ -342,6 +343,18 @@ export function OrganizationProfileForm({ supabase, userId, authEmail }: Props) 
   const handleLogoFile = async (file: File | null) => {
     setLogoUploadError(null);
     if (!file) {
+      setLogoFileName(null);
+      return;
+    }
+    const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    const MAX_SIZE = 2 * 1024 * 1024; // 2 MB
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      setLogoUploadError('Formato no válido. Usa JPEG, PNG, WebP o GIF.');
+      setLogoFileName(null);
+      return;
+    }
+    if (file.size > MAX_SIZE) {
+      setLogoUploadError('La imagen excede 2 MB.');
       setLogoFileName(null);
       return;
     }
@@ -744,10 +757,11 @@ export function OrganizationProfileForm({ supabase, userId, authEmail }: Props) 
                 <div className="flex-1 min-w-0 space-y-5">
                   {logoUrl ? (
                     <div className="flex flex-wrap items-end gap-4">
-                      <img
+                      <SafeImage
                         src={logoUrl}
-                        alt=""
+                        alt="Logo de la organización"
                         className="h-20 w-auto max-w-[200px] object-contain border border-gray-300"
+                        loading="lazy"
                       />
                       <button
                         type="button"

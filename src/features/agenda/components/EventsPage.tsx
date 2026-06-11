@@ -1,44 +1,27 @@
 import { useState, useEffect, useRef, useMemo, useContext, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useSearchParams, Link } from 'react-router-dom';
-import { Calendar, ChevronLeft, ChevronRight, MapPin, Download, ExternalLink, ArrowRight, TreePine, MessageCircle, Image, X, PlusCircle } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, MapPin, ExternalLink, ArrowRight, MessageCircle, X, PlusCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import * as Popover from '@radix-ui/react-popover';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+import { SafeImage } from '../../../components/common/SafeImage';
 import { DataContext } from '../../../context/DataContext';
 import { getNavbarHeight } from '../../../utils/helpers/layoutHelpers';
-import { getGoogleCalendarUrl, downloadICS } from '../../../utils/helpers/calendarHelpers';
+import { getGoogleCalendarUrl } from '../../../utils/helpers/calendarHelpers';
 // import { useAccentColor } from '../../../utils/helpers/routingHelpers';
-import { shareToWhatsApp, shareToInstagram } from '../../../utils/helpers/shareHelpers';
-import { generateSlug } from '../../../utils/helpers/slugHelpers';
-
-interface EventsPageProps {
-  onSelectImpact?: (impactId: string | number) => void;
-}
+import { shareToWhatsApp } from '../../../utils/helpers/shareHelpers';
 
 // Subcomponent: EventImage
 const EventImage = ({ event }: any) => {
-  const [imageError, setImageError] = useState(false);
-
   return (
     <div className="w-full md:w-64 h-48 md:h-auto border-t-2 md:border-t-0 md:border-l-2 border-black relative overflow-hidden bg-gray-100">
-      {event.image && !imageError ? (
-        <img
-          src={event.image}
-          alt={event.title}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 grayscale group-hover:grayscale-0"
-          onError={() => setImageError(true)}
-        />
-      ) : (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-400">
-          <div className="text-center p-4">
-            <TreePine size={48} className="mx-auto mb-2 opacity-30" />
-            <p className="text-xs font-mono uppercase opacity-50 line-clamp-2 px-2">{event.title}</p>
-          </div>
-        </div>
-      )}
-      {event.image && !imageError && (
+      <SafeImage
+        src={event.image || ''}
+        alt={event.title}
+        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 grayscale group-hover:grayscale-0"
+        loading="lazy"
+        iconSize={48}
+      />
+      {event.image && (
         <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors pointer-events-none" />
       )}
     </div>
@@ -114,141 +97,8 @@ const EventDescription = ({ description }: { description: string }) => {
   );
 };
 
-// Componente para evento del calendario con Popover
-const CalendarEventPopover = ({ event, baseUrl, handleShareToInstagram }: { event: any; baseUrl: string; handleShareToInstagram: (event: any) => void }) => {
-  const [open, setOpen] = useState(false);
-
-  // Bloquear scroll cuando el Popover está abierto
-  useEffect(() => {
-    if (open) {
-      // Guardar el valor actual del overflow
-      const originalStyle = window.getComputedStyle(document.body).overflow;
-      // Bloquear el scroll
-      document.body.style.overflow = 'hidden';
-
-      return () => {
-        // Restaurar el scroll cuando se cierra
-        document.body.style.overflow = originalStyle;
-      };
-    }
-  }, [open]);
-
-  return (
-    <Popover.Root open={open} onOpenChange={setOpen}>
-      <Popover.Trigger asChild>
-        <div
-          onClick={(e) => {
-            e.stopPropagation();
-          }}
-          className="w-full truncate text-[8px] md:text-[10px] bg-black text-white px-0.5 md:px-1 py-0.5 rounded-none font-medium cursor-pointer hover:bg-[#ff7e67] transition-colors"
-        >
-          {event.title}
-        </div>
-      </Popover.Trigger>
-      <Popover.Portal>
-        <Popover.Content
-          className="z-50 bg-white border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] max-w-2xl w-full max-w-[calc(100vw-2rem)] md:max-w-2xl max-h-[90vh] overflow-hidden flex flex-col data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95"
-          sideOffset={8}
-          align="start"
-          side="right"
-        >
-          {/* Botón cerrar */}
-          <Popover.Close asChild>
-            <button
-              className="absolute top-4 right-4 z-10 p-2 bg-black text-white hover:bg-[#ff7e67] transition-colors border-2 border-black"
-            >
-              <X size={16} />
-            </button>
-          </Popover.Close>
-
-          {/* Contenido del evento */}
-          <div className="flex flex-col md:flex-row overflow-hidden">
-            {/* Imagen */}
-            <div className="w-full md:w-64 h-48 md:h-auto border-b-2 md:border-b-0 md:border-r-2 border-black relative overflow-hidden bg-gray-100">
-              {event.image ? (
-                <img
-                  src={event.image}
-                  alt={event.title}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-400">
-                  <TreePine size={48} className="opacity-30" />
-                </div>
-              )}
-            </div>
-
-            {/* Contenido */}
-            <div className="flex-1 p-6 flex flex-col min-w-0 overflow-hidden">
-              <div className="flex-shrink-0 mb-4">
-                <div className="flex justify-between items-start mb-2">
-                  <span className="inline-block px-2 py-0.5 border border-black text-[10px] uppercase font-bold bg-gray-100">
-                    {event.category}
-                  </span>
-                  <span className="font-mono text-xs flex items-center gap-1 flex-shrink-0">
-                    {event.time}
-                  </span>
-                </div>
-                <h3 className="text-xl md:text-2xl font-bold mb-3 leading-tight break-words">
-                  {event.title}
-                </h3>
-              </div>
-
-              <div className="flex-1 min-h-0 mb-4 overflow-y-auto">
-                <EventDescription description={event.description} />
-              </div>
-
-              <div className="flex-shrink-0 border-t border-dashed border-gray-300 pt-4 space-y-4">
-                <div className="flex items-center gap-2 text-xs font-mono uppercase font-bold text-gray-700">
-                  <MapPin size={14} className="text-[#ff7e67]" />
-                  <span className="break-words">{event.location}</span>
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  <a
-                    href={getGoogleCalendarUrl(event)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-black text-white text-xs font-bold uppercase hover:bg-[#ff7e67] transition-colors border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
-                  >
-                    <ExternalLink size={12} />
-                    Google
-                  </a>
-                  <button
-                    onClick={() => downloadICS(event)}
-                    className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 border-2 border-black bg-white text-black text-xs font-bold uppercase hover:bg-[#ff7e67] hover:text-white transition-colors shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
-                  >
-                    <Download size={12} />
-                    .ICS
-                  </button>
-                  <a
-                    href={shareToWhatsApp(event, baseUrl)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-[#25D366] text-white text-xs font-bold uppercase hover:bg-[#20BA5A] transition-colors border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
-                  >
-                    <MessageCircle size={12} />
-                    WhatsApp
-                  </a>
-                  <button
-                    onClick={() => handleShareToInstagram(event)}
-                    className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-[#833AB4] via-[#FD1D1D] to-[#FCB045] text-white text-xs font-bold uppercase hover:opacity-90 transition-opacity border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
-                  >
-                    <Image size={12} />
-                    Instagram
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-          <Popover.Arrow className="fill-black" />
-        </Popover.Content>
-      </Popover.Portal>
-    </Popover.Root>
-  );
-};
-
-const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
+// Main component: EventsPage
+const EventsPage = () => {
   const { events: contextEvents = [], loading } = useContext(DataContext) as any;
   // Solo mostrar en agenda los eventos publicados (por si el contexto tuviera mezcla)
   const EVENTS_DATA = useMemo(
@@ -398,7 +248,6 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
   const [navbarHeight, setNavbarHeight] = useState(64);
   const [_isNavbarVisible, _setIsNavbarVisible] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
-  const [shareNotification, setShareNotification] = useState<string | null>(null);
   const lastScrollYRef = useRef(0);
   const [cdmxTime, setCdmxTime] = useState<string>('');
   const touchStartXRef = useRef(0);
@@ -428,17 +277,6 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
   }, [getCdmxTime]);
 
   const baseUrl = (import.meta as any).env?.BASE_URL || '/';
-
-  const handleShareToInstagram = async (event: any) => {
-    const success = await shareToInstagram(event, baseUrl);
-    if (success) {
-      setShareNotification('¡Copiado al portapapeles! Pega en Instagram');
-      setTimeout(() => setShareNotification(null), 3000);
-    } else {
-      setShareNotification('Error al copiar. Intenta de nuevo.');
-      setTimeout(() => setShareNotification(null), 3000);
-    }
-  };
 
   useEffect(() => {
     const checkMobile = () => {
@@ -898,11 +736,6 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
 
   return (
     <div className="flex flex-col min-h-screen bg-[#f3f4f0] overflow-x-hidden" style={{ width: '100%', maxWidth: '100vw', overflowX: 'hidden' }}>
-      {shareNotification && (
-        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 bg-black text-white px-6 py-3 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] font-mono text-sm uppercase">
-          {shareNotification}
-        </div>
-      )}
       <div
         className="bg-[#ff7e67] border-b border-black p-8 md:p-12 shrink-0 relative transition-[padding-top] duration-300 ease-in-out"
         style={{ paddingTop: isMobile ? `${navbarHeight + 32}px` : undefined }}
@@ -1205,13 +1038,12 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
                                     <div className="px-4 pb-4 border-t border-dashed border-gray-300 pt-4 space-y-4">
                                       {event.image && typeof event.image === 'string' && event.image.trim() !== '' && event.image !== 'undefined' && (
                                         <div className="w-full h-48 border-2 border-black relative overflow-hidden bg-gray-100">
-                                          <img
+                                          <SafeImage
                                             src={event.image}
                                             alt={event.title}
                                             className="w-full h-full object-cover"
-                                            onError={(e) => {
-                                              e.currentTarget.parentElement?.remove();
-                                            }}
+                                            loading="lazy"
+                                            iconSize={48}
                                           />
                                         </div>
                                       )}
@@ -1443,13 +1275,13 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
                   </button>
                   <div className="flex flex-col overflow-hidden">
                     <div className="w-full h-48 border-b-2 border-black relative overflow-hidden bg-gray-100">
-                      {selectedEvent.image ? (
-                        <img src={selectedEvent.image} alt={selectedEvent.title} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-400">
-                          <Calendar size={48} className="opacity-30" />
-                        </div>
-                      )}
+                      <SafeImage
+                        src={selectedEvent.image || ''}
+                        alt={selectedEvent.title}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                        iconSize={48}
+                      />
                     </div>
                     <div className="flex-1 p-4 flex flex-col min-w-0 overflow-hidden">
                       <div className="flex-shrink-0 mb-3">
@@ -1514,13 +1346,13 @@ const EventsPage = ({ onSelectImpact }: EventsPageProps) => {
                   </button>
                   <div className="flex flex-col overflow-hidden flex-1 min-h-0">
                     <div className="w-full h-48 border-b-2 border-black relative overflow-hidden bg-gray-100 flex-shrink-0">
-                      {selectedEvent.image ? (
-                        <img src={selectedEvent.image} alt={selectedEvent.title} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-400">
-                          <Calendar size={48} className="opacity-30" />
-                        </div>
-                      )}
+                      <SafeImage
+                        src={selectedEvent.image || ''}
+                        alt={selectedEvent.title}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                        iconSize={48}
+                      />
                     </div>
                     <div className="flex-1 p-6 flex flex-col min-w-0 overflow-hidden">
                       <div className="flex-shrink-0 mb-4">

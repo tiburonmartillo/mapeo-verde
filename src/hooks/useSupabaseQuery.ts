@@ -8,14 +8,12 @@ export function useSupabaseQuery<T>(
   options: {
     enabled?: boolean;
     refetchOnMount?: boolean;
-    cacheTime?: number;
     fallback?: T;
   } = {}
 ) {
   const {
     enabled = true,
     refetchOnMount = false,
-    cacheTime = 5 * 60 * 1000, // 5 minutos
     fallback,
   } = options;
 

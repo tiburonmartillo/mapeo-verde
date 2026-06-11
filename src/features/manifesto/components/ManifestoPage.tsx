@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect, useRef } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import { getNavbarHeight } from '../../../utils/helpers/layoutHelpers';
@@ -51,7 +51,6 @@ const ManifestoPage = () => {
   const sections = useMemo(() => MANIFESTO_SECTIONS, []);
   const [navbarHeight, setNavbarHeight] = useState(64);
   const [isMobile, setIsMobile] = useState(false);
-  const lastScrollYRef = useRef(0);
 
   useEffect(() => {
     const checkMobile = () => {

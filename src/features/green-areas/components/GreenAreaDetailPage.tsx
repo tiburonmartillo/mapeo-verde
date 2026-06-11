@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ChevronLeft, AlertCircle, TreePine, MapPin } from 'lucide-react';
+import { SafeImage } from '../../../components/common/SafeImage';
 import { useContext } from 'react';
 import { DataContext } from '../../../context/DataContext';
 import { Map, Overlay } from 'pigeon-maps';
@@ -43,21 +44,12 @@ const GreenAreaDetailPage = ({ areaId, onBack }: GreenAreaDetailPageProps) => {
   return (
     <div className="min-h-screen bg-[#f3f4f0] flex flex-col items-center pb-24">
       <div className="w-full h-[45vh] relative border-b-4 border-black bg-gray-800">
-        {activeImage ? (
-          <img 
-            src={activeImage} 
-            alt={area.name}
-            className="w-full h-full object-cover grayscale"
-            onError={(e) => {
-              (e.target as HTMLImageElement).style.display = 'none';
-            }}
-          />
-        ) : null}
-        {(!area.image || area.image === '') && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-800">
-            <TreePine size={64} className="opacity-30 text-white" />
-          </div>
-        )}
+        <SafeImage
+          src={activeImage || area.image || ''}
+          alt={area.name}
+          className="w-full h-full object-cover grayscale"
+          loading="lazy"
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
         
         <div className="absolute top-6 left-6">
@@ -151,23 +143,21 @@ const GreenAreaDetailPage = ({ areaId, onBack }: GreenAreaDetailPageProps) => {
              <h3 className="font-bold text-2xl mb-4 border-b border-black pb-2">Galería</h3>
              <div className="flex gap-3 overflow-x-auto pb-2">
                {galleryImages.map((img, idx) => (
-                 <button
-                   key={img + idx}
-                   type="button"
-                   onClick={() => setSelectedImageIndex(idx)}
-                   className={`relative w-28 h-20 border-2 ${
-                     idx === selectedImageIndex ? 'border-black' : 'border-gray-300'
-                   } overflow-hidden flex-shrink-0`}
-                 >
-                   <img
-                     src={img}
-                     alt={`${area.name} ${idx + 1}`}
-                     className="w-full h-full object-cover"
-                     onError={(e) => {
-                       (e.target as HTMLImageElement).style.display = 'none';
-                     }}
-                   />
-                 </button>
+                  <button
+                    key={img + idx}
+                    type="button"
+                    onClick={() => setSelectedImageIndex(idx)}
+                    className={`relative w-28 h-20 border-2 ${
+                      idx === selectedImageIndex ? 'border-black' : 'border-gray-300'
+                    } overflow-hidden flex-shrink-0`}
+                  >
+                    <SafeImage
+                      src={img}
+                      alt={`${area.name} ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                      iconSize={24}
+                    />
+                  </button>
                ))}
              </div>
            </div>

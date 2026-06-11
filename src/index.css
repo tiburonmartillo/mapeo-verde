@@ -3353,6 +3353,7 @@ html {
 
 /* Modal de primera contraseña en /admin (evita depender de utilidades no generadas). */
 .admin-password-setup-overlay {
+  z-index: 100;
   background-color: rgb(0 0 0 / 0.42);
   -webkit-backdrop-filter: blur(2px);
   backdrop-filter: blur(2px);

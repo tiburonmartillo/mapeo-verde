@@ -9,12 +9,10 @@ interface Feature {
 }
 
 interface FeatureListProps {
-  onFeatureEnter?: (title: string) => void;
-  onFeatureLeave?: () => void;
   onNavigate?: (path: string, id?: string | number) => void;
 }
 
-const FeatureList = ({ onFeatureEnter, onFeatureLeave, onNavigate }: FeatureListProps) => {
+const FeatureList = ({ onNavigate }: FeatureListProps) => {
   const features: Feature[] = [
     {
       title: "Agenda",

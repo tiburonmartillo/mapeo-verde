@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Calendar, Search, List, LayoutGrid, ChevronLeft, ChevronRight, MapPin, Download, FileText, AlertCircle, Mail, MessageCircle, ExternalLink } from 'lucide-react';
-import { Map, Marker, Overlay } from 'pigeon-maps';
+import { Calendar, Search, List, LayoutGrid, ChevronLeft, ChevronRight, MapPin, FileText, AlertCircle, Mail, MessageCircle, ExternalLink } from 'lucide-react';
+import { Map, Overlay } from 'pigeon-maps';
 import { useContext } from 'react';
 import { DataContext } from '../../../context/DataContext';
 import { getNavbarHeight } from '../../../utils/helpers/layoutHelpers';
@@ -26,8 +26,6 @@ const NewslettersPage = () => {
   });
   const [searchQuery, setSearchQuery] = useState('');
   const [navbarHeight, setNavbarHeight] = useState(64);
-  const [isNavbarVisible, setIsNavbarVisible] = useState(true);
-  const lastScrollYRef = useRef(0);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -58,13 +56,11 @@ const NewslettersPage = () => {
     const handleScroll = () => {
       // Solo en móvil: detectar si el navbar está oculto
       if (window.innerWidth < 768) {
-        const currentScrollY = window.scrollY;
         const navbarMobile = document.querySelector('[data-navbar-mobile]') as HTMLElement;
 
         if (navbarMobile) {
           // Verificar si el navbar tiene la clase translate-y-full (oculto)
           const isHidden = navbarMobile.classList.contains('-translate-y-full');
-          setIsNavbarVisible(!isHidden);
 
           // Si el navbar está oculto, el sticky debe estar en top: 0
           if (isHidden) {
@@ -73,7 +69,6 @@ const NewslettersPage = () => {
             updateNavbarHeight();
           }
         }
-        lastScrollYRef.current = currentScrollY;
       } else {
         // En desktop, siempre usar la altura del navbar
         updateNavbarHeight();
@@ -89,7 +84,6 @@ const NewslettersPage = () => {
     if (navbarMobile && window.innerWidth < 768) {
       const observer = new MutationObserver(() => {
         const isHidden = navbarMobile.classList.contains('-translate-y-full');
-        setIsNavbarVisible(!isHidden);
         if (isHidden) {
           setNavbarHeight(0);
         } else {

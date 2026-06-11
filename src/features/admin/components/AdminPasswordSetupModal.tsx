@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { PasswordField } from '../../../components/common/PasswordField';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Session } from '@supabase/supabase-js';
@@ -72,9 +73,9 @@ export function AdminPasswordSetupModal({ supabase, session }: AdminPasswordSetu
     }
   };
 
-  return (
+  return createPortal(
     <div
-      className="admin-password-setup-overlay fixed inset-0 z-[100] flex items-center justify-center px-4 py-8"
+      className="admin-password-setup-overlay fixed inset-0 flex items-center justify-center px-4 py-8"
       role="dialog"
       aria-modal="true"
       aria-labelledby="admin-password-setup-title"
@@ -139,6 +140,7 @@ export function AdminPasswordSetupModal({ supabase, session }: AdminPasswordSetu
           {skipping ? 'Guardando preferencia…' : 'Seguir solo con enlace mágico por ahora'}
         </button>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

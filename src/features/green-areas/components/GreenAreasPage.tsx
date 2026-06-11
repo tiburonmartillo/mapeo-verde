@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { TreePine, Search, List, LayoutGrid, ChevronLeft, ChevronRight, Eye, AlertCircle, FileWarning } from 'lucide-react';
+import { SafeImage } from '../../../components/common/SafeImage';
 import { Map, Overlay } from 'pigeon-maps';
 import { useContext } from 'react';
 import { DataContext } from '../../../context/DataContext';
@@ -374,19 +375,19 @@ const GreenAreasPage = ({ onSelectArea }: GreenAreasPageProps) => {
                   >
                     <div className="w-full h-32 mb-3 border border-black overflow-hidden bg-gray-100 relative">
                       {card.image ? (
-                        <img 
-                          src={card.image} 
+                        <SafeImage
+                          src={card.image}
                           alt={card.name}
                           className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = 'none';
-                          }}
+                          loading="lazy"
                         />
-                      ) : null}
-                      {(!card.image || card.image === '') && (
-                        <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                          <TreePine size={32} className="opacity-30" />
-                        </div>
+                      ) : (
+                        <SafeImage
+                          src=""
+                          alt={card.name}
+                          className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all"
+                          loading="lazy"
+                        />
                       )}
                     </div>
                     
@@ -491,15 +492,17 @@ const GreenAreasPage = ({ onSelectArea }: GreenAreasPageProps) => {
                   {selectedArea.name}
                 </h3>
                 
-                {selectedArea.image && (
-                  <div className="w-full h-48 mb-6 border-2 border-black overflow-hidden bg-gray-100">
-                    <img 
+                <div className="w-full h-48 mb-6 border-2 border-black overflow-hidden bg-gray-100">
+                  {selectedArea.image && (
+                    <SafeImage 
                       src={selectedArea.image} 
                       alt={selectedArea.name}
                       className="w-full h-full object-cover grayscale"
+                      FallbackIcon={TreePine}
+                      iconSize={48}
                     />
-                  </div>
-                )}
+                  )}
+                </div>
                 
                 <div className="space-y-8">
                   <div>

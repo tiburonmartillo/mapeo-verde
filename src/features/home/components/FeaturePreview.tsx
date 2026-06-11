@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowRight, TreePine } from 'lucide-react';
+import { SafeImage } from '../../../components/common/SafeImage';
 import { DataContext } from '../../../context/DataContext';
 
 interface FeaturePreviewProps {
@@ -96,22 +97,21 @@ export const FeaturePreview = ({
                                             }}
                                             className="border-2 border-black bg-white cursor-pointer hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all group h-full flex flex-col"
                                         >
-                                            <div className="h-48 overflow-hidden border-b-2 border-black relative bg-gray-100 flex items-center justify-center">
-                                                {item.image ? (
-                                                    <img
-                                                        src={item.image}
-                                                        alt={item.name || item.project || item.title}
-                                                        className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
-                                                        onError={(e) => {
-                                                            (e.target as HTMLImageElement).style.display = 'none';
-                                                        }}
-                                                    />
-                                                ) : null}
-                                                {(!item.image || item.image === '') && (
-                                                    <div className="p-8 opacity-50 group-hover:opacity-100 transition-opacity">
-                                                        <TreePine size={64} strokeWidth={1} />
-                                                    </div>
-                                                )}
+                                             <div className="h-48 overflow-hidden border-b-2 border-black relative bg-gray-100 flex items-center justify-center">
+                                                 {item.image ? (
+                                                     <SafeImage
+                                                         src={item.image}
+                                                         alt={item.name || item.project || item.title}
+                                                         className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
+                                                         FallbackIcon={TreePine}
+                                                         iconSize={64}
+                                                     />
+                                                 ) : null}
+                                                 {(!item.image || item.image === '') && (
+                                                     <div className="p-8 opacity-50 group-hover:opacity-100 transition-opacity">
+                                                         <TreePine size={64} strokeWidth={1} />
+                                                     </div>
+                                                 )}
                                                 <div className="absolute top-2 right-2 bg-white border border-black p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
                                                     <ArrowRight size={16} />
                                                 </div>

@@ -118,7 +118,7 @@ function extractImageFromAttachments(event: ICAL.Event): string {
         }
         
         // Si el tipo MIME indica que es una imagen
-        if (fmtType && fmtType.startsWith('image/')) {
+        if (fmtType && typeof fmtType === 'string' && fmtType.startsWith('image/')) {
           // Si es Google Drive, convertir
           if (urlString.includes('drive.google.com')) {
             return convertGoogleDriveToImageUrl(urlString);
@@ -209,7 +209,13 @@ function getCategory(event: ICAL.Event): string {
   // Intentar obtener de tags o keywords
   const keywords = event.component.getFirstPropertyValue('keywords');
   if (keywords) {
-    return typeof keywords === 'string' ? keywords : keywords[0] || 'Evento';
+    if (typeof keywords === 'string') {
+      return keywords;
+    }
+    if (Array.isArray(keywords) && keywords.length > 0) {
+      return keywords[0];
+    }
+    return 'Evento';
   }
   
   return 'Evento'; // Categoría por defecto
@@ -264,7 +270,7 @@ function mapICalEventToAppEvent(event: ICAL.Event, index: number): GoogleCalenda
     const category = getCategory(event);
     
     // Construir URL del evento en Google Calendar si es posible
-    const googleCalendarUrl = event.url || undefined;
+    const googleCalendarUrl = event.component.getFirstPropertyValue('url') as string | undefined;
 
     const mappedEvent = {
       id: uid,

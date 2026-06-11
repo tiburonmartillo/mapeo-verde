@@ -2,7 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { getSupabaseClient } from './client';
 import { queryCache } from './cache';
 import { requestDeduplicator } from './requestDeduplication';
-import type { GreenAreaRow, ProjectRow, GazetteRow, EventRow, EventInsert, EventUpdate, AreasDonacionRow, DocumentosJsonRow } from './types';
+import type { GreenAreaRow, EventRow, EventInsert, EventUpdate, AreasDonacionRow, DocumentosJsonRow } from './types';
 import { mapBoletinesToProjects, mapGacetasToDataset } from '../../utils/helpers';
 import { projectId } from '../../utils/supabase/info';
 
@@ -708,11 +708,10 @@ export const insertEvent = async (supabase: SupabaseClient, payload: EventInsert
     .from('events')
     .insert(payload)
     .select('*')
-    .single()
-    .returns<EventRow>();
+    .maybeSingle();
   if (error) return { error: error.message };
   clearCache();
-  return { data: data ? mapEventRowToEvent(data) : undefined, error: null };
+  return { data: data ? mapEventRowToEvent(data as EventRow) : undefined, error: null };
 };
 
 /**

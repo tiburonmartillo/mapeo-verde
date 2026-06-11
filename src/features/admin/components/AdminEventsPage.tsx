@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import EventLocationField from '../../shared/components/EventLocationField';
 import { EyeOff, Eye, LogOut, Trash2 } from 'lucide-react';
 import { LogoMap } from '../../../components/common/LogoMap';
+import { SafeImage } from '../../../components/common/SafeImage';
 import { getSupabaseAuthClient } from '../../../lib/supabase/client';
 import {
   getEventsAll,
@@ -59,6 +60,7 @@ type AdminEventFormProps = {
   imageUploading: boolean;
   imageUploadError: string | null;
   imageFileName: string | null;
+  imagePreview: string | null;
   onImageFileSelected: (file: File | null) => void;
 };
 
@@ -74,6 +76,7 @@ const AdminEventForm: React.FC<AdminEventFormProps> = ({
   imageUploading,
   imageUploadError,
   imageFileName,
+  imagePreview,
   onImageFileSelected,
 }) => {
   return (
@@ -208,6 +211,16 @@ const AdminEventForm: React.FC<AdminEventFormProps> = ({
               {imageUploadError}
             </p>
           )}
+          {imagePreview && (
+            <div className="mt-2 border border-black bg-gray-100 w-full max-w-xs overflow-hidden">
+              <SafeImage
+                src={imagePreview}
+                alt="Vista previa del cartel"
+                className="w-full h-32 object-contain bg-white"
+                loading="lazy"
+              />
+            </div>
+          )}
         </div>
       </div>
       {formError && (
@@ -278,6 +291,7 @@ const AdminEventsPage = () => {
   const [imageUploading, setImageUploading] = useState(false);
   const [imageUploadError, setImageUploadError] = useState<string | null>(null);
   const [imageFileName, setImageFileName] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [moderator, setModerator] = useState(false);
   const [activeTab, setActiveTab] = useState<AdminTab>('active');
   const [currentPage, setCurrentPage] = useState(1);
@@ -314,11 +328,27 @@ const AdminEventsPage = () => {
   const handleImageFileSelected = async (file: File | null) => {
     if (!supabase || !file) {
       setImageFileName(null);
+      if (imagePreview) URL.revokeObjectURL(imagePreview);
+      setImagePreview(null);
+      return;
+    }
+    const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      setImageUploadError('Formato no válido. Usa JPEG, PNG, WebP o GIF.');
+      setImageFileName(null);
+      return;
+    }
+    if (file.size > MAX_SIZE) {
+      setImageUploadError('La imagen excede 5 MB.');
+      setImageFileName(null);
       return;
     }
     setImageUploadError(null);
     setImageUploading(true);
     setImageFileName(file.name);
+    if (imagePreview) URL.revokeObjectURL(imagePreview);
+    setImagePreview(URL.createObjectURL(file));
     try {
       const ext = file.name.split('.').pop() || 'jpg';
       const safeExt = ext.toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
@@ -757,7 +787,8 @@ const AdminEventsPage = () => {
           {eventsLoading ? (
             <p className="font-mono text-sm text-gray-500">Cargando eventos...</p>
           ) : (
-            <ul className="space-y-4">
+            <div>
+              <ul className="space-y-4">
               {/* Acordeón: Nuevo evento */}
               <AnimatePresence>
                 {formOpen && (
@@ -782,6 +813,7 @@ const AdminEventsPage = () => {
                         imageUploading={imageUploading}
                         imageUploadError={imageUploadError}
                         imageFileName={imageFileName}
+                        imagePreview={imagePreview}
                         onImageFileSelected={handleImageFileSelected}
                       />
                     </div>
@@ -895,6 +927,7 @@ const AdminEventsPage = () => {
                               imageUploading={imageUploading}
                               imageUploadError={imageUploadError}
                               imageFileName={imageFileName}
+                              imagePreview={imagePreview}
                               onImageFileSelected={handleImageFileSelected}
                             />
                           </div>
@@ -904,8 +937,8 @@ const AdminEventsPage = () => {
                   </motion.li>
                 ))}
               </AnimatePresence>
-              {activeTab === 'active' && paginatedActiveHiddenEvents.length > 0 && (
-                <>
+              {activeTab === 'active' && paginatedActiveHiddenEvents.length > 0 ? (
+                <React.Fragment>
                   <li className="list-none mt-8 mb-2">
                     <p className="text-sm font-mono uppercase tracking-widest text-gray-500">Ocultos (no se muestran en la agenda)</p>
                   </li>
@@ -979,19 +1012,20 @@ const AdminEventsPage = () => {
                                 formSaving={formSaving}
                                 onCancel={() => setEditingId(null)}
                                 onSubmit={handleFormSubmit}
-                                imageUploading={imageUploading}
-                                imageUploadError={imageUploadError}
-                                imageFileName={imageFileName}
-                                onImageFileSelected={handleImageFileSelected}
-                              />
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </motion.li>
-                  ))}
-                </>
-              )}
+                              imageUploading={imageUploading}
+                              imageUploadError={imageUploadError}
+                              imageFileName={imageFileName}
+                              imagePreview={imagePreview}
+                              onImageFileSelected={handleImageFileSelected}
+                            />
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.li>
+                ))}
+              </React.Fragment>
+            ) : null}
               <AnimatePresence>
                 {activeTab === 'past' && paginatedTabEvents.map((event) => (
                   <motion.li key={event.id} layout className="space-y-0">
@@ -1066,6 +1100,7 @@ const AdminEventsPage = () => {
                               imageUploading={imageUploading}
                               imageUploadError={imageUploadError}
                               imageFileName={imageFileName}
+                              imagePreview={imagePreview}
                               onImageFileSelected={handleImageFileSelected}
                             />
                           </div>
@@ -1154,6 +1189,7 @@ const AdminEventsPage = () => {
                               imageUploading={imageUploading}
                               imageUploadError={imageUploadError}
                               imageFileName={imageFileName}
+                              imagePreview={imagePreview}
                               onImageFileSelected={handleImageFileSelected}
                             />
                           </div>
@@ -1164,33 +1200,34 @@ const AdminEventsPage = () => {
                 ))}
               </AnimatePresence>
             </ul>
-          )}
-          {!eventsLoading && tabEvents.length > 0 && (
-            <div className="mt-8 mb-8 flex flex-wrap items-center justify-between gap-3 border-2 border-black bg-white px-3 py-3">
-              <p className="text-xs font-mono text-gray-700">
-                Mostrando {pageStart + 1}-{Math.min(pageEnd, tabEvents.length)} de {tabEvents.length}
-              </p>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                  disabled={safePage <= 1}
-                  className={`border-2 border-black px-3 py-1.5 text-sm font-medium bg-white hover:bg-gray-100 cursor-pointer ${adminOutlinePressable} ${adminDisabled}`}
-                >
-                  Anterior
-                </button>
-                <span className="text-xs font-mono text-gray-700">
-                  Página {safePage} de {totalPages}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-                  disabled={safePage >= totalPages}
-                  className={`border-2 border-black px-3 py-1.5 text-sm font-medium bg-white hover:bg-gray-100 cursor-pointer ${adminOutlinePressable} ${adminDisabled}`}
-                >
-                  Siguiente
-                </button>
+            {!eventsLoading && tabEvents.length > 0 && (
+              <div className="mt-8 mb-8 flex flex-wrap items-center justify-between gap-3 border-2 border-black bg-white px-3 py-3">
+                <p className="text-xs font-mono text-gray-700">
+                  Mostrando {pageStart + 1}-{Math.min(pageEnd, tabEvents.length)} de {tabEvents.length}
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                    disabled={safePage <= 1}
+                    className={`border-2 border-black px-3 py-1.5 text-sm font-medium bg-white hover:bg-gray-100 cursor-pointer ${adminOutlinePressable} ${adminDisabled}`}
+                  >
+                    Anterior
+                  </button>
+                  <span className="text-xs font-mono text-gray-700">
+                    Página {safePage} de {totalPages}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                    disabled={safePage >= totalPages}
+                    className={`border-2 border-black px-3 py-1.5 text-sm font-medium bg-white hover:bg-gray-100 cursor-pointer ${adminOutlinePressable} ${adminDisabled}`}
+                  >
+                    Siguiente
+                  </button>
+                </div>
               </div>
+            )}
             </div>
           )}
         </section>

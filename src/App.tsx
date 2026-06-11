@@ -8,11 +8,7 @@ import { TAB_ROUTES } from './constants/routes';
 import { pathToTab } from './utils/helpers';
 import { NavBar, Footer } from './components/layout';
 import { useSEO } from './hooks/useSEO';
-const HeroSection = React.lazy(() => import('./features/home/components/HeroSection'));
-const TextContentSection = React.lazy(() => import('./features/home/components/TextContentSection'));
-const StatsSection = React.lazy(() => import('./features/home/components/StatsSection'));
-const FeatureList = React.lazy(() => import('./features/home/components/FeatureList'));
-const CtaSection = React.lazy(() => import('./features/home/components/CtaSection'));
+const HomeLanding = React.lazy(() => import('./features/home/components/HomeLanding'));
 
 // Lazy load pages
 const EventsPage = React.lazy(() => import('./features/agenda/components/EventsPage'));
@@ -32,8 +28,6 @@ const AdminModerationUsersPage = React.lazy(
   () => import('./features/admin/components/AdminModerationUsersPage'),
 );
 const AdminAccountPage = React.lazy(() => import('./features/admin/components/AdminAccountPage'));
-
-import { FeaturePreview } from './features/home/components';
 
 const PageLoader = () => (
   <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
@@ -92,17 +86,6 @@ const MainApp = () => {
     : null;
   const detailType = isDetailPage ? pathParts[0] : null;
 
-  const handleFeatureEnter = (feature: string) => {
-    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
-    setHoveredFeature(feature);
-  };
-
-  const handleFeatureLeave = () => {
-    hoverTimeoutRef.current = setTimeout(() => {
-      setHoveredFeature(null);
-    }, 300);
-  };
-
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [activeTab, location.pathname]);
@@ -160,27 +143,21 @@ const MainApp = () => {
     }
 
     switch (activeTab) {
-      case 'HOME':
+        case 'HOME':
         return (
           <Suspense fallback={<PageLoader />}>
-            <HeroSection />
-            <TextContentSection />
-            <StatsSection />
-            <FeatureList 
-              onFeatureEnter={handleFeatureEnter} 
-              onFeatureLeave={handleFeatureLeave}
+            <HomeLanding
+              hoveredFeature={hoveredFeature}
               onNavigate={handleNavigate}
+              onPreviewMouseEnter={() => {
+                if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+              }}
+              onPreviewMouseLeave={() => {
+                hoverTimeoutRef.current = setTimeout(() => {
+                  setHoveredFeature(null);
+                }, 300);
+              }}
             />
-            {/* En desktop, mostrar FeaturePreview al final */}
-            <div className="hidden md:block">
-              <FeaturePreview
-                hoveredFeature={hoveredFeature}
-                onMouseEnter={() => { if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current); }}
-                onMouseLeave={() => { hoverTimeoutRef.current = setTimeout(() => setHoveredFeature(null), 300); }}
-                onNavigate={handleNavigate}
-              />
-            </div>
-            <CtaSection />
           </Suspense>
         );
       case 'GREEN_AREAS':
@@ -204,7 +181,7 @@ const MainApp = () => {
       case 'AGENDA':
         return (
           <Suspense fallback={<PageLoader />}>
-            <EventsPage onSelectImpact={(id) => handleNavigate('AGENDA', id)} />
+            <EventsPage />
           </Suspense>
         );
       case 'PARTICIPATION':
@@ -216,11 +193,7 @@ const MainApp = () => {
       default:
         return (
           <Suspense fallback={<PageLoader />}>
-            <HeroSection />
-            <TextContentSection />
-            <StatsSection />
-            <FeatureList />
-            <CtaSection />
+            <HomeLanding variant="minimal" />
           </Suspense>
         );
     }

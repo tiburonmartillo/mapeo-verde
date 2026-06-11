@@ -6,6 +6,8 @@ export const pathToTab = (pathname: string) => {
   if (pathWithoutId === '/agenda' || pathname.startsWith('/agenda/')) return 'AGENDA';
   if (pathWithoutId === '/areas-verdes' || pathname.startsWith('/areas-verdes/')) return 'GREEN_AREAS';
   if (pathname.startsWith('/participacion')) return 'PARTICIPATION';
+  if (pathname.startsWith('/boletines')) return 'NEWSLETTERS';
+  if (pathname.startsWith('/gacetas')) return 'GAZETTES';
   return 'HOME';
 };
 

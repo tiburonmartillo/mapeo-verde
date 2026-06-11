@@ -4,7 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import { DataContext } from '../../../context/DataContext';
-import { getRandomUnsplashImage } from '../../../utils/helpers/imageHelpers';
+import { SafeImage } from '../../../components/common/SafeImage';
 import { findEventByIdentifier } from '../../../utils/helpers/slugHelpers';
 
 interface ImpactDetailPageProps {
@@ -120,19 +120,13 @@ const ImpactDetailPage = ({ eventId, onBack }: ImpactDetailPageProps) => {
     <div className="min-h-screen bg-[#f3f4f0] flex flex-col items-center pb-20">
       <div className="w-full h-[40vh] bg-black relative overflow-hidden border-b-4 border-black">
         <div className="absolute inset-0 opacity-60">
-           <img 
-             src={event.portada || getRandomUnsplashImage('impact-detail', 2000, 800)} 
+           <SafeImage 
+             src={event.portada || event.image || ''}
              alt={event.title}
              className="w-full h-full object-cover"
-             onError={(e) => {
-               (e.target as HTMLImageElement).style.display = 'none';
-               const fallback = (e.target as HTMLImageElement).nextElementSibling;
-               if (fallback) (fallback as HTMLElement).style.display = 'flex';
-             }}
+             FallbackIcon={TreePine}
+             iconSize={64}
            />
-           <div className="absolute inset-0 bg-gray-800 flex items-center justify-center" style={{ display: 'none' }}>
-             <TreePine size={64} className="opacity-30 text-white" />
-           </div>
         </div>
         <div className="absolute bottom-0 left-0 w-full p-6 md:p-12 bg-gradient-to-t from-black to-transparent">
            <button onClick={onBack} className="mb-6 flex items-center gap-2 bg-white text-black px-4 py-2 font-mono uppercase text-xs font-bold border-2 border-black hover:bg-[#ff7e67] hover:text-white transition-colors shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
@@ -215,15 +209,17 @@ const ImpactDetailPage = ({ eventId, onBack }: ImpactDetailPageProps) => {
                     img: ({ src, alt }) => {
                       const imageIndex = allImages.findIndex((url: string) => url === src);
                       return (
-                        <img 
-                          src={src} 
-                          alt={alt || ''} 
+                        <SafeImage
+                          src={src}
+                          alt={alt || ''}
                           className="max-w-full h-auto my-4 rounded border-2 border-black cursor-pointer hover:opacity-90 transition-opacity"
                           onClick={() => {
                             if (imageIndex !== -1) {
                               setSelectedImageIndex(imageIndex);
                             }
                           }}
+                          FallbackIcon={TreePine}
+                          iconSize={48}
                         />
                       );
                     },
@@ -266,10 +262,12 @@ const ImpactDetailPage = ({ eventId, onBack }: ImpactDetailPageProps) => {
                                 components={{
                                   p: ({ children }) => <p className="mb-4 text-base leading-relaxed">{children}</p>,
                                   img: ({ src, alt }) => (
-                                    <img 
-                                      src={src} 
-                                      alt={alt || ''} 
+                                    <SafeImage
+                                      src={src}
+                                      alt={alt || ''}
                                       className="max-w-full h-auto my-4 rounded border-2 border-black"
+                                      FallbackIcon={TreePine}
+                                      iconSize={48}
                                     />
                                   ),
                                 }}
@@ -419,13 +417,15 @@ const ImpactDetailPage = ({ eventId, onBack }: ImpactDetailPageProps) => {
                     {currentImageIndex + 1} / {totalImages}
                   </div>
                   
-                  {/* Imagen */}
-                  <img
-                    src={currentImage}
-                    alt={`Imagen ${currentImageIndex + 1} de ${totalImages}`}
-                    className="max-w-full max-h-full object-contain p-4"
-                    onClick={(e) => e.stopPropagation()}
-                  />
+                   {/* Imagen */}
+                   <SafeImage
+                     src={currentImage}
+                     alt={`Imagen ${currentImageIndex + 1} de ${totalImages}`}
+                     className="max-w-full max-h-full object-contain p-4"
+                     onClick={(e) => e.stopPropagation()}
+                     FallbackIcon={TreePine}
+                     iconSize={64}
+                   />
                </div>
             </div>
             )}

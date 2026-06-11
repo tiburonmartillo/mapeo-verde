@@ -1,5 +1,3 @@
-import React from 'react';
-
 export const LogoMap = ({ className }: { className?: string }) => {
   return (
     <div className={className}>

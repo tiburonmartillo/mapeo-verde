@@ -5,6 +5,7 @@ import { getNavbarHeight } from '../../../utils/helpers/layoutHelpers';
 import { adminLiftShadow, adminPressableFocus } from '../../../utils/adminButtonClasses';
 import { getSupabaseClient } from '../../../lib/supabase';
 import { Map, Marker } from 'pigeon-maps';
+import { SafeImage } from '../../../components/common/SafeImage';
 
 const HALF_HOUR_TIME_OPTIONS = Array.from({ length: 24 * 2 }, (_, index) => {
   const hours = Math.floor(index / 2)
@@ -57,7 +58,11 @@ const ParticipationPage = () => {
   const [eventImageFile, setEventImageFile] = useState<File | null>(null);
   const [eventImageName, setEventImageName] = useState<string | null>(null);
   const [eventImagePreview, setEventImagePreview] = useState<string | null>(null);
+  const [eventImageError, setEventImageError] = useState<string | null>(null);
   const [submitStatus, setSubmitStatus] = useState<'success' | 'error' | null>(null);
+
+  const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+  const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5 MB
 
   useEffect(() => {
     const checkMobile = () => {
@@ -700,9 +705,32 @@ const ParticipationPage = () => {
                             type="file"
                             accept="image/*"
                             className="hidden"
-                            onChange={(e) => {
-                              const file = e.target.files && e.target.files[0];
-                              setEventImageFile(file || null);
+                             onChange={(e) => {
+                               const file = e.target.files && e.target.files[0];
+                               setEventImageError(null);
+                               if (file) {
+                                 if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+                                   setEventImageError('Formato no válido. Usa JPEG, PNG, WebP o GIF.');
+                                   setEventImageFile(null);
+                                   setEventImageName(null);
+                                   if (eventImagePreview) {
+                                     URL.revokeObjectURL(eventImagePreview);
+                                   }
+                                   setEventImagePreview(null);
+                                   return;
+                                 }
+                                 if (file.size > MAX_IMAGE_SIZE) {
+                                   setEventImageError('La imagen excede 5 MB. Elige un archivo más pequeño.');
+                                   setEventImageFile(null);
+                                   setEventImageName(null);
+                                   if (eventImagePreview) {
+                                     URL.revokeObjectURL(eventImagePreview);
+                                   }
+                                   setEventImagePreview(null);
+                                   return;
+                                 }
+                               }
+                               setEventImageFile(file || null);
                               setEventImageName(file ? file.name : null);
                               if (eventImagePreview) {
                                 URL.revokeObjectURL(eventImagePreview);
@@ -717,22 +745,25 @@ const ParticipationPage = () => {
                           />
                         </label>
                       </div>
-                       <div className="text-[11px] font-mono text-gray-600 mt-1">
-                         {eventImageName ? (
-                           <span>Archivo seleccionado: {eventImageName}</span>
-                         ) : (
-                           <span>Sin archivo seleccionado</span>
-                         )}
-                       </div>
+                        <div className="text-[11px] font-mono text-gray-600 mt-1">
+                          {eventImageError ? (
+                            <span className="text-red-600 font-semibold">{eventImageError}</span>
+                          ) : eventImageName ? (
+                            <span>Archivo seleccionado: {eventImageName}</span>
+                          ) : (
+                            <span>Sin archivo seleccionado</span>
+                          )}
+                        </div>
                        {eventImagePreview && (
-                         <div className="mt-3 border border-black bg-gray-100 w-full max-w-md overflow-hidden">
-                           <img
-                             src={eventImagePreview}
-                             alt="Vista previa del cartel del evento"
-                             className="w-fit h-[250px] object-contain bg-white"
-                           />
-                         </div>
-                       )}
+                          <div className="mt-3 border border-black bg-gray-100 w-full max-w-md overflow-hidden">
+                            <SafeImage
+                              src={eventImagePreview}
+                              alt="Vista previa del cartel del evento"
+                              className="w-fit h-[250px] object-contain bg-white"
+                              loading="lazy"
+                            />
+                          </div>
+                        )}
                        <p className="text-[11px] font-mono text-gray-500">
                          Opcional. Se usará como imagen de referencia del evento.
                        </p>
