@@ -62,6 +62,7 @@ type AdminEventFormProps = {
   imageFileName: string | null;
   imagePreview: string | null;
   onImageFileSelected: (file: File | null) => void;
+  session: { user: { id: string } } | null;
 };
 
 const AdminEventForm: React.FC<AdminEventFormProps> = ({
@@ -78,6 +79,7 @@ const AdminEventForm: React.FC<AdminEventFormProps> = ({
   imageFileName,
   imagePreview,
   onImageFileSelected,
+  session,
 }) => {
   return (
     <form onSubmit={onSubmit} className="space-y-4">
@@ -179,12 +181,15 @@ const AdminEventForm: React.FC<AdminEventFormProps> = ({
         </label>
         <div className="space-y-2">
           <div className="flex flex-wrap items-center gap-2">
-            <label className="inline-flex items-center justify-center px-4 py-2 border-2 border-black bg-[#d89dff] text-black font-mono text-[10px] uppercase tracking-widest cursor-pointer hover:bg-[#ff7e67] hover:text-white transition-colors">
+            <label className="inline-flex items-center justify-center px-4 py-2 border-2 border-black bg-[#d89dff] text-black font-mono text-[10px] uppercase tracking-widest cursor-pointer hover:bg-[#ff7e67] hover:text-white transition-colors opacity-50"
+              style={{ opacity: session?.user ? 1 : 0.5, pointerEvents: session?.user ? 'auto' : 'none' }}
+            >
               Seleccionar imagen
               <input
                 type="file"
                 accept="image/*"
                 className="hidden"
+                disabled={!session?.user}
                 onChange={(e) => {
                   const file = e.target.files && e.target.files[0];
                   onImageFileSelected(file || null);
@@ -192,7 +197,7 @@ const AdminEventForm: React.FC<AdminEventFormProps> = ({
               />
             </label>
             <span className="text-xs font-mono text-gray-600">
-              {imageFileName ? `Archivo: ${imageFileName}` : 'Sin archivo seleccionado'}
+              {imageFileName ? `Archivo: ${imageFileName}` : session?.user ? 'Sin archivo seleccionado' : 'Iniciando sesión...'}
             </span>
           </div>
           <input
@@ -332,6 +337,11 @@ const AdminEventsPage = () => {
       setImagePreview(null);
       return;
     }
+    if (!session?.user) {
+      setImageUploadError('La sesión no está lista. Espera unos segundos e inténtalo de nuevo.');
+      setImageFileName(null);
+      return;
+    }
     const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
     const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
     if (!ALLOWED_TYPES.includes(file.type)) {
@@ -352,7 +362,7 @@ const AdminEventsPage = () => {
     try {
       const ext = file.name.split('.').pop() || 'jpg';
       const safeExt = ext.toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
-      const uid = session?.user?.id ?? 'anon';
+      const uid = session.user.id;
       const path = `event-banners/${uid}/admin-${Date.now()}-${Math.random()
         .toString(36)
         .slice(2)}.${safeExt}`;
@@ -815,6 +825,7 @@ const AdminEventsPage = () => {
                         imageFileName={imageFileName}
                         imagePreview={imagePreview}
                         onImageFileSelected={handleImageFileSelected}
+                        session={session}
                       />
                     </div>
                   </motion.li>
@@ -929,6 +940,7 @@ const AdminEventsPage = () => {
                               imageFileName={imageFileName}
                               imagePreview={imagePreview}
                               onImageFileSelected={handleImageFileSelected}
+                              session={session}
                             />
                           </div>
                         </motion.div>
@@ -1003,20 +1015,21 @@ const AdminEventsPage = () => {
                             className="border-2 border-t-0 border-gray-400 bg-gray-50 overflow-hidden relative z-10"
                           >
                             <div className="p-4 space-y-4" onClick={(e) => e.stopPropagation()}>
-                              <AdminEventForm
-                                idPrefix={`edit-hidden-${event.id}`}
-                                submitLabel="Guardar"
-                                form={form}
-                                updateForm={updateForm}
-                                formError={formError}
-                                formSaving={formSaving}
-                                onCancel={() => setEditingId(null)}
-                                onSubmit={handleFormSubmit}
+                            <AdminEventForm
+                              idPrefix={`edit-hidden-${event.id}`}
+                              submitLabel="Guardar"
+                              form={form}
+                              updateForm={updateForm}
+                              formError={formError}
+                              formSaving={formSaving}
+                              onCancel={() => setEditingId(null)}
+                              onSubmit={handleFormSubmit}
                               imageUploading={imageUploading}
                               imageUploadError={imageUploadError}
                               imageFileName={imageFileName}
                               imagePreview={imagePreview}
                               onImageFileSelected={handleImageFileSelected}
+                              session={session}
                             />
                           </div>
                         </motion.div>
@@ -1102,6 +1115,7 @@ const AdminEventsPage = () => {
                               imageFileName={imageFileName}
                               imagePreview={imagePreview}
                               onImageFileSelected={handleImageFileSelected}
+                              session={session}
                             />
                           </div>
                         </motion.div>
@@ -1191,6 +1205,7 @@ const AdminEventsPage = () => {
                               imageFileName={imageFileName}
                               imagePreview={imagePreview}
                               onImageFileSelected={handleImageFileSelected}
+                              session={session}
                             />
                           </div>
                         </motion.div>
