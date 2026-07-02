@@ -43,6 +43,9 @@ const ParticipationPage = () => {
     eventEndTime: '',
     eventLocation: '',
     eventDescription: '',
+    eventOrganizers: '',
+    eventPlaceName: '',
+    eventUrl: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState<string | null>(null);
@@ -300,14 +303,17 @@ const ParticipationPage = () => {
                          iso_start: isoStart,
                          iso_end: isoEnd,
                          location: formData.eventLocation,
-                         category: 'Propuesta ciudadana',
-                         description: formData.eventDescription || null,
-                         image: eventImageUrl || null,
-                         status: 'pending',
-                         source: 'participation',
-                         contact_name: formData.name || null,
-                         contact_email: formData.email || null,
-                       });
+                          category: 'Propuesta ciudadana',
+                          description: formData.eventDescription || null,
+                          image: eventImageUrl || null,
+                          status: 'pending',
+                          source: 'participation',
+                          contact_name: formData.name || null,
+                          contact_email: formData.email || null,
+                          organizers: formData.eventOrganizers?.trim() || null,
+                          place_name: formData.eventPlaceName?.trim() || null,
+                          event_url: formData.eventUrl?.trim() || null,
+                        });
                      if (error) throw error;
                    }
 
@@ -352,10 +358,13 @@ const ParticipationPage = () => {
                      eventDate: '',
                      eventStartTime: '',
                      eventEndTime: '',
-                     eventLocation: '',
-                     eventDescription: '',
-                   });
-                   setEventImageFile(null);
+                      eventLocation: '',
+                      eventDescription: '',
+                      eventOrganizers: '',
+                      eventPlaceName: '',
+                      eventUrl: '',
+                    });
+                    setEventImageFile(null);
                    if (eventImagePreview) {
                      URL.revokeObjectURL(eventImagePreview);
                    }
@@ -692,9 +701,60 @@ const ParticipationPage = () => {
                              eventDescription: e.target.value,
                            }))
                          }
-                       />
-                     </div>
-                    <div className="space-y-3 md:col-span-2">
+                        />
+                      </div>
+                      <div className="space-y-3 md:col-span-2">
+                        <span className="text-xs font-mono text-gray-600 uppercase">
+                          Organización(es) convocante(s)
+                        </span>
+                        <input
+                          type="text"
+                          className="w-full bg-transparent border-b-2 border-black/20 py-3 text-lg font-light focus:border-[#d89dff] focus:outline-none transition-all placeholder:text-gray-400"
+                          placeholder="Nombre de la organización (opcional)"
+                          value={formData.eventOrganizers}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              eventOrganizers: e.target.value,
+                            }))
+                          }
+                        />
+                      </div>
+                      <div className="space-y-3 md:col-span-2">
+                        <span className="text-xs font-mono text-gray-600 uppercase">
+                          Nombre del lugar
+                        </span>
+                        <input
+                          type="text"
+                          className="w-full bg-transparent border-b-2 border-black/20 py-3 text-lg font-light focus:border-[#d89dff] focus:outline-none transition-all placeholder:text-gray-400"
+                          placeholder="Ej. Jardín de San Marcos (opcional)"
+                          value={formData.eventPlaceName}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              eventPlaceName: e.target.value,
+                            }))
+                          }
+                        />
+                      </div>
+                      <div className="space-y-3 md:col-span-2">
+                        <span className="text-xs font-mono text-gray-600 uppercase">
+                          Enlace a publicación o redes
+                        </span>
+                        <input
+                          type="url"
+                          className="w-full bg-transparent border-b-2 border-black/20 py-3 text-lg font-light focus:border-[#d89dff] focus:outline-none transition-all placeholder:text-gray-400"
+                          placeholder="https:// (opcional)"
+                          value={formData.eventUrl}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              eventUrl: e.target.value,
+                            }))
+                          }
+                        />
+                      </div>
+                     <div className="space-y-3 md:col-span-2">
                       <span className="text-xs font-mono text-gray-600 uppercase block">
                         Cartel del evento o imagen
                       </span>

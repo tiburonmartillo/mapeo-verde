@@ -1013,11 +1013,17 @@ const EventsPage = () => {
                                     <h3 className="text-base md:text-lg font-bold leading-tight group-hover:text-[#ff7e67] transition-colors break-words" style={{ wordBreak: 'break-word', overflow: 'hidden', textOverflow: isExpanded ? 'clip' : 'ellipsis', display: isExpanded ? 'block' : '-webkit-box', WebkitLineClamp: isExpanded ? 'none' : 2, WebkitBoxOrient: isExpanded ? 'initial' : 'vertical' }}>
                                       {event.title}
                                     </h3>
-                                    {event.location && (
+                                      {event.location && (
                                       <div className="flex items-center gap-1.5 mt-2 text-xs font-mono uppercase text-gray-600 min-w-0" style={{ minWidth: 0, maxWidth: '100%' }}>
                                         <MapPin size={12} className="text-[#ff7e67] flex-shrink-0" />
                                         <span className={isExpanded ? "block break-words" : "truncate block min-w-0"} style={{ minWidth: 0, maxWidth: '100%', overflow: isExpanded ? 'visible' : 'hidden', textOverflow: isExpanded ? 'clip' : 'ellipsis', whiteSpace: isExpanded ? 'normal' : 'nowrap' }}>{event.location}</span>
                                       </div>
+                                    )}
+                                    {event.placeName && (
+                                      <p className="text-xs text-gray-500 mt-1">{event.placeName}</p>
+                                    )}
+                                    {event.organizers && (
+                                      <p className="text-xs text-gray-500 mt-0.5">Organiza: {event.organizers}</p>
                                     )}
                                   </div>
                                   <div className="flex-shrink-0" style={{ flexShrink: 0 }}>
@@ -1049,6 +1055,18 @@ const EventsPage = () => {
                                       )}
                                       <div className="overflow-y-auto max-h-40">
                                         <EventDescription description={event.description} />
+                                        {event.eventUrl && (
+                                          <a
+                                            href={event.eventUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-flex items-center gap-1 mt-2 text-xs font-mono text-[#ff7e67] underline hover:text-black"
+                                            onClick={(e) => e.stopPropagation()}
+                                          >
+                                            <ExternalLink size={12} />
+                                            Más información
+                                          </a>
+                                        )}
                                       </div>
                                       <div className="flex flex-wrap gap-2 pt-2 w-full" style={{ width: '100%' }}>
                                         <a
@@ -1145,10 +1163,29 @@ const EventsPage = () => {
                       <EventDescription description={event.description} />
                     </div>
 
-                    <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-t border-dashed border-gray-300 pt-4">
-                      <div className="flex items-center gap-2 text-xs font-mono uppercase font-bold text-gray-700">
-                        <MapPin size={14} className="text-[#ff7e67]" />
-                        {event.location}
+                      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-t border-dashed border-gray-300 pt-4">
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2 text-xs font-mono uppercase font-bold text-gray-700">
+                          <MapPin size={14} className="text-[#ff7e67]" />
+                          {event.location}
+                        </div>
+                        {event.placeName && (
+                          <p className="text-xs text-gray-500">{event.placeName}</p>
+                        )}
+                        {event.organizers && (
+                          <p className="text-xs text-gray-500">Organiza: {event.organizers}</p>
+                        )}
+                        {event.eventUrl && (
+                          <a
+                            href={event.eventUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-xs font-mono text-[#ff7e67] underline hover:text-black"
+                          >
+                            <ExternalLink size={12} />
+                            Más información
+                          </a>
+                        )}
                       </div>
 
                       <div className="flex flex-wrap gap-2 w-full" style={{ width: '100%' }}>
@@ -1301,6 +1338,23 @@ const EventsPage = () => {
                           <MapPin size={14} className="text-[#ff7e67]" />
                           <span className="break-words">{selectedEvent.location}</span>
                         </div>
+                        {selectedEvent.placeName && (
+                          <p className="text-xs text-gray-500">{selectedEvent.placeName}</p>
+                        )}
+                        {selectedEvent.organizers && (
+                          <p className="text-xs text-gray-500">Organiza: {selectedEvent.organizers}</p>
+                        )}
+                        {selectedEvent.eventUrl && (
+                          <a
+                            href={selectedEvent.eventUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-xs font-mono text-[#ff7e67] underline hover:text-black"
+                          >
+                            <ExternalLink size={12} />
+                            Más información
+                          </a>
+                        )}
                         <div className="flex flex-wrap gap-2">
                           <a href={getGoogleCalendarUrl(selectedEvent)} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-black text-white text-xs font-bold uppercase hover:bg-[#ff7e67] transition-colors border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                             <ExternalLink size={12} /> Google
@@ -1372,6 +1426,23 @@ const EventsPage = () => {
                           <MapPin size={14} className="text-[#ff7e67]" />
                           <span className="break-words">{selectedEvent.location}</span>
                         </div>
+                        {selectedEvent.placeName && (
+                          <p className="text-xs text-gray-500">{selectedEvent.placeName}</p>
+                        )}
+                        {selectedEvent.organizers && (
+                          <p className="text-xs text-gray-500">Organiza: {selectedEvent.organizers}</p>
+                        )}
+                        {selectedEvent.eventUrl && (
+                          <a
+                            href={selectedEvent.eventUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-xs font-mono text-[#ff7e67] underline hover:text-black"
+                          >
+                            <ExternalLink size={12} />
+                            Más información
+                          </a>
+                        )}
                         <div className="flex flex-wrap gap-2">
                           <a href={getGoogleCalendarUrl(selectedEvent)} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-black text-white text-xs font-bold uppercase hover:bg-[#ff7e67] transition-colors border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                             <ExternalLink size={12} /> Google

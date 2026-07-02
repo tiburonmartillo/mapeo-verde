@@ -233,6 +233,10 @@ export interface EventRow {
   contact_email?: string | null;
   /** auth.users.id del organizador; null = formulario público o legado */
   created_by?: string | null;
+  organization_id?: string | null;
+  event_url?: string | null;
+  place_name?: string | null;
+  organizers?: string | null;
 }
 
 export interface EventInsert {
@@ -250,6 +254,10 @@ export interface EventInsert {
   source?: string | null;
   contact_name?: string | null;
   contact_email?: string | null;
+  organization_id?: string | null;
+  event_url?: string | null;
+  place_name?: string | null;
+  organizers?: string | null;
 }
 
 export interface EventUpdate {
@@ -264,6 +272,10 @@ export interface EventUpdate {
   description?: string | null;
   visible?: boolean | null;
   status?: 'pending' | 'published' | null;
+  organization_id?: string | null;
+  event_url?: string | null;
+  place_name?: string | null;
+  organizers?: string | null;
 }
 
 // Documentos JSON unificados (areas_donacion, boletines, gacetas)

@@ -20,15 +20,6 @@ const Footer = () => {
           <ul className="space-y-3 font-medium">
             <li>
               <a
-                href="/areas-verdes"
-                className="hover:underline focus:outline-none focus:ring-1 focus:ring-black"
-                aria-label="Explorar el inventario de áreas verdes"
-              >
-                Áreas verdes
-              </a>
-            </li>
-            <li>
-              <a
                 href="/agenda"
                 className="hover:underline focus:outline-none focus:ring-1 focus:ring-black"
                 aria-label="Ver la agenda ambiental"
@@ -47,20 +38,11 @@ const Footer = () => {
             </li>
             <li>
               <Link
-                to="/ingreso"
-                className="hover:underline focus:outline-none focus:ring-1 focus:ring-black"
-                aria-label="Ingreso con correo para organizaciones: publicar o administrar eventos en la agenda"
-              >
-                Ingreso para organizaciones
-              </Link>
-            </li>
-            <li>
-              <Link
                 to="/admin/registro"
                 className="hover:underline focus:outline-none focus:ring-1 focus:ring-black"
-                aria-label="Registro con correo para organizaciones de la agenda"
+                aria-label="Ingreso o registro para organizaciones de la agenda"
               >
-                Registro para organizaciones
+                Ingreso / Registro para organizaciones
               </Link>
             </li>
             <li>

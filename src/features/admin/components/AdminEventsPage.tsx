@@ -14,6 +14,7 @@ import {
   type Event,
 } from '../../../lib/supabase/queries';
 import type { EventInsert } from '../../../lib/supabase/types';
+import { fetchOrganizationProfileByOwner } from '../../../lib/supabase/organizationProfileQueries';
 import type { Session } from '@supabase/supabase-js';
 import { resolveEventsModerator } from '../../../utils/auth/eventsModerator';
 import {
@@ -32,9 +33,7 @@ import {
   META_ADMIN_PASSWORD_DONE,
   sessionDisplayLabel,
   sessionUsedPasswordThisSession,
-  shouldPromptAdminPasswordSetup,
 } from '../../../utils/auth/adminPasswordSetup';
-import { AdminPasswordSetupModal } from './AdminPasswordSetupModal';
 
 const defaultForm: EventInsert = {
   title: '',
@@ -46,6 +45,9 @@ const defaultForm: EventInsert = {
   category: '',
   image: null,
   description: null,
+  event_url: '',
+  place_name: '',
+  organizers: '',
 };
 
 type AdminEventFormProps = {
@@ -170,6 +172,45 @@ const AdminEventForm: React.FC<AdminEventFormProps> = ({
           rows={4}
           className="w-full border-2 border-black bg-white px-3 py-2"
           placeholder="¿Qué se hará? ¿Quién convoca? ¿Hay requisitos para asistir?"
+        />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label htmlFor={`${idPrefix}-place-name`} className="block text-sm font-medium mb-1">
+            Nombre del lugar
+          </label>
+          <input
+            id={`${idPrefix}-place-name`}
+            value={form.place_name ?? ''}
+            onChange={(e) => updateForm({ place_name: e.target.value || null })}
+            className="w-full border-2 border-black px-3 py-2 bg-white"
+            placeholder="Ej. Parque de la Ciudad"
+          />
+        </div>
+        <div>
+          <label htmlFor={`${idPrefix}-organizers`} className="block text-sm font-medium mb-1">
+            Organiza
+          </label>
+          <input
+            id={`${idPrefix}-organizers`}
+            value={form.organizers ?? ''}
+            onChange={(e) => updateForm({ organizers: e.target.value || null })}
+            className="w-full border-2 border-black px-3 py-2 bg-white"
+            placeholder="Ej. Colectivo Ambiental"
+          />
+        </div>
+      </div>
+      <div>
+        <label htmlFor={`${idPrefix}-event-url`} className="block text-sm font-medium mb-1">
+          URL del evento (opcional)
+        </label>
+        <input
+          id={`${idPrefix}-event-url`}
+          type="url"
+          value={form.event_url ?? ''}
+          onChange={(e) => updateForm({ event_url: e.target.value || null })}
+          className="w-full border-2 border-black px-3 py-2 bg-white"
+          placeholder="https://..."
         />
       </div>
       <div>
@@ -300,6 +341,7 @@ const AdminEventsPage = () => {
   const [moderator, setModerator] = useState(false);
   const [activeTab, setActiveTab] = useState<AdminTab>('active');
   const [currentPage, setCurrentPage] = useState(1);
+  const [orgProfileId, setOrgProfileId] = useState<string | null>(null);
 
   const pendingEvents = moderator ? events.filter((e) => e.status === 'pending') : [];
   const publishedEvents = events.filter((e) => e.status !== 'pending');
@@ -437,6 +479,16 @@ const AdminEventsPage = () => {
   }, [session, supabase, loadEvents]);
 
   useEffect(() => {
+    if (!supabase || !session?.user) return;
+    let cancelled = false;
+    void (async () => {
+      const profile = await fetchOrganizationProfileByOwner(supabase, session.user.id);
+      if (!cancelled) setOrgProfileId(profile?.id ?? null);
+    })();
+    return () => { cancelled = true; };
+  }, [supabase, session]);
+
+  useEffect(() => {
     if (!session || !supabase) {
       setModerator(false);
       return;
@@ -481,6 +533,7 @@ const AdminEventsPage = () => {
       time: '10:00',
       iso_start: buildIso(today, '10:00'),
       iso_end: buildIso(today, '11:00'),
+      organization_id: orgProfileId ?? undefined,
     });
     setFormError(null);
     setFormOpen(true);
@@ -503,6 +556,9 @@ const AdminEventsPage = () => {
       category: event.category,
       image: event.image || null,
       description: event.description || null,
+      event_url: event.eventUrl ?? undefined,
+      place_name: event.placeName ?? undefined,
+      organizers: event.organizers ?? undefined,
     });
     setFormError(null);
   };
@@ -527,7 +583,10 @@ const AdminEventsPage = () => {
       category: form.category,
       image: form.image || null,
       description: form.description || null,
-      ...(editingId !== null ? {} : { status: 'published' as const, source: 'admin' }),
+      event_url: form.event_url || null,
+      place_name: form.place_name || null,
+      organizers: form.organizers || null,
+      ...(editingId !== null ? {} : { status: 'published' as const, source: 'admin', organization_id: form.organization_id || null }),
     };
     if (editingId !== null) {
       const { error } = await updateEvent(supabase, editingId, payload);
@@ -662,18 +721,12 @@ const AdminEventsPage = () => {
     return <Navigate to="/ingreso" replace />;
   }
 
-  const showPasswordSetup = supabase && shouldPromptAdminPasswordSetup(session);
   const displayLabel = sessionDisplayLabel(session);
   const userEmail = session.user.email ?? '';
 
   return (
-    <>
-      {showPasswordSetup ? (
-        <AdminPasswordSetupModal supabase={supabase} session={session} />
-      ) : null}
     <div
       className="min-h-screen bg-[#f3f4f0] text-black"
-      aria-hidden={showPasswordSetup ? true : undefined}
     >
       <header className={adminPageHeader}>
         <div className={adminPageHeaderBrand}>
@@ -1249,7 +1302,6 @@ const AdminEventsPage = () => {
       </main>
 
     </div>
-    </>
   );
 };
 

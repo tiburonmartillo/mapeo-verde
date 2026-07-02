@@ -13,8 +13,6 @@ const HomeLanding = React.lazy(() => import('./features/home/components/HomeLand
 // Lazy load pages
 const EventsPage = React.lazy(() => import('./features/agenda/components/EventsPage'));
 const ImpactDetailPage = React.lazy(() => import('./features/agenda/components/ImpactDetailPage'));
-const GreenAreasPage = React.lazy(() => import('./features/green-areas/components/GreenAreasPage'));
-const GreenAreaDetailPage = React.lazy(() => import('./features/green-areas/components/GreenAreaDetailPage'));
 const NewslettersPage = React.lazy(() => import('./features/newsletters/components/NewslettersPage'));
 const GazettesPage = React.lazy(() => import('./features/gazettes/components/GazettesPage'));
 const ParticipationPage = React.lazy(() => import('./features/participation/components/ParticipationPage'));
@@ -22,7 +20,6 @@ const ManifestoPage = React.lazy(() => import('./features/manifesto/components/M
 const LinktreePage = React.lazy(() => import('./features/linktree/components/LinktreePage'));
 const PrivacyPage = React.lazy(() => import('./features/legal/components/PrivacyPage'));
 const AdminEventsPage = React.lazy(() => import('./features/admin/components/AdminEventsPage'));
-const IngresoPage = React.lazy(() => import('./features/admin/components/IngresoPage'));
 const AdminRegisterPage = React.lazy(() => import('./features/admin/components/AdminRegisterPage'));
 const AdminModerationUsersPage = React.lazy(
   () => import('./features/admin/components/AdminModerationUsersPage'),
@@ -79,11 +76,8 @@ const MainApp = () => {
 
   // Extract ID from URL if present
   const pathParts = location.pathname.split('/').filter(Boolean);
-  const isDetailPage = pathParts.length === 2 && (pathParts[0] === 'areas-verdes' || pathParts[0] === 'agenda');
-  // Para agenda, el ID puede ser string o número; para áreas verdes, es número
-  const detailId = isDetailPage 
-    ? (pathParts[0] === 'agenda' ? pathParts[1] : parseInt(pathParts[1], 10))
-    : null;
+  const isDetailPage = pathParts.length === 2 && pathParts[0] === 'agenda';
+  const detailId = isDetailPage ? pathParts[1] : null;
   const detailType = isDetailPage ? pathParts[0] : null;
 
   useEffect(() => {
@@ -92,8 +86,7 @@ const MainApp = () => {
 
   const handleNavigate = (tab: string, id?: string | number) => {
     if (id) {
-      if (tab === 'GREEN_AREAS') navigate(`/areas-verdes/${id}`);
-      else if (tab === 'AGENDA') navigate(`/agenda?event=${encodeURIComponent(String(id))}`);
+      if (tab === 'AGENDA') navigate(`/agenda?event=${encodeURIComponent(String(id))}`);
       else if (tab === 'NEWSLETTERS') navigate(`/boletines?project=${id}`);
       else if (tab === 'GAZETTES') navigate(`/gacetas?project=${id}`);
     } else {
@@ -129,19 +122,6 @@ const MainApp = () => {
       );
     }
 
-    if (detailType === 'areas-verdes' && detailId) {
-      return (
-        <Suspense fallback={<PageLoader />}>
-          <GreenAreaDetailPage
-            areaId={detailId}
-            onBack={() => {
-              navigate(TAB_ROUTES.GREEN_AREAS);
-            }}
-          />
-        </Suspense>
-      );
-    }
-
     switch (activeTab) {
         case 'HOME':
         return (
@@ -158,12 +138,6 @@ const MainApp = () => {
                 }, 300);
               }}
             />
-          </Suspense>
-        );
-      case 'GREEN_AREAS':
-        return (
-          <Suspense fallback={<PageLoader />}>
-            <GreenAreasPage onSelectArea={(id) => handleNavigate('GREEN_AREAS', id)} />
           </Suspense>
         );
       case 'NEWSLETTERS':
@@ -265,7 +239,7 @@ const IngresoPageWrapper = () => {
   return (
     <div className="min-h-screen bg-[#f3f4f0] font-sans">
       <React.Suspense fallback={<PageLoader />}>
-        <IngresoPage />
+        <AdminRegisterPage />
       </React.Suspense>
     </div>
   );
@@ -344,8 +318,6 @@ export default function App() {
         <Route path="/inicio" element={<MainApp />} />
         <Route path="/agenda" element={<MainApp />} />
         <Route path="/agenda/:id" element={<MainApp />} />
-        <Route path="/areas-verdes" element={<MainApp />} />
-        <Route path="/areas-verdes/:id" element={<MainApp />} />
         <Route path="/boletines" element={<MainApp />} />
         <Route path="/gacetas" element={<MainApp />} />
         <Route path="/participacion" element={<MainApp />} />

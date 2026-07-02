@@ -18,7 +18,6 @@ export const FeaturePreview = ({
     onNavigate,
 }: FeaturePreviewProps) => {
     const {
-        greenAreas: GREEN_AREAS_DATA,
         events: EVENTS_DATA,
     } = React.useContext(DataContext);
     const todayInCdmx = new Date().toLocaleDateString('en-CA', {
@@ -42,7 +41,6 @@ export const FeaturePreview = ({
                             <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-6 md:mb-8 text-center uppercase text-black px-1">
                                 {hoveredFeature === 'Agenda' && 'Próximos eventos'}
                                 {hoveredFeature === 'Participación' && 'Contribuye con tu voz'}
-                                {hoveredFeature === 'Áreas Verdes' && 'Explora nuestras áreas verdes'}
                             </h2>
                             <div className={hoveredFeature === 'Participación' ? 'flex justify-center' : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'}>
                                 {hoveredFeature === 'Participación' ? (
@@ -65,8 +63,7 @@ export const FeaturePreview = ({
                                     </div>
                                 ) : (() => {
                                     let data: any[] = [];
-                                    if (hoveredFeature === 'Áreas Verdes') data = GREEN_AREAS_DATA;
-                                    else if (hoveredFeature === 'Agenda') {
+                                    if (hoveredFeature === 'Agenda') {
                                         data = (EVENTS_DATA || []).filter((event: any) => {
                                             const date = (event?.date || '').toString().slice(0, 10);
                                             return date && date >= todayInCdmx;
@@ -74,24 +71,16 @@ export const FeaturePreview = ({
                                     }
 
                                     const sortedData = [...data].sort((a: any, b: any) => {
-                                        if (hoveredFeature === 'Áreas Verdes') {
-                                            if (a.need && !b.need) return -1;
-                                            if (!a.need && b.need) return 1;
-                                            return (b.id || 0) - (a.id || 0);
-                                        } else {
                                             const dateA = (a.date || '').toString().slice(0, 10);
                                             const dateB = (b.date || '').toString().slice(0, 10);
                                             return dateA.localeCompare(dateB);
-                                        }
                                     });
 
                                     return sortedData.slice(0, 4).map((item, idx) => (
                                         <div
                                             key={item.id || idx}
                                             onClick={() => {
-                                                if (hoveredFeature === 'Áreas Verdes') {
-                                                    onNavigate('GREEN_AREAS', item.id);
-                                                } else if (hoveredFeature === 'Agenda') {
+                                                if (hoveredFeature === 'Agenda') {
                                                     onNavigate('AGENDA', item.id);
                                                 }
                                             }}

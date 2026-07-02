@@ -6,10 +6,12 @@ import { getGoogleCalendarUrl } from './calendarHelpers';
  */
 export function shareToWhatsApp(event: GoogleCalendarEvent, baseUrl?: string): string {
   const calendarUrl = getGoogleCalendarUrl(event);
+  const [y, m, d] = event.date.split('-').map(Number);
+  const eventDate = new Date(y, m - 1, d);
   
   const message = `*${event.title}*
 
-Fecha: ${new Date(event.date).toLocaleDateString('es-MX', { 
+Fecha: ${eventDate.toLocaleDateString('es-MX', { 
     weekday: 'long', 
     day: 'numeric', 
     month: 'long',
@@ -31,10 +33,12 @@ export async function shareToInstagram(event: GoogleCalendarEvent, baseUrl?: str
   const eventUrl = baseUrl 
     ? `${baseUrl}/agenda/${event.id}` 
     : window.location.origin + `/agenda/${event.id}`;
+  const [y, m, d] = event.date.split('-').map(Number);
+  const eventDate = new Date(y, m - 1, d);
   
   const text = `🌱 ${event.title}
 
-📅 ${new Date(event.date).toLocaleDateString('es-MX', { 
+📅 ${eventDate.toLocaleDateString('es-MX', { 
     weekday: 'long', 
     day: 'numeric', 
     month: 'long',
@@ -82,10 +86,12 @@ export function getShareMessage(event: GoogleCalendarEvent, baseUrl?: string): s
   const eventUrl = baseUrl 
     ? `${baseUrl}/agenda/${event.id}` 
     : window.location.origin + `/agenda/${event.id}`;
+  const [y, m, d] = event.date.split('-').map(Number);
+  const eventDate = new Date(y, m - 1, d);
   
   return `🌱 ${event.title}
 
-📅 ${new Date(event.date).toLocaleDateString('es-MX', { 
+📅 ${eventDate.toLocaleDateString('es-MX', { 
     weekday: 'long', 
     day: 'numeric', 
     month: 'long',

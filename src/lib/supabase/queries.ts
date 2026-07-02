@@ -114,6 +114,10 @@ export interface Event {
   contactEmail?: string | null;
   /** UUID de auth.users si el evento lo creó un organizador con sesión */
   createdBy?: string | null;
+  organizationId?: string | null;
+  eventUrl?: string | null;
+  placeName?: string | null;
+  organizers?: string | null;
 }
 
 /** Evita duplicados por id y por contenido (date + iso_start + title) en la lista de eventos. */
@@ -159,6 +163,10 @@ const mapEventRowToEvent = (row: EventRow): Event => {
     contactName: row.contact_name ?? undefined,
     contactEmail: row.contact_email ?? undefined,
     createdBy: row.created_by ?? undefined,
+    organizationId: row.organization_id ?? undefined,
+    eventUrl: row.event_url ?? undefined,
+    placeName: row.place_name ?? undefined,
+    organizers: row.organizers ?? undefined,
   };
 };
 

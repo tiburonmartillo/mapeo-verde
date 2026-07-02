@@ -30,12 +30,6 @@ const seoByRoute: Record<string, SEOData> = {
     keywords: 'agenda ambiental, eventos ambientales, voluntariado, talleres ambientales, actividades ecológicas, aguascalientes',
     type: 'website'
   },
-  '/areas-verdes': {
-    title: 'Inventario Verde - Áreas Verdes de Aguascalientes | Mapeo Verde',
-    description: 'Explora el catálogo vivo de nuestros parques y jardines. Conoce su estado de salud, necesidades de mantenimiento y valor ambiental.',
-    keywords: 'áreas verdes, parques, jardines, inventario verde, aguascalientes, espacios públicos, reforestación',
-    type: 'website'
-  },
   '/boletines': {
     title: 'Boletines de Impacto - Monitor Ambiental Local | Mapeo Verde',
     description: 'Vigilancia ciudadana sobre los nuevos proyectos de construcción en Aguascalientes. Analizamos las Manifestaciones de Impacto Ambiental (MIA) para detectar riesgos a tiempo.',
@@ -76,7 +70,7 @@ export const useSEO = (customSEO?: Partial<SEOData>) => {
 
   // Detect if we are on a detail page
   const pathParts = normalizedPath.split('/').filter(Boolean);
-  const isDetailPage = pathParts.length === 2 && (pathParts[0] === 'areas-verdes' || pathParts[0] === 'agenda');
+  const isDetailPage = pathParts.length === 2 && pathParts[0] === 'agenda';
   const detailType = isDetailPage ? pathParts[0] : null;
 
   const siteUrl = typeof window !== 'undefined'
@@ -87,13 +81,7 @@ export const useSEO = (customSEO?: Partial<SEOData>) => {
     let routeSEO = seoByRoute[normalizedPath] || defaultSEO;
 
     // Handle detail page titles/descriptions dynamically if needed
-    if (detailType === 'areas-verdes') {
-      routeSEO = {
-        ...routeSEO,
-        title: 'Detalle de Área Verde | Mapeo Verde',
-        description: 'Conoce a fondo esta área verde: su estado, servicios y valor para la comunidad.'
-      };
-    } else if (detailType === 'agenda') {
+    if (detailType === 'agenda') {
       routeSEO = {
         ...routeSEO,
         title: 'Detalle de Evento | Mapeo Verde',
