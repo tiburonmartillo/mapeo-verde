@@ -586,7 +586,7 @@ const AdminEventsPage = () => {
       event_url: form.event_url || null,
       place_name: form.place_name || null,
       organizers: form.organizers || null,
-      ...(editingId !== null ? {} : { status: 'published' as const, source: 'admin', organization_id: form.organization_id || null }),
+      ...(editingId !== null ? {} : { status: 'published' as const, source: 'admin', created_by: session?.user?.id, organization_id: form.organization_id || null }),
     };
     if (editingId !== null) {
       const { error } = await updateEvent(supabase, editingId, payload);
