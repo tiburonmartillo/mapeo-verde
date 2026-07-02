@@ -253,8 +253,8 @@ const AdminEventForm: React.FC<AdminEventFormProps> = ({
             <p className="text-xs font-mono text-gray-600">Subiendo imagen…</p>
           )}
           {imageUploadError && (
-            <p className="text-xs text-red-600" role="alert">
-              {imageUploadError}
+            <p className="text-sm text-red-700 bg-red-100 border-2 border-red-400 px-3 py-2 font-medium" role="alert">
+              Error al cargar imagen: {imageUploadError}
             </p>
           )}
           {imagePreview && (
@@ -417,6 +417,7 @@ const AdminEventsPage = () => {
         });
 
       if (uploadError) {
+        console.error('Image upload error:', uploadError);
         setImageUploadError(uploadError.message);
       } else if (uploadData?.path) {
         const { data: publicUrlData } = supabase.storage
