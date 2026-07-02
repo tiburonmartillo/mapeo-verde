@@ -1,9 +1,7 @@
 import type { Session } from '@supabase/supabase-js';
 
-/** user_metadata: el usuario ya definió contraseña desde el modal de admin (o entró con contraseña). */
+/** user_metadata: el usuario ya definió contraseña (o entró con contraseña). */
 export const META_ADMIN_PASSWORD_DONE = 'mv_admin_password_done';
-/** user_metadata: el usuario eligió no configurar contraseña por ahora. */
-export const META_SKIP_ADMIN_PASSWORD = 'mv_skip_admin_password';
 /**
  * user_metadata en Supabase Auth: nombre para mostrar en cabeceras del panel y en `/admin/cuenta`.
  * Si falta, se usa `full_name` de metadata (p. ej. registro OAuth) antes de mostrar solo el correo.
@@ -54,14 +52,4 @@ export function sessionUsedPasswordThisSession(session: Session): boolean {
   return false;
 }
 
-export function shouldPromptAdminPasswordSetup(session: Session | null): boolean {
-  if (!session?.user) return false;
-  const m = session.user.user_metadata ?? {};
-  if (m[META_ADMIN_PASSWORD_DONE] === true || m[META_SKIP_ADMIN_PASSWORD] === true) {
-    return false;
-  }
-  if (sessionUsedPasswordThisSession(session)) {
-    return false;
-  }
-  return true;
-}
+

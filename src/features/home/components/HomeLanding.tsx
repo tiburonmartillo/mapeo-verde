@@ -1,6 +1,5 @@
 import HeroSection from './HeroSection';
 import TextContentSection from './TextContentSection';
-import StatsSection from './StatsSection';
 import FeatureList from './FeatureList';
 import { FeaturePreview } from './FeaturePreview';
 import CtaSection from './CtaSection';
@@ -27,7 +26,6 @@ export default function HomeLanding(props: HomeLandingProps) {
       <>
         <HeroSection />
         <TextContentSection />
-        <StatsSection />
         <FeatureList />
         <CtaSection />
       </>
@@ -45,7 +43,6 @@ export default function HomeLanding(props: HomeLandingProps) {
     <>
       <HeroSection />
       <TextContentSection />
-      <StatsSection />
       <FeatureList
         onNavigate={onNavigate}
       />

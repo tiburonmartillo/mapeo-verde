@@ -14,7 +14,7 @@
  * - la raíz del sitio (https://mapeoverde.org/) por si el proyecto redirige al "Site URL";
  *   la app ahora lee el token en la primera carga desde cualquier ruta.
  */
-const CANONICAL_PROD_ADMIN = 'https://mapeoverde.org/admin';
+const CANONICAL_PROD_ADMIN = 'https://mapeoverde.org/admin/registro';
 
 export function getAuthEmailRedirectUrl(): string {
   const explicit = import.meta.env.VITE_AUTH_EMAIL_REDIRECT_URL?.trim();
@@ -23,7 +23,7 @@ export function getAuthEmailRedirectUrl(): string {
   const rawBase = import.meta.env.BASE_URL ?? '/';
   const baseSegment =
     rawBase === '/' ? '' : String(rawBase).replace(/\/+$/, '');
-  const adminPath = baseSegment ? `${baseSegment}/admin` : '/admin';
+  const adminPath = baseSegment ? `${baseSegment}/admin/registro` : '/admin/registro';
 
   const fromEnv = import.meta.env.VITE_SITE_URL?.trim().replace(/\/+$/, '');
   const origin =

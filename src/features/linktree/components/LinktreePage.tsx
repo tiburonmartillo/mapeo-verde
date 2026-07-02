@@ -51,14 +51,6 @@ const LinktreePage = () => {
       logoType: 'text' as const,
       logoText: 'Agenda',
     },
-    {
-      id: 6,
-      name: 'Áreas Verde',
-      url: '/areas-verdes',
-      logo: null,
-      logoType: 'text' as const,
-      logoText: 'Áreas Verde',
-    },
   ];
 
   return (

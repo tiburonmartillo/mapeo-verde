@@ -1,7 +1,6 @@
 export const TAB_ROUTES = {
   HOME: '/',
   AGENDA: '/agenda',
-  GREEN_AREAS: '/areas-verdes',
   NEWSLETTERS: '/boletines',
   GAZETTES: '/gacetas',
   PARTICIPATION: '/participacion'

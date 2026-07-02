@@ -23,7 +23,6 @@ const NavBar = ({ activeTab, onNavigate }: NavBarProps) => {
   const tabs: Tab[] = [
     { id: 'HOME', label: 'INICIO', color: 'bg-[#b4ff6f]', hoverColor: 'hover:bg-[#b4ff6f]' },
     { id: 'AGENDA', label: 'AGENDA', color: 'bg-[#ff7e67]', hoverColor: 'hover:bg-[#ff7e67]' },
-    { id: 'GREEN_AREAS', label: 'ÁREAS VERDES', color: 'bg-[#fccb4e]', hoverColor: 'hover:bg-[#fccb4e]' },
     { id: 'PARTICIPATION', label: 'PARTICIPACIÓN', color: 'bg-[#d89dff]', hoverColor: 'hover:bg-[#d89dff]' },
   ];
 

@@ -50,6 +50,16 @@ export async function updateOrganizationProfile(
   return { data: data as OrganizationProfileRow, error: null };
 }
 
+export async function getOrCreateProfile(
+  supabase: SupabaseClient,
+  ownerId: string,
+  name: string,
+): Promise<{ data: OrganizationProfileRow | null; error: Error | null }> {
+  const existing = await fetchOrganizationProfileByOwner(supabase, ownerId);
+  if (existing) return { data: existing, error: null };
+  return insertOrganizationProfile(supabase, ownerId, { name });
+}
+
 export async function fetchOrganizationProfileRevisions(
   supabase: SupabaseClient,
   profileId: string,

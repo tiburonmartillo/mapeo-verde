@@ -21,12 +21,6 @@ const FeatureList = ({ onNavigate }: FeatureListProps) => {
       accentClass: "bg-[#ff7e67]",
     },
     {
-      title: "Áreas Verdes",
-      desc: "Inventario colaborativo de parques y espacios verdes.",
-      path: "GREEN_AREAS",
-      accentClass: "bg-[#b4ff6f]",
-    },
-    {
       title: "Participación",
       desc: "Contribuye con reportes, propuestas e ideas para tu comunidad.",
       path: "PARTICIPATION",
