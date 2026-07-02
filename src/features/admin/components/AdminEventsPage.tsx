@@ -56,6 +56,7 @@ type AdminEventFormProps = {
   form: EventInsert;
   updateForm: (updates: Partial<EventInsert>) => void;
   formError: string | null;
+  formSuccess: string | null;
   formSaving: boolean;
   onCancel: () => void;
   onSubmit: (e: React.FormEvent) => void;
@@ -73,6 +74,7 @@ const AdminEventForm: React.FC<AdminEventFormProps> = ({
   form,
   updateForm,
   formError,
+  formSuccess,
   formSaving,
   onCancel,
   onSubmit,
@@ -269,6 +271,11 @@ const AdminEventForm: React.FC<AdminEventFormProps> = ({
           )}
         </div>
       </div>
+      {formSuccess && (
+        <p className="text-sm text-green-800 bg-green-100 border-2 border-green-500 px-3 py-2 font-medium" role="status">
+          {formSuccess}
+        </p>
+      )}
       {formError && (
         <p className="text-sm text-red-600" role="alert">
           {formError}
@@ -338,6 +345,7 @@ const AdminEventsPage = () => {
   const [imageUploadError, setImageUploadError] = useState<string | null>(null);
   const [imageFileName, setImageFileName] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [formSuccess, setFormSuccess] = useState<string | null>(null);
   const [moderator, setModerator] = useState(false);
   const [activeTab, setActiveTab] = useState<AdminTab>('active');
   const [currentPage, setCurrentPage] = useState(1);
@@ -527,6 +535,11 @@ const AdminEventsPage = () => {
 
   const openCreate = () => {
     setEditingId(null);
+    setFormSuccess(null);
+    setImageUploadError(null);
+    setImageFileName(null);
+    if (imagePreview) URL.revokeObjectURL(imagePreview);
+    setImagePreview(null);
     const today = new Date().toISOString().slice(0, 10);
     setForm({
       ...defaultForm,
@@ -546,6 +559,11 @@ const AdminEventsPage = () => {
       return;
     }
     setFormOpen(false);
+    setFormSuccess(null);
+    setImageUploadError(null);
+    setImageFileName(null);
+    if (imagePreview) URL.revokeObjectURL(imagePreview);
+    setImagePreview(null);
     setEditingId(event.id);
     setForm({
       title: event.title,
@@ -571,9 +589,14 @@ const AdminEventsPage = () => {
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!supabase) return;
+    if (imageUploading) {
+      setFormError('Espera a que termine de subir la imagen.');
+      return;
+    }
     const { iso_start, iso_end } = buildIsoFromTimeRange(form.date, form.time);
     setFormSaving(true);
     setFormError(null);
+    setFormSuccess(null);
     const payload = {
       title: form.title,
       date: form.date,
@@ -596,7 +619,7 @@ const AdminEventsPage = () => {
         setFormSaving(false);
         return;
       }
-      setEditingId(null);
+      setFormSuccess('Evento actualizado correctamente.');
       loadEvents();
     } else {
       const { data, error } = await insertEvent(supabase, payload);
@@ -605,7 +628,8 @@ const AdminEventsPage = () => {
         setFormSaving(false);
         return;
       }
-      setFormOpen(false);
+      setFormSuccess('Evento creado correctamente.');
+      setForm({ ...defaultForm, date: form.date, time: form.time, iso_start: form.iso_start, iso_end: form.iso_end, organization_id: orgProfileId ?? undefined });
       if (data) setEvents((prev) => [...prev, data].sort((a, b) => a.date.localeCompare(b.date)));
       else loadEvents();
     }
@@ -871,6 +895,7 @@ const AdminEventsPage = () => {
                         form={form}
                         updateForm={updateForm}
                         formError={formError}
+                        formSuccess={formSuccess}
                         formSaving={formSaving}
                         onCancel={() => setFormOpen(false)}
                         onSubmit={handleFormSubmit}
@@ -986,6 +1011,7 @@ const AdminEventsPage = () => {
                               form={form}
                               updateForm={updateForm}
                               formError={formError}
+                              formSuccess={formSuccess}
                               formSaving={formSaving}
                               onCancel={() => setEditingId(null)}
                               onSubmit={handleFormSubmit}
@@ -1075,6 +1101,7 @@ const AdminEventsPage = () => {
                               form={form}
                               updateForm={updateForm}
                               formError={formError}
+                              formSuccess={formSuccess}
                               formSaving={formSaving}
                               onCancel={() => setEditingId(null)}
                               onSubmit={handleFormSubmit}
@@ -1161,6 +1188,7 @@ const AdminEventsPage = () => {
                               form={form}
                               updateForm={updateForm}
                               formError={formError}
+                              formSuccess={formSuccess}
                               formSaving={formSaving}
                               onCancel={() => setEditingId(null)}
                               onSubmit={handleFormSubmit}
@@ -1251,6 +1279,7 @@ const AdminEventsPage = () => {
                               form={form}
                               updateForm={updateForm}
                               formError={formError}
+                              formSuccess={formSuccess}
                               formSaving={formSaving}
                               onCancel={() => setEditingId(null)}
                               onSubmit={handleFormSubmit}
