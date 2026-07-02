@@ -55,6 +55,7 @@ const EventLocationField: React.FC<EventLocationFieldProps> = ({ value, onChange
         signal: controller.signal,
         headers: {
           'Accept-Language': 'es',
+          'User-Agent': 'MapeoVerde/1.0',
         },
       });
       if (!response.ok) {
@@ -106,6 +107,21 @@ const EventLocationField: React.FC<EventLocationFieldProps> = ({ value, onChange
       // ignore network/abort errors
     } finally {
       setIsSearching(false);
+    }
+  };
+
+  const reverseGeocode = async (lat: number, lng: number, onAddress: (addr: string) => void) => {
+    try {
+      const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&addressdetails=1`;
+      const res = await fetch(url, {
+        headers: { 'Accept-Language': 'es', 'User-Agent': 'MapeoVerde/1.0' },
+      });
+      if (!res.ok) return;
+      const data: any = await res.json();
+      const addr = data?.display_name;
+      if (addr) onAddress(addr);
+    } catch {
+      // ignore
     }
   };
 
@@ -161,6 +177,7 @@ const EventLocationField: React.FC<EventLocationFieldProps> = ({ value, onChange
           onClick={({ latLng }: { latLng: [number, number] }) => {
             const [lat, lng] = latLng;
             setMarker([lat, lng]);
+            reverseGeocode(lat, lng, onChange);
           }}
         >
           {marker && <Marker width={40} anchor={marker} />}
