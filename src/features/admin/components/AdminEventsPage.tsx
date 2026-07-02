@@ -301,11 +301,14 @@ const AdminEventForm: React.FC<AdminEventFormProps> = ({
   );
 };
 
+/** Offset de Ciudad de México respecto a UTC (sin horario de verano). */
+const CDMX_OFFSET = '-06:00';
+
 function buildIso(date: string, time: string): string {
   if (!date || !time) return '';
   const d = date.slice(0, 10);
   const t = time.length >= 5 ? time.slice(0, 5) : time.padEnd(5, '0');
-  return `${d}T${t}:00`;
+  return `${d}T${t}:00${CDMX_OFFSET}`;
 }
 
 function buildIsoFromTimeRange(date: string, timeStr: string): { iso_start: string; iso_end: string } {
@@ -314,8 +317,8 @@ function buildIsoFromTimeRange(date: string, timeStr: string): { iso_start: stri
   const start = parts[0] && parts[0].length >= 5 ? parts[0].slice(0, 5) : '10:00';
   const end = parts[1] && parts[1].length >= 5 ? parts[1].slice(0, 5) : start;
   return {
-    iso_start: `${d}T${start}:00`,
-    iso_end: `${d}T${end}:00`,
+    iso_start: `${d}T${start}:00${CDMX_OFFSET}`,
+    iso_end: `${d}T${end}:00${CDMX_OFFSET}`,
   };
 }
 

@@ -291,9 +291,10 @@ const ParticipationPage = () => {
                      const date = (formData.eventDate || '').toString().slice(0, 10);
                      const startTime = (formData.eventStartTime || '10:00').slice(0, 5);
                      const endTime = (formData.eventEndTime || formData.eventStartTime || '11:00').slice(0, 5);
-                     const timeLabel = `${startTime}–${endTime}`;
-                     const isoStart = `${date}T${startTime}:00`;
-                     const isoEnd = `${date}T${endTime}:00`;
+                      const timeLabel = `${startTime}–${endTime}`;
+                      const CDMX_OFFSET = '-06:00';
+                      const isoStart = `${date}T${startTime}:00${CDMX_OFFSET}`;
+                      const isoEnd = `${date}T${endTime}:00${CDMX_OFFSET}`;
                      const { error } = await client
                        .from('events')
                        .insert({
