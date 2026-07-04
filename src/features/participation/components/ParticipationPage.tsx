@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowDown } from 'lucide-react';
 import { getNavbarHeight } from '../../../utils/helpers/layoutHelpers';
-import { adminLiftShadow, adminPressableFocus } from '../../../utils/adminButtonClasses';
+
 import { getSupabaseClient } from '../../../lib/supabase';
 import { Map, Marker } from 'pigeon-maps';
 import { SafeImage } from '../../../components/common/SafeImage';
@@ -145,7 +145,7 @@ const ParticipationPage = () => {
               <div className="flex justify-end mb-8">
                 <Link
                   to="/ingreso"
-                  className={`inline-flex items-center justify-center bg-black text-white border-2 border-black px-4 py-2.5 text-xs font-mono uppercase tracking-wider hover:bg-[#ff7e67] hover:text-black ${adminPressableFocus} ${adminLiftShadow}`}
+                  className={`inline-flex items-center justify-center bg-black text-white border-2 border-black px-4 py-2.5 text-xs font-mono uppercase tracking-wider hover:bg-[#ff7e67] hover:text-black cursor-pointer motion-reduce:transition-none transition-[transform,box-shadow,background-color,border-color,opacity,color,filter] duration-300 ease-[cubic-bezier(0.25,0.8,0.25,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 motion-safe:hover:-translate-y-1 motion-safe:hover:scale-[1.03] motion-safe:active:translate-y-0.5 motion-safe:active:scale-[0.98] motion-reduce:hover:translate-y-0 motion-reduce:hover:scale-100 motion-reduce:active:scale-100`}
                   aria-label="Iniciar sesión para organizaciones"
                 >
                   Iniciar sesión
@@ -438,7 +438,7 @@ const ParticipationPage = () => {
                    <button
                      type="button"
                      onClick={() => setEntryType('GREEN_AREA')}
-                     className={`px-6 py-3 border-2 border-black font-mono text-sm uppercase tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all ${
+                     className={`px-6 py-3 border-2 border-black font-mono text-sm uppercase tracking-widest transition-all ${
                        entryType === 'GREEN_AREA'
                          ? 'bg-[#b4ff6f] text-black'
                          : 'bg-transparent text-black hover:bg-black/5'
@@ -449,7 +449,7 @@ const ParticipationPage = () => {
                    <button
                      type="button"
                      onClick={() => setEntryType('EVENT')}
-                     className={`px-6 py-3 border-2 border-black font-mono text-sm uppercase tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all ${
+                     className={`px-6 py-3 border-2 border-black font-mono text-sm uppercase tracking-widest transition-all ${
                        entryType === 'EVENT'
                          ? 'bg-[#ff7e67] text-black'
                          : 'bg-transparent text-black hover:bg-black/5'
@@ -942,7 +942,7 @@ const ParticipationPage = () => {
                           required
                         />
                         {(eventLocationSuggestions.length > 0 || isSearchingLocation) && (
-                          <div className="absolute left-0 right-0 mt-1 bg-white border border-black/20 shadow-lg max-h-64 overflow-auto z-20">
+                          <div className="absolute left-0 right-0 mt-1 bg-white border border-black/20 max-h-64 overflow-auto z-20">
                             {isSearchingLocation && (
                               <div className="px-3 py-2 text-xs font-mono text-gray-500">
                                 Buscando lugares...
@@ -1035,7 +1035,7 @@ const ParticipationPage = () => {
                  <button
                    type="submit"
                    disabled={isSubmitting}
-                   className="w-full md:w-auto px-12 py-5 bg-[#d89dff] text-black text-xl font-bold uppercase tracking-widest hover:bg-[#ff7e67] hover:text-white transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none border-2 border-black disabled:opacity-60 disabled:cursor-not-allowed"
+                   className="w-full md:w-auto px-12 py-5 bg-[#d89dff] text-black text-xl font-bold uppercase tracking-widest hover:bg-[#ff7e67] hover:text-white transition-all active:translate-y-1 border-2 border-black disabled:opacity-60 disabled:cursor-not-allowed"
                  >
                    {isSubmitting ? 'Preparando correo...' : 'Enviar propuesta'}
                  </button>

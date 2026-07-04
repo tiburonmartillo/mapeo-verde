@@ -53,7 +53,7 @@ const GreenAreaDetailPage = ({ areaId, onBack }: GreenAreaDetailPageProps) => {
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
         
         <div className="absolute top-6 left-6">
-           <button onClick={onBack} className="bg-white border-2 border-black px-4 py-2 font-mono text-xs uppercase font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-[#ff7e67] hover:text-white transition-all flex items-center gap-2">
+           <button onClick={onBack} className="bg-white border-2 border-black px-4 py-2 font-mono text-xs uppercase font-bold hover:bg-[#ff7e67] hover:text-white transition-all flex items-center gap-2">
               <ChevronLeft size={14}/> Regresar al Mapa
            </button>
         </div>
@@ -74,15 +74,15 @@ const GreenAreaDetailPage = ({ areaId, onBack }: GreenAreaDetailPageProps) => {
       </div>
 
       <div className="grid grid-cols-3 w-full max-w-4xl mx-auto -mt-6 relative z-10 px-4 gap-2 md:gap-4">
-         <div className="bg-white border-2 border-black p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-center">
+         <div className="bg-white border-2 border-black p-4 text-center">
             <p className="text-[10px] font-mono uppercase text-gray-500">Árboles</p>
             <p className="text-2xl font-black">1,240</p>
          </div>
-         <div className="bg-white border-2 border-black p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-center">
+         <div className="bg-white border-2 border-black p-4 text-center">
             <p className="text-[10px] font-mono uppercase text-gray-500">Superficie</p>
             <p className="text-2xl font-black">4.5 Ha</p>
          </div>
-         <div className="bg-white border-2 border-black p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-center">
+         <div className="bg-white border-2 border-black p-4 text-center">
             <p className="text-[10px] font-mono uppercase text-gray-500">Salud</p>
             <p className="text-2xl font-black text-green-600">85%</p>
          </div>
@@ -129,7 +129,7 @@ const GreenAreaDetailPage = ({ areaId, onBack }: GreenAreaDetailPageProps) => {
                      color="white"
                      size={40}
                      strokeWidth={1.5}
-                     className="drop-shadow-md"
+                     className=""
                    />
                  </div>
                </Overlay>
@@ -165,10 +165,10 @@ const GreenAreaDetailPage = ({ areaId, onBack }: GreenAreaDetailPageProps) => {
       </div>
 
       <div className="fixed bottom-6 left-0 w-full px-4 z-50 flex flex-col items-center gap-3 pointer-events-none">
-         <button className="pointer-events-auto w-[90vw] max-w-md bg-white text-black font-bold uppercase tracking-widest py-4 rounded-full shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-[#ff7e67] hover:text-white transition-all flex items-center justify-center gap-2 border-2 border-black">
+         <button className="pointer-events-auto w-[90vw] max-w-md bg-white text-black font-bold uppercase tracking-widest py-4 rounded-full hover:bg-[#ff7e67] hover:text-white transition-all flex items-center justify-center gap-2 border-2 border-black">
             <AlertCircle size={20} className="text-red-500"/> Reportar Incidente
          </button>
-         <button className="pointer-events-auto w-[90vw] max-w-md bg-[#b4ff6f] text-black font-bold uppercase tracking-widest py-4 rounded-full shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-[#ff7e67] hover:text-white transition-all flex items-center justify-center gap-2 border-2 border-black">
+         <button className="pointer-events-auto w-[90vw] max-w-md bg-[#b4ff6f] text-black font-bold uppercase tracking-widest py-4 rounded-full hover:bg-[#ff7e67] hover:text-white transition-all flex items-center justify-center gap-2 border-2 border-black">
             <TreePine size={20}/> Voluntariado Aquí
          </button>
       </div>

@@ -46,7 +46,7 @@ export const FeaturePreview = ({
                                 {hoveredFeature === 'Participación' ? (
                                     <div
                                         onClick={() => onNavigate('PARTICIPATION')}
-                                        className="w-full max-w-2xl border-2 border-black bg-white cursor-pointer hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all group flex flex-col"
+                                        className="w-full max-w-2xl border-2 border-black bg-white cursor-pointer transition-all group flex flex-col"
                                     >
                                         <div className="h-48 overflow-hidden border-b-2 border-black relative bg-[#d89dff] flex items-center justify-center p-6">
                                             <p className="text-lg font-serif text-center text-black">
@@ -84,7 +84,7 @@ export const FeaturePreview = ({
                                                     onNavigate('AGENDA', item.id);
                                                 }
                                             }}
-                                            className="border-2 border-black bg-white cursor-pointer hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all group h-full flex flex-col"
+                                            className="border-2 border-black bg-white cursor-pointer transition-all group h-full flex flex-col"
                                         >
                                              <div className="h-48 overflow-hidden border-b-2 border-black relative bg-gray-100 flex items-center justify-center">
                                                  {item.image ? (

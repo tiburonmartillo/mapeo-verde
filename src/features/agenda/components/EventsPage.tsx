@@ -406,10 +406,10 @@ const EventsPage = () => {
           {formatDateWithWeekday(selectedDate)}
         </h2>
       </div>
-      <div className="inline-flex bg-white border border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+      <div className="inline-flex bg-white border border-black">
         <button
           onClick={() => onChangeView('week')}
-          className={`px-4 py-2 font-mono text-sm uppercase font-bold border-r border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${
+          className={`px-4 py-2 font-mono text-sm uppercase font-bold border-r border-black ${
             viewMode === 'week'
               ? 'bg-[#b4ff6f] text-black'
               : 'bg-white text-black hover:bg-black hover:text-white'
@@ -419,7 +419,7 @@ const EventsPage = () => {
         </button>
         <button
           onClick={() => onChangeView('month')}
-          className={`px-4 py-2 font-mono text-sm uppercase font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${
+          className={`px-4 py-2 font-mono text-sm uppercase font-bold ${
             viewMode === 'month'
               ? 'bg-[#b4ff6f] text-black'
               : 'bg-white text-black hover:bg-black hover:text-white'
@@ -742,7 +742,7 @@ const EventsPage = () => {
       >
         <div className="max-w-7xl mx-auto relative flex flex-col h-full">
           <div className="mb-6 flex flex-wrap items-center gap-3">
-            <div className="bg-white border border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] px-4 py-2 inline-flex items-center gap-2">
+            <div className="bg-white border border-black px-4 py-2 inline-flex items-center gap-2">
               <Calendar size={16} className="text-black flex-shrink-0" />
               <span className="font-mono text-xs uppercase tracking-widest font-bold text-black whitespace-nowrap">{getCurrentMonthYear()}</span>
             </div>
@@ -765,7 +765,7 @@ const EventsPage = () => {
           <div className="flex flex-wrap items-center gap-4">
             <Link
               to="/participacion"
-              className="inline-flex items-center gap-2 border-2 border-black bg-black text-white px-5 py-3 font-bold uppercase text-sm tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-[#0a0a0a] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all cursor-pointer"
+              className="inline-flex items-center gap-2 border-2 border-black bg-black text-white px-5 py-3 font-bold uppercase text-sm tracking-wider hover:bg-[#0a0a0a] transition-all cursor-pointer"
             >
               <PlusCircle size={20} className="flex-shrink-0" />
               Proponer un evento
@@ -894,7 +894,7 @@ const EventsPage = () => {
               <div className="flex flex-row gap-6 min-h-[672px]" style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box', overflow: 'hidden' }}>
                 {/* Calendario: ocupa 100% en móviles, 75% en pantallas medianas+ */}
                 <div className="flex-shrink-0 w-full md:w-3/4 box-border overflow-hidden">
-                  <div className="grid grid-cols-7 gap-px bg-black border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+                  <div className="grid grid-cols-7 gap-px bg-black border-2 border-black">
                     {['LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB', 'DOM'].map(d => (
                       <div key={d} className="bg-black text-white text-center py-1 md:py-2 font-mono text-[10px] md:text-xs font-bold uppercase min-w-[45px] md:min-w-0">{d}</div>
                     ))}
@@ -1073,7 +1073,7 @@ const EventsPage = () => {
                                           href={getGoogleCalendarUrl(event)}
                                           target="_blank"
                                           rel="noopener noreferrer"
-                                          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-black text-white text-xs font-bold uppercase hover:bg-[#ff7e67] transition-colors border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+                                          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-black text-white text-xs font-bold uppercase hover:bg-[#ff7e67] transition-colors border-2 border-black"
                                           onClick={(e) => e.stopPropagation()}
                                           style={{ width: '100%' }}
                                         >
@@ -1084,7 +1084,7 @@ const EventsPage = () => {
                                           href={shareToWhatsApp(event, baseUrl)}
                                           target="_blank"
                                           rel="noopener noreferrer"
-                                          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-[#25D366] text-white text-xs font-bold uppercase hover:bg-[#20BA5A] transition-colors border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+                                          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-[#25D366] text-white text-xs font-bold uppercase hover:bg-[#20BA5A] transition-colors border-2 border-black"
                                           onClick={(e) => e.stopPropagation()}
                                           style={{ width: '100%' }}
                                         >
@@ -1131,7 +1131,7 @@ const EventsPage = () => {
                   key={event.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="group border-2 border-black bg-white p-0 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-[12px_12px_0px_0px_#ff7e67] transition-all flex flex-col md:flex-row overflow-hidden max-h-[600px]"
+                  className="group border-2 border-black bg-white p-0 transition-all flex flex-col md:flex-row overflow-hidden max-h-[600px]"
                 >
                   <div className="bg-[#ff7e67] text-black w-full md:w-32 flex flex-row md:flex-col items-center justify-center p-4 border-b-2 md:border-b-0 md:border-r-2 border-black shrink-0 gap-2 md:gap-0">
                     <span className="font-mono text-xs uppercase tracking-widest text-black/60">{getMonthAbbr(event.date)}</span>
@@ -1193,7 +1193,7 @@ const EventsPage = () => {
                           href={getGoogleCalendarUrl(event)}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-black text-white text-xs font-bold uppercase hover:bg-[#ff7e67] transition-colors border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+                          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-black text-white text-xs font-bold uppercase hover:bg-[#ff7e67] transition-colors border-2 border-black"
                           style={{ width: '100%' }}
                         >
                           <ExternalLink size={12} />
@@ -1203,7 +1203,7 @@ const EventsPage = () => {
                           href={shareToWhatsApp(event, baseUrl)}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-[#25D366] text-white text-xs font-bold uppercase hover:bg-[#20BA5A] transition-colors border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+                          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-[#25D366] text-white text-xs font-bold uppercase hover:bg-[#20BA5A] transition-colors border-2 border-black"
                           style={{ width: '100%' }}
                         >
                           <MessageCircle size={12} />
@@ -1244,7 +1244,7 @@ const EventsPage = () => {
             href="https://calendar.google.com/calendar/u/0/embed?src=bce9da9cb33f280d49d3962f712747a07d9728d2954bac9d0c24db0c08f16470@group.calendar.google.com&ctz=America%2FMexico_City"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 bg-black text-white px-8 py-4 text-base font-bold uppercase tracking-widest hover:bg-[#b4ff6f] hover:text-black border-2 border-black transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none"
+            className="inline-flex items-center gap-2 bg-black text-white px-8 py-4 text-base font-bold uppercase tracking-widest hover:bg-[#b4ff6f] hover:text-black border-2 border-black transition-all active:translate-y-1"
           >
             <Calendar size={20} />
             Agregar a Google Calendar
@@ -1298,7 +1298,7 @@ const EventsPage = () => {
               >
                 <div
                   onClick={(e) => e.stopPropagation()}
-                  className="bg-white border-t-2 border-black shadow-[0_-4px_0px_0px_rgba(0,0,0,1)] rounded-t-3xl overflow-y-auto w-full max-w-2xl mx-auto flex flex-col"
+                  className="bg-white border-t-2 border-black rounded-t-3xl overflow-y-auto w-full max-w-2xl mx-auto flex flex-col"
                   style={{ maxHeight: `calc(100vh - ${navbarHeight}px - 1rem)` }}
                 >
                   <div className="flex justify-center pt-3 pb-1">
@@ -1356,10 +1356,10 @@ const EventsPage = () => {
                           </a>
                         )}
                         <div className="flex flex-wrap gap-2">
-                          <a href={getGoogleCalendarUrl(selectedEvent)} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-black text-white text-xs font-bold uppercase hover:bg-[#ff7e67] transition-colors border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                          <a href={getGoogleCalendarUrl(selectedEvent)} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-black text-white text-xs font-bold uppercase hover:bg-[#ff7e67] transition-colors border-2 border-black">
                             <ExternalLink size={12} /> Google
                           </a>
-                          <a href={shareToWhatsApp(selectedEvent, baseUrl)} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-[#25D366] text-white text-xs font-bold uppercase hover:bg-[#20BA5A] transition-colors border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                          <a href={shareToWhatsApp(selectedEvent, baseUrl)} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-[#25D366] text-white text-xs font-bold uppercase hover:bg-[#20BA5A] transition-colors border-2 border-black">
                             <MessageCircle size={12} /> WhatsApp
                           </a>
                         </div>
@@ -1390,7 +1390,7 @@ const EventsPage = () => {
               >
                 <div
                   onClick={(e) => e.stopPropagation()}
-                  className="h-full bg-white border-l-2 border-black shadow-[-8px_0_0_0_rgba(0,0,0,1)] rounded-l-3xl overflow-y-auto flex flex-col"
+                  className="h-full bg-white border-l-2 border-black rounded-l-3xl overflow-y-auto flex flex-col"
                 >
                   <button
                     onClick={() => setEventDetailClosing(true)}
@@ -1444,10 +1444,10 @@ const EventsPage = () => {
                           </a>
                         )}
                         <div className="flex flex-wrap gap-2">
-                          <a href={getGoogleCalendarUrl(selectedEvent)} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-black text-white text-xs font-bold uppercase hover:bg-[#ff7e67] transition-colors border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                          <a href={getGoogleCalendarUrl(selectedEvent)} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-black text-white text-xs font-bold uppercase hover:bg-[#ff7e67] transition-colors border-2 border-black">
                             <ExternalLink size={12} /> Google
                           </a>
-                          <a href={shareToWhatsApp(selectedEvent, baseUrl)} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-[#25D366] text-white text-xs font-bold uppercase hover:bg-[#20BA5A] transition-colors border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                          <a href={shareToWhatsApp(selectedEvent, baseUrl)} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-[#25D366] text-white text-xs font-bold uppercase hover:bg-[#20BA5A] transition-colors border-2 border-black">
                             <MessageCircle size={12} /> WhatsApp
                           </a>
                         </div>

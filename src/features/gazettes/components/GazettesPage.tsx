@@ -183,7 +183,7 @@ const GazettesPage = () => {
 
       {/* Toolbar - Sticky Top */}
       <div
-        className="sticky z-30 shadow-sm p-4 border-b border-black bg-white flex flex-col md:flex-row gap-4 items-center justify-between transition-[top] duration-300 ease-in-out"
+        className="sticky z-30 p-4 border-b border-black bg-white flex flex-col md:flex-row gap-4 items-center justify-between transition-[top] duration-300 ease-in-out"
         style={{
           top: `${navbarHeight}px`,
           zIndex: 30,
@@ -237,7 +237,7 @@ const GazettesPage = () => {
 
         {/* TOP SECTION: Data Table */}
         <div className="w-full border-b border-black bg-[#f3f4f0] p-6">
-          <div className="bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <div className="bg-white border-2 border-black">
             {viewMode === 'table' ? (
               <div className="overflow-x-auto">
                 <table className="w-full text-left font-mono text-xs md:text-sm">
@@ -281,7 +281,7 @@ const GazettesPage = () => {
                                 e.stopPropagation();
                                 window.open(row.url, '_blank', 'noopener,noreferrer');
                               }}
-                              className="px-3 py-1 border-2 border-black bg-[#9dcdff] hover:bg-[#ff7e67] hover:text-white transition-colors font-mono text-xs uppercase font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px]"
+                              className="px-3 py-1 border-2 border-black bg-[#9dcdff] hover:bg-[#ff7e67] hover:text-white transition-colors font-mono text-xs uppercase font-bold active:translate-x-[2px] active:translate-y-[2px]"
                             >
                               INGR
                             </button>
@@ -306,8 +306,8 @@ const GazettesPage = () => {
                       handleSelectProject(card.id);
                     }}
                     className={`
-                          border-2 border-black bg-white p-4 cursor-pointer hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all h-full
-                          ${selectedProjectId === card.id ? 'shadow-[4px_4px_0px_0px_#9dcdff] border-[#9dcdff]' : 'shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'}
+                          border-2 border-black bg-white p-4 cursor-pointer transition-all h-full
+                          ${selectedProjectId === card.id ? ' border-[#9dcdff]' : ''}
                         `}
                   >
                     <div className="flex justify-between items-start mb-2">
@@ -328,7 +328,7 @@ const GazettesPage = () => {
                             e.stopPropagation();
                             window.open(card.url, '_blank', 'noopener,noreferrer');
                           }}
-                          className="w-full px-2 py-1.5 border-2 border-black bg-[#9dcdff] hover:bg-[#ff7e67] hover:text-white transition-colors font-mono text-xs uppercase font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px]"
+                          className="w-full px-2 py-1.5 border-2 border-black bg-[#9dcdff] hover:bg-[#ff7e67] hover:text-white transition-colors font-mono text-xs uppercase font-bold active:translate-x-[2px] active:translate-y-[2px]"
                         >
                           INGR
                         </button>
@@ -348,7 +348,7 @@ const GazettesPage = () => {
                 <button
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="p-2 border-2 border-black bg-white hover:bg-[#ff7e67] hover:text-white disabled:hover:bg-white disabled:hover:text-black transition-colors shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="p-2 border-2 border-black bg-white hover:bg-[#ff7e67] hover:text-white disabled:hover:bg-white disabled:hover:text-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <ChevronLeft size={16} />
                 </button>
@@ -358,7 +358,7 @@ const GazettesPage = () => {
                 <button
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages || totalPages === 0}
-                  className="p-2 border-2 border-black bg-white hover:bg-[#ff7e67] hover:text-white disabled:hover:bg-white disabled:hover:text-black transition-colors shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="p-2 border-2 border-black bg-white hover:bg-[#ff7e67] hover:text-white disabled:hover:bg-white disabled:hover:text-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <ChevronRight size={16} />
                 </button>
@@ -374,7 +374,7 @@ const GazettesPage = () => {
             {selectedProject ? (
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="flex justify-between items-start mb-6">
-                  <span className="px-3 py-1 bg-black text-white font-mono text-xs uppercase tracking-widest shadow-[4px_4px_0px_0px_#9dcdff]">
+                  <span className="px-3 py-1 bg-black text-white font-mono text-xs uppercase tracking-widest">
                     {selectedProject.id}
                   </span>
                   <span className="font-mono text-xs text-gray-500 border-b border-gray-300 pb-1">
@@ -417,7 +417,7 @@ const GazettesPage = () => {
                   </div>
 
                   <div className="pt-8 mt-8 border-t border-dashed border-gray-300">
-                    <button className="w-full flex items-center justify-center gap-2 bg-[#9dcdff] hover:bg-[#ff7e67] hover:text-white transition-colors text-black font-bold uppercase py-4 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none text-lg">
+                    <button className="w-full flex items-center justify-center gap-2 bg-[#9dcdff] hover:bg-[#ff7e67] hover:text-white transition-colors text-black font-bold uppercase py-4 border-2 border-black active:translate-y-1 text-lg">
                       <Download size={20} /> Gaceta PDF Oficial
                     </button>
                   </div>
@@ -436,7 +436,7 @@ const GazettesPage = () => {
 
         {/* CTA Section - BLUE VARIANT */}
         <div className="bg-[#f3f4f0] p-6 md:p-12 border-b border-black">
-          <div className="border-2 border-black bg-black text-white p-6 md:p-8 relative z-10 max-w-5xl mx-auto shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+          <div className="border-2 border-black bg-black text-white p-6 md:p-8 relative z-10 max-w-5xl mx-auto">
             <h3 className="text-2xl font-bold mb-4 flex items-center gap-2">
               <AlertCircle className="text-[#9dcdff]" />
               MONITOREO FEDERAL
@@ -445,10 +445,10 @@ const GazettesPage = () => {
               Las gacetas de SEMARNAT se publican los jueves. Suscríbete para recibir únicamente los proyectos que afectan a Aguascalientes.
             </p>
             <div className="flex flex-col md:flex-row gap-4">
-              <button className="flex-1 bg-[#9dcdff] text-black font-bold uppercase py-3 px-4 flex items-center justify-center gap-2 hover:bg-[#ff7e67] hover:text-white transition-colors border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+              <button className="flex-1 bg-[#9dcdff] text-black font-bold uppercase py-3 px-4 flex items-center justify-center gap-2 hover:bg-[#ff7e67] hover:text-white transition-colors border-2 border-black">
                 <Mail size={18} /> Suscribir a Gacetas
               </button>
-              <button className="flex-1 bg-white text-black font-bold uppercase py-3 px-4 flex items-center justify-center gap-2 hover:bg-[#ff7e67] hover:text-white transition-colors border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+              <button className="flex-1 bg-white text-black font-bold uppercase py-3 px-4 flex items-center justify-center gap-2 hover:bg-[#ff7e67] hover:text-white transition-colors border-2 border-black">
                 <ExternalLink size={18} /> Ver Sitio SEMARNAT
               </button>
             </div>

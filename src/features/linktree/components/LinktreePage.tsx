@@ -110,7 +110,7 @@ const LinktreePage = () => {
                 transition={{ duration: 0.4, delay: 0.3 + index * 0.1 }}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95, translateY: 1 }}
-                className={`${isRectangular ? 'h-20' : 'aspect-square'} w-full bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] cursor-pointer flex items-center justify-center hover:bg-[#ff7e67] hover:text-white transition-all active:translate-y-1 active:shadow-none`}
+                className={`${isRectangular ? 'h-20' : 'aspect-square'} w-full bg-white border-2 border-black cursor-pointer flex items-center justify-center hover:bg-[#ff7e67] hover:text-white transition-all active:translate-y-1`}
                 aria-label={profile.name}
               >
                 {profile.logoType === 'image' && profile.logo ? (
@@ -146,7 +146,7 @@ const LinktreePage = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.9 }}
-          className="w-full border-2 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] overflow-hidden"
+          className="w-full border-2 border-black bg-white overflow-hidden"
         >
           {calendarError ? (
             <div className="p-8 text-center">
@@ -156,7 +156,7 @@ const LinktreePage = () => {
                 href={calendarViewUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-[#ff7e67] text-white font-bold uppercase border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-black transition-all active:translate-y-1 active:shadow-none"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-[#ff7e67] text-white font-bold uppercase border-2 border-black hover:bg-black transition-all active:translate-y-1"
               >
                 <Calendar className="w-4 h-4" />
                 Abrir calendario en Google Calendar

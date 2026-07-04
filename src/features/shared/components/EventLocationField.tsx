@@ -140,7 +140,7 @@ const EventLocationField: React.FC<EventLocationFieldProps> = ({ value, onChange
           required
         />
         {(suggestions.length > 0 || isSearching) && (
-          <div className="absolute z-20 mt-1 w-full bg-white border border-black/20 shadow-lg max-h-60 overflow-auto">
+          <div className="absolute z-20 mt-1 w-full bg-white border border-black/20 max-h-60 overflow-auto">
             {isSearching && (
               <div className="px-3 py-2 text-[11px] font-mono text-gray-500">
                 Buscando lugares…

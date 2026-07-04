@@ -11,7 +11,7 @@ const StatsSection = () => {
   
   return (
     <section className="bg-[#f3f4f0] text-black py-10 px-4 sm:px-6 md:py-12 border-b border-black overflow-x-hidden">
-       <div className="max-w-7xl mx-auto mb-6 md:mb-8 border border-black bg-white p-3 sm:p-4 max-w-full inline-block shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+       <div className="max-w-7xl mx-auto mb-6 md:mb-8 border border-black bg-white p-3 sm:p-4 max-w-full inline-block">
           <p className="font-mono text-xs uppercase tracking-widest">Impacto: Cobertura Vegetal</p>
        </div>
        
@@ -24,7 +24,7 @@ const StatsSection = () => {
        </div>
 
        <div className="mt-8 md:mt-12 max-w-7xl mx-auto flex justify-center md:justify-end px-0">
-          <div className="w-full max-w-md border border-black bg-white p-4 sm:p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+          <div className="w-full max-w-md border border-black bg-white p-4 sm:p-6">
              <div className="font-mono text-xs border-b border-black pb-2 mb-4">REGISTRO ACTUAL</div>
              <p className="font-sans text-lg font-bold">
                {areasConDenuncia > 0 ? `${areasConDenuncia} ÁREAS VERDES DENUNCIADAS Y MONITOREADAS POR VECINOS.` : `${totalAreas} ÁREAS VERDES REGISTRADAS EN EL INVENTARIO CIUDADANO.`}

@@ -87,7 +87,7 @@ const ImpactDetailPage = ({ eventId, onBack }: ImpactDetailPageProps) => {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#f3f4f0] flex flex-col items-center justify-center p-6">
-        <div className="bg-white border-2 border-black p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] max-w-2xl text-center">
+        <div className="bg-white border-2 border-black p-8 max-w-2xl text-center">
           <div className="flex flex-col items-center justify-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mb-4"></div>
             <h2 className="text-2xl font-bold mb-2">Cargando evento...</h2>
@@ -102,7 +102,7 @@ const ImpactDetailPage = ({ eventId, onBack }: ImpactDetailPageProps) => {
   if (!event) {
     return (
       <div className="min-h-screen bg-[#f3f4f0] flex flex-col items-center justify-center p-6">
-        <div className="bg-white border-2 border-black p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] max-w-2xl text-center">
+        <div className="bg-white border-2 border-black p-8 max-w-2xl text-center">
           <h2 className="text-2xl font-bold mb-4">Evento no encontrado</h2>
           <p className="mb-6">No se pudo cargar la información del evento.</p>
           <button
@@ -129,10 +129,10 @@ const ImpactDetailPage = ({ eventId, onBack }: ImpactDetailPageProps) => {
            />
         </div>
         <div className="absolute bottom-0 left-0 w-full p-6 md:p-12 bg-gradient-to-t from-black to-transparent">
-           <button onClick={onBack} className="mb-6 flex items-center gap-2 bg-white text-black px-4 py-2 font-mono uppercase text-xs font-bold border-2 border-black hover:bg-[#ff7e67] hover:text-white transition-colors shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+           <button onClick={onBack} className="mb-6 flex items-center gap-2 bg-white text-black px-4 py-2 font-mono uppercase text-xs font-bold border-2 border-black hover:bg-[#ff7e67] hover:text-white transition-colors">
               <ChevronLeft size={16}/> Volver a la Bitácora
            </button>
-           <span className="bg-[#b4ff6f] text-black px-3 py-1 font-mono text-xs font-bold uppercase border border-black shadow-[4px_4px_0px_0px_white]">
+           <span className="bg-[#b4ff6f] text-black px-3 py-1 font-mono text-xs font-bold uppercase border border-black">
               {event.category}
            </span>
            <h1 className="text-4xl md:text-6xl font-black text-white mt-4 leading-none tracking-tighter">
@@ -142,7 +142,7 @@ const ImpactDetailPage = ({ eventId, onBack }: ImpactDetailPageProps) => {
       </div>
 
       <div className="w-full px-6 mt-8 md:mt-12 relative z-10">
-         <div className="bg-white border-2 border-black p-6 md:p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+         <div className="bg-white border-2 border-black p-6 md:p-8">
             <div className="flex justify-between items-start border-b border-dashed border-gray-300 pb-6 mb-6">
                <div>
                   <p className="font-mono text-xs uppercase text-gray-500 mb-1">Fecha de Ejecución</p>
@@ -375,7 +375,7 @@ const ImpactDetailPage = ({ eventId, onBack }: ImpactDetailPageProps) => {
                       e.stopPropagation();
                       setSelectedImageIndex(null);
                     }}
-                    className="absolute top-4 right-4 text-white hover:bg-white hover:text-black transition-all z-[110] bg-black bg-opacity-90 rounded-full p-2 shadow-2xl border-2 border-white/30 hover:border-white"
+                    className="absolute top-4 right-4 text-white hover:bg-white hover:text-black transition-all z-[110] bg-black bg-opacity-90 rounded-full p-2 border-2 border-white/30 hover:border-white"
                     aria-label="Cerrar"
                     style={{ minWidth: '40px', minHeight: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                   >
@@ -433,7 +433,7 @@ const ImpactDetailPage = ({ eventId, onBack }: ImpactDetailPageProps) => {
       </div>
 
       <div className="fixed bottom-6 left-0 w-full px-6 z-50 flex justify-center pointer-events-none">
-         <button className="pointer-events-auto w-[90vw] max-w-md bg-black text-white font-bold uppercase tracking-widest py-4 rounded-full shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-[#ff7e67] transition-all flex items-center justify-center gap-2 border-2 border-black">
+         <button className="pointer-events-auto w-[90vw] max-w-md bg-black text-white font-bold uppercase tracking-widest py-4 rounded-full hover:bg-[#ff7e67] transition-all flex items-center justify-center gap-2 border-2 border-black">
             Participar en la Siguiente Misión <ArrowRight size={20}/>
          </button>
       </div>

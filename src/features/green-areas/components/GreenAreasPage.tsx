@@ -203,7 +203,7 @@ const GreenAreasPage = ({ onSelectArea }: GreenAreasPageProps) => {
       {/* CTA Denuncia */}
       <div className="bg-[#f3f4f0] border-b border-black p-6 md:p-8">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-white border-2 border-black p-6 md:p-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <div className="bg-white border-2 border-black p-6 md:p-8">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-4">
@@ -226,7 +226,7 @@ const GreenAreasPage = ({ onSelectArea }: GreenAreasPageProps) => {
                   // Aquí puedes agregar la lógica para abrir un formulario o navegar a una página de denuncia
                   window.open('mailto:denuncias@mapeoverde.org?subject=Denuncia Área Verde', '_blank');
                 }}
-                className="w-full md:w-auto px-8 py-4 bg-black text-white font-bold uppercase text-sm md:text-base tracking-widest border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all flex items-center justify-center gap-3"
+                className="w-full md:w-auto px-8 py-4 bg-black text-white font-bold uppercase text-sm md:text-base tracking-widest border-2 border-black active:translate-y-1 transition-all flex items-center justify-center gap-3"
                 style={{ '--accent-color': accentColor } as React.CSSProperties & { '--accent-color': string }}
                 onMouseEnter={(e) => {
                   const element = e.currentTarget as HTMLElement;
@@ -249,7 +249,7 @@ const GreenAreasPage = ({ onSelectArea }: GreenAreasPageProps) => {
 
       <div 
         ref={toolbarRef}
-        className="sticky z-30 shadow-sm p-4 border-b border-black bg-white flex flex-col md:flex-row gap-4 items-center justify-between transition-[top] duration-300 ease-in-out" 
+        className="sticky z-30 p-4 border-b border-black bg-white flex flex-col md:flex-row gap-4 items-center justify-between transition-[top] duration-300 ease-in-out" 
         style={{ 
           top: `${navbarHeight}px`,
           zIndex: 30,
@@ -313,7 +313,7 @@ const GreenAreasPage = ({ onSelectArea }: GreenAreasPageProps) => {
 
       <div className="flex flex-col flex-1">
         <div className="w-full border-b border-black bg-[#f3f4f0] p-6">
-          <div className="bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <div className="bg-white border-2 border-black">
             {viewMode === 'table' ? (
               <div className="overflow-x-auto">
                 <table className="w-full text-left font-mono text-xs md:text-sm">
@@ -369,8 +369,8 @@ const GreenAreasPage = ({ onSelectArea }: GreenAreasPageProps) => {
                     key={card.id}
                     onClick={() => handleSelectArea(card.id, card.lat, card.lng, true)}
                     className={`
-                      border-2 border-black bg-white p-4 cursor-pointer hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all h-full
-                      ${selectedAreaId === card.id ? 'shadow-[4px_4px_0px_0px_#fccb4e] border-[#fccb4e]' : 'shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'}
+                      border-2 border-black bg-white p-4 cursor-pointer transition-all h-full
+                      ${selectedAreaId === card.id ? ' border-[#fccb4e]' : ''}
                     `}
                   >
                     <div className="w-full h-32 mb-3 border border-black overflow-hidden bg-gray-100 relative">
@@ -465,13 +465,13 @@ const GreenAreasPage = ({ onSelectArea }: GreenAreasPageProps) => {
                       color="white" 
                       size={40} 
                       strokeWidth={1.5}
-                      className="drop-shadow-md"
+                      className=""
                     />
                   </div>
                 </Overlay>
               ))}
             </Map>
-            <div className="absolute top-4 right-4 bg-white border border-black p-2 shadow-sm pointer-events-none opacity-90 z-20">
+            <div className="absolute top-4 right-4 bg-white border border-black p-2 pointer-events-none opacity-90 z-20">
               <p className="text-[10px] font-mono uppercase font-bold mb-1">Mapa de Áreas Verdes</p>
             </div>
           </div>
@@ -480,7 +480,7 @@ const GreenAreasPage = ({ onSelectArea }: GreenAreasPageProps) => {
             {selectedArea ? (
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="flex justify-between items-start mb-6">
-                  <span className="px-3 py-1 bg-black text-white font-mono text-xs uppercase tracking-widest shadow-[4px_4px_0px_0px_#fccb4e]">
+                  <span className="px-3 py-1 bg-black text-white font-mono text-xs uppercase tracking-widest">
                     #{selectedArea.id}
                   </span>
                   <span className={`text-[10px] font-bold uppercase px-2 py-1 border border-black ${selectedArea.need ? 'bg-red-400' : 'bg-[#b4ff6f]'}`}>
@@ -535,7 +535,7 @@ const GreenAreasPage = ({ onSelectArea }: GreenAreasPageProps) => {
                   <div className="pt-8 mt-8 border-t border-dashed border-gray-300">
                     <button 
                       onClick={() => onSelectArea && onSelectArea(selectedArea.id)}
-                      className="w-full flex items-center justify-center gap-2 bg-[#fccb4e] hover:bg-black hover:text-white transition-colors text-black font-bold uppercase py-4 border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none text-lg"
+                      className="w-full flex items-center justify-center gap-2 bg-[#fccb4e] hover:bg-black hover:text-white transition-colors text-black font-bold uppercase py-4 border-2 border-black active:translate-y-1 text-lg"
                     >
                       <Eye size={20} /> Ver Detalles Completos
                     </button>

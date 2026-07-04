@@ -26,7 +26,7 @@ const StatCircle = ({ value, label, description }: StatCircleProps) => {
         initial={{ x: 50, opacity: 0 }}
         whileInView={{ x: 0, opacity: 1 }}
         transition={{ delay: 0.5, duration: 0.6 }}
-        className="mt-8 w-full max-w-xs md:mt-0 md:absolute md:right-10 md:top-20 md:w-auto bg-white border border-black p-4 sm:p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] z-20"
+        className="mt-8 w-full max-w-xs md:mt-0 md:absolute md:right-10 md:top-20 md:w-auto bg-white border border-black p-4 sm:p-6 z-20"
       >
         <div className="flex justify-between items-start mb-4">
           <h4 className="text-xl font-bold leading-tight">{label}</h4>

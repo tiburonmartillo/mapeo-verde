@@ -126,7 +126,7 @@ const ManifestoPage = () => {
         style={{ paddingTop: isMobile ? `${navbarHeight + 48}px` : undefined }}
       >
         <div className="relative z-10 max-w-4xl mx-auto">
-          <div className="inline-block border border-black bg-white px-4 py-1 mb-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <div className="inline-block border border-black bg-white px-4 py-1 mb-6">
             <span className="font-mono text-xs uppercase tracking-widest font-bold">Manifiesto</span>
           </div>
           <h1 className="text-5xl md:text-8xl font-black mb-8 leading-[0.9] tracking-tighter">
@@ -154,7 +154,7 @@ const ManifestoPage = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.1 }}
-              className={`border-2 border-black p-8 md:p-12 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] ${
+              className={`border-2 border-black p-8 md:p-12 ${
                 idx === 4 ? 'bg-[#b4ff6f]' : 'bg-white'
               }`}
             >
@@ -175,7 +175,7 @@ const ManifestoPage = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className="border-2 border-black bg-[#b4ff6f] p-8 md:p-12 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
+            className="border-2 border-black bg-[#b4ff6f] p-8 md:p-12"
           >
             <h2 className="text-3xl md:text-4xl font-bold mb-6 uppercase tracking-tight">
               5. Nuestro Compromiso
@@ -206,7 +206,7 @@ const ManifestoPage = () => {
               whileHover={{ scale: 1.05, backgroundColor: "#000", color: "#b4ff6f" }}
               whileTap={{ scale: 0.95 }}
               onClick={() => navigate('/participacion')}
-              className="px-8 py-4 bg-[#b4ff6f] text-black font-bold uppercase text-sm tracking-wider transition-colors border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none"
+              className="px-8 py-4 bg-[#b4ff6f] text-black font-bold uppercase text-sm tracking-wider transition-colors border-2 border-black"
             >
               Participar Ahora
             </motion.button>

@@ -150,7 +150,7 @@ const NavBar = ({ activeTab, onNavigate }: NavBarProps) => {
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: '-100%', opacity: 0 }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="absolute top-0 left-0 right-0 bg-white border-b border-black w-full shadow-2xl"
+              className="absolute top-0 left-0 right-0 bg-white border-b border-black w-full"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between p-4 border-b border-black bg-white">

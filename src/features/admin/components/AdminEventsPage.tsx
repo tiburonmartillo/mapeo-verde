@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, Navigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'motion/react';
-import EventLocationField from '../../shared/components/EventLocationField';
-import { EyeOff, Eye, LogOut, Trash2 } from 'lucide-react';
+import { EyeOff, Eye, Trash2 } from 'lucide-react';
 import { LogoMap } from '../../../components/common/LogoMap';
 import { SafeImage } from '../../../components/common/SafeImage';
+import { PasswordField } from '../../../components/common/PasswordField';
 import { getSupabaseAuthClient } from '../../../lib/supabase/client';
 import {
   getEventsAll,
@@ -15,22 +14,12 @@ import {
 } from '../../../lib/supabase/queries';
 import type { EventInsert } from '../../../lib/supabase/types';
 import { fetchOrganizationProfileByOwner } from '../../../lib/supabase/organizationProfileQueries';
+import { OrganizationProfileForm } from './OrganizationProfileForm';
 import type { Session } from '@supabase/supabase-js';
 import { resolveEventsModerator } from '../../../utils/auth/eventsModerator';
 import {
-  adminDisabled,
-  adminGhostPressable,
-  adminLiftShadow,
-  adminOutlinePressable,
-  adminPageHeader,
-  adminPageHeaderActions,
-  adminPageHeaderBrand,
-  adminPageHeaderUser,
-  adminPressableFocus,
-  adminTabPressable,
-} from '../../../utils/adminButtonClasses';
-import {
   META_ADMIN_PASSWORD_DONE,
+  META_DISPLAY_NAME,
   sessionDisplayLabel,
   sessionUsedPasswordThisSession,
 } from '../../../utils/auth/adminPasswordSetup';
@@ -49,6 +38,15 @@ const defaultForm: EventInsert = {
   place_name: '',
   organizers: '',
 };
+
+const BTN_TAB =
+  'px-3 py-1.5 text-xs font-mono font-bold uppercase tracking-wider border-2 border-black cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2';
+const BTN_FOCUS =
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2';
+const BTN_ACTION =
+  `border-2 border-black px-3 py-1.5 text-sm font-medium cursor-pointer ${BTN_FOCUS}`;
+const BTN_DANGER =
+  `border-2 border-red-600 text-red-600 px-3 py-1.5 text-sm font-medium rounded-full flex items-center justify-center cursor-pointer hover:bg-red-600 hover:text-white ${BTN_FOCUS}`;
 
 type AdminEventFormProps = {
   idPrefix: string;
@@ -224,7 +222,7 @@ const AdminEventForm: React.FC<AdminEventFormProps> = ({
         </label>
         <div className="space-y-2">
           <div className="flex flex-wrap items-center gap-2">
-            <label className="inline-flex items-center justify-center px-4 py-2 border-2 border-black bg-[#d89dff] text-black font-mono text-[10px] uppercase tracking-widest cursor-pointer hover:bg-[#ff7e67] hover:text-white transition-colors opacity-50"
+            <label className="inline-flex items-center justify-center px-4 py-2 border-2 border-black bg-purple-300 text-black font-mono text-[10px] uppercase tracking-widest cursor-pointer hover:bg-orange-300 hover:text-white transition-colors opacity-50"
               style={{ opacity: session?.user ? 1 : 0.5, pointerEvents: session?.user ? 'auto' : 'none' }}
             >
               Seleccionar imagen
@@ -284,7 +282,7 @@ const AdminEventForm: React.FC<AdminEventFormProps> = ({
       <div className="flex gap-2 justify-end">
         <button
           type="button"
-          className={`border-2 border-black px-4 py-2 font-medium hover:bg-gray-100 cursor-pointer ${adminOutlinePressable}`}
+          className={`border-2 border-black px-4 py-2 font-medium hover:bg-gray-100 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2`}
           onClick={onCancel}
         >
           Cancelar
@@ -292,7 +290,7 @@ const AdminEventForm: React.FC<AdminEventFormProps> = ({
         <button
           type="submit"
           disabled={formSaving}
-          className={`bg-black text-white border-2 border-black px-4 py-2 font-medium hover:bg-[#ff7e67] hover:text-black cursor-pointer ${adminPressableFocus} ${adminLiftShadow} ${adminDisabled}`}
+          className={`bg-black text-white border-2 border-black px-4 py-2 font-medium hover:bg-orange-300 hover:text-black cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 disabled:opacity-45 disabled:cursor-not-allowed disabled:pointer-events-none`}
         >
           {formSaving ? 'Guardando...' : submitLabel}
         </button>
@@ -329,7 +327,7 @@ function escapeCsvValue(value: unknown): string {
 }
 
 const AdminEventsPage = () => {
-  type AdminTab = 'past' | 'active' | 'pending';
+  type AdminTab = 'events' | 'account';
   const PAGE_SIZE = 10;
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -350,11 +348,25 @@ const AdminEventsPage = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [formSuccess, setFormSuccess] = useState<string | null>(null);
   const [moderator, setModerator] = useState(false);
-  const [activeTab, setActiveTab] = useState<AdminTab>('active');
+  const [activeTab, setActiveTab] = useState<AdminTab>('events');
   const [currentPage, setCurrentPage] = useState(1);
   const [orgProfileId, setOrgProfileId] = useState<string | null>(null);
+  const [accountDisplayName, setAccountDisplayName] = useState('');
+  const [savingName, setSavingName] = useState(false);
+  const [nameMessage, setNameMessage] = useState<string | null>(null);
+  const [nameError, setNameError] = useState<string | null>(null);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [savingPassword, setSavingPassword] = useState(false);
+  const [passwordMessage, setPasswordMessage] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
+  const [deleteAccountError, setDeleteAccountError] = useState<string | null>(null);
+  const [eventFilter, setEventFilter] = useState<'past' | 'active' | 'pending'>('active');
 
-  const pendingEvents = moderator ? events.filter((e) => e.status === 'pending') : [];
+  const pendingEvents = events.filter((e) => e.status === 'pending');
   const publishedEvents = events.filter((e) => e.status !== 'pending');
   const todayDate = new Date().toISOString().slice(0, 10);
   const pastEvents = publishedEvents.filter((e) => e.date < todayDate);
@@ -362,9 +374,9 @@ const AdminEventsPage = () => {
   const activeHiddenEvents = publishedEvents.filter((e) => e.date >= todayDate && e.visible === false);
   const activeEvents = [...activeVisibleEvents, ...activeHiddenEvents];
   const tabEvents =
-    activeTab === 'past'
+    eventFilter === 'past'
       ? pastEvents
-      : activeTab === 'pending'
+      : eventFilter === 'pending'
         ? pendingEvents
         : activeEvents;
   const totalPages = Math.max(1, Math.ceil(tabEvents.length / PAGE_SIZE));
@@ -516,20 +528,86 @@ const AdminEventsPage = () => {
   }, [session, supabase]);
 
   useEffect(() => {
-    if (!moderator && activeTab === 'pending') {
-      setActiveTab('active');
-    }
-  }, [moderator, activeTab]);
-
-  useEffect(() => {
     setCurrentPage(1);
-  }, [activeTab]);
+  }, [eventFilter]);
 
   useEffect(() => {
     if (currentPage > totalPages) {
       setCurrentPage(totalPages);
     }
   }, [currentPage, totalPages]);
+
+  useEffect(() => {
+    if (!session?.user) return;
+    const meta = session.user.user_metadata ?? {};
+    const fromMeta =
+      typeof meta[META_DISPLAY_NAME] === 'string' ? (meta[META_DISPLAY_NAME] as string) : '';
+    setAccountDisplayName(fromMeta.trim() || (typeof meta.full_name === 'string' ? meta.full_name : ''));
+  }, [session]);
+
+  const handleSaveDisplayName = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!supabase || !session?.user) return;
+    setNameError(null);
+    setNameMessage(null);
+    setSavingName(true);
+    const trimmed = accountDisplayName.trim();
+    const meta = { ...session.user.user_metadata };
+    if (trimmed) {
+      meta[META_DISPLAY_NAME] = trimmed;
+    } else {
+      delete meta[META_DISPLAY_NAME];
+    }
+    const { error } = await supabase.auth.updateUser({ data: meta });
+    setSavingName(false);
+    if (error) {
+      setNameError(error.message);
+      return;
+    }
+    setNameMessage('Nombre guardado.');
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!supabase || !session?.user) return;
+    setPasswordError(null);
+    setPasswordMessage(null);
+    if (!newPassword && !confirmPassword) {
+      setPasswordError('Escribe una contraseña nueva.');
+      return;
+    }
+    if (newPassword.length < 8) {
+      setPasswordError('La contraseña debe tener al menos 8 caracteres.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError('Las contraseñas no coinciden.');
+      return;
+    }
+    setSavingPassword(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    setSavingPassword(false);
+    if (error) {
+      setPasswordError(error.message);
+      return;
+    }
+    setNewPassword('');
+    setConfirmPassword('');
+    setPasswordMessage('Contraseña actualizada.');
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!supabase || !session?.user) return;
+    setDeleteAccountError(null);
+    setDeletingAccount(true);
+    const { error } = await supabase.rpc('delete_user_account');
+    setDeletingAccount(false);
+    if (error) {
+      setDeleteAccountError(error.message);
+      return;
+    }
+    await supabase.auth.signOut();
+  };
 
   const handleLogout = async () => {
     if (supabase) await supabase.auth.signOut();
@@ -685,8 +763,8 @@ const AdminEventsPage = () => {
     notifyEventsUpdated();
   };
 
-  const handleExportPublishedCsv = () => {
-    const rows = publishedEvents
+  const handleExportCsv = () => {
+    const rows = events
       .slice()
       .sort((a, b) => a.date.localeCompare(b.date))
       .map((event) => [
@@ -739,8 +817,16 @@ const AdminEventsPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#f3f4f0] flex items-center justify-center">
+      <div className="min-h-screen bg-stone-100 flex items-center justify-center">
         <span className="font-mono text-sm">Cargando...</span>
+      </div>
+    );
+  }
+
+  if (!supabase) {
+    return (
+      <div className="min-h-screen bg-stone-100 flex items-center justify-center p-6">
+        <p className="text-sm text-gray-700">Supabase no está configurado en este entorno.</p>
       </div>
     );
   }
@@ -754,10 +840,10 @@ const AdminEventsPage = () => {
 
   return (
     <div
-      className="min-h-screen bg-[#f3f4f0] text-black"
+      className="min-h-screen bg-stone-100 text-black"
     >
-      <header className={adminPageHeader}>
-        <div className={adminPageHeaderBrand}>
+      <header className="border-b border-black bg-white px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3 min-w-0">
           <Link
             to="/"
             className="block h-8 w-auto shrink-0 aspect-[835/383] hover:opacity-90 focus-visible:rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
@@ -765,131 +851,269 @@ const AdminEventsPage = () => {
           >
             <LogoMap className="h-full w-full" />
           </Link>
-          <span className="text-gray-500 font-mono text-sm">/ Mis eventos</span>
         </div>
-        <div className={adminPageHeaderActions}>
-          <div className={adminPageHeaderUser}>
-            {displayLabel ? (
-              <span className="text-base font-semibold text-black leading-snug truncate w-full" title={displayLabel}>
-                {displayLabel}
-              </span>
-            ) : null}
-            <span className="text-xs text-gray-500 truncate w-full" title={userEmail || undefined}>
-              {userEmail || '—'}
+        <div className="flex items-center gap-3 shrink-0">
+          {displayLabel && (
+            <span className="text-sm font-semibold text-black truncate max-w-[140px] hidden sm:block" title={displayLabel}>
+              {displayLabel}
             </span>
-          </div>
-          <Link
-            to="/admin/cuenta"
-            className={`inline-flex shrink-0 items-center justify-center border-2 border-black bg-[#b4ff6f] px-4 py-2 text-sm font-bold uppercase tracking-wide text-black hover:bg-[#9adf55] ${adminPressableFocus} ${adminLiftShadow}`}
-          >
-            Mi cuenta
-          </Link>
-          {moderator && (
-            <>
-              <Link
-                to="/admin/usuarios"
-                className={`shrink-0 text-xs font-mono uppercase tracking-wider border-2 border-amber-800 bg-amber-100 text-amber-900 px-2 py-1 hover:bg-amber-200 ${adminPressableFocus} ${adminLiftShadow}`}
-              >
-                Usuarios y permisos
-              </Link>
-              <span className="shrink-0 text-[10px] font-mono uppercase tracking-wider text-amber-800 bg-amber-100 px-2 py-0.5 border border-amber-700">
-                Moderación
-              </span>
-            </>
           )}
-          <button
-            type="button"
-            className={`inline-flex items-center justify-center gap-1 border border-gray-400 bg-white px-2.5 py-1.5 text-[11px] font-medium text-gray-600 cursor-pointer hover:border-gray-700 hover:bg-gray-50 hover:text-black ${adminGhostPressable}`}
-            onClick={handleLogout}
-          >
-            <LogOut className="size-3 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
-            Salir
-          </button>
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setAvatarMenuOpen((p) => !p)}
+              onBlur={(e) => {
+                if (!e.currentTarget.contains(e.relatedTarget)) setAvatarMenuOpen(false);
+              }}
+              style={{ width: 40, height: 40 }}
+              className="rounded-full border-2 border-black bg-white text-sm font-bold flex items-center justify-center shrink-0 cursor-pointer hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
+              aria-label="Menú de cuenta"
+            >
+              {(displayLabel || userEmail).charAt(0).toUpperCase()}
+            </button>
+            {avatarMenuOpen && (
+              <div
+                className="absolute right-0 top-full mt-2 border-2 border-black bg-white z-50"
+                onMouseDown={(e) => e.preventDefault()}
+              >
+                <div className="px-4 py-3 border-b border-gray-200">
+                  <p className="text-sm font-semibold truncate">{displayLabel || 'Usuario'}</p>
+                  <p className="text-xs text-gray-500 truncate">{userEmail}</p>
+                </div>
+                <button
+                  type="button"
+                  className="w-full text-left px-4 py-2.5 text-sm hover:bg-orange-300 cursor-pointer"
+                  onClick={() => { handleLogout(); setAvatarMenuOpen(false); }}
+                >
+                  Cerrar sesión
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-10 sm:space-y-12 relative">
-        <section>
-          <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between mb-4">
-            <div className="min-w-0">
-              <h2 className="text-xl font-bold">Gestión de eventos</h2>
-              {!moderator && (
-                <p className="text-sm text-gray-600 mt-1">Solo aparecen los que creaste con esta cuenta.</p>
-              )}
-            </div>
-            <div className="flex w-full sm:w-auto flex-col sm:flex-row gap-2">
-              {moderator && (
-                <button
-                  type="button"
-                  className={`w-full sm:w-auto shrink-0 justify-center border-2 border-black bg-white px-4 py-2.5 sm:py-2 font-medium text-black hover:bg-[#b4ff6f] inline-flex items-center gap-2 cursor-pointer ${adminPressableFocus} ${adminOutlinePressable}`}
-                  onClick={handleExportPublishedCsv}
-                >
-                  <span>Exportar publicados (CSV)</span>
-                </button>
-              )}
-              <button
-                type="button"
-                className={`w-full sm:w-auto shrink-0 justify-center bg-black text-white border-2 border-black px-4 py-2.5 sm:py-2 font-medium hover:bg-[#ff7e67] hover:text-black inline-flex items-center gap-2 cursor-pointer ${adminPressableFocus} ${adminLiftShadow}`}
-                onClick={openCreate}
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-10 sm:space-y-12 relative">
+        <section className="mt-8">
+          <div className="flex flex-wrap items-center gap-2 mb-8 border-b-2 border-black pb-2">
+            <button
+              type="button"
+              onClick={() => setActiveTab('events')}
+              className={`px-4 py-2 text-sm font-mono font-bold uppercase tracking-wider border-2 border-black cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 ${
+                activeTab === 'events' && (editingId !== null || formOpen)
+                  ? 'bg-lime-300 text-black'
+                  : activeTab === 'events'
+                    ? 'bg-orange-300 text-black'
+                    : 'bg-white text-black hover:bg-gray-200'
+              }`}
+            >
+              Administrar mis eventos
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('account')}
+              className={`px-4 py-2 text-sm font-mono font-bold uppercase tracking-wider border-2 border-black cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 ${
+                activeTab === 'account'
+                  ? 'bg-orange-300 text-black'
+                  : 'bg-white text-black hover:bg-gray-200'
+              }`}
+            >
+              Mi cuenta
+            </button>
+            {moderator && (
+              <Link
+                to="/admin/usuarios"
+                className="ml-auto px-3 py-1.5 text-[11px] font-mono uppercase tracking-wider border-2 border-amber-800 bg-amber-100 text-amber-900 hover:bg-amber-200 cursor-pointer"
               >
-                <span>+ Nuevo evento</span>
-              </button>
-            </div>
+                Usuarios y permisos
+              </Link>
+            )}
           </div>
-          <div className="mt-8 mb-8">
-            <div className="flex w-full flex-wrap border-2 border-black bg-[#eaf7da] p-2 gap-2">
-              <button
-                type="button"
-                onClick={() => setActiveTab('past')}
-                className={`flex-1 min-w-[min(100%,9rem)] sm:min-w-[140px] px-3 py-3 text-sm font-mono font-bold uppercase tracking-wider border-2 cursor-pointer ${adminTabPressable} ${
-                  activeTab === 'past'
-                    ? 'bg-[#ff7e67] text-black border-black ring-2 ring-black ring-offset-2'
-                    : 'bg-[#d89dff] text-black border-black hover:bg-[#b4ff6f]'
-                }`}
-              >
-                Pasados ({pastEvents.length})
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('active')}
-                className={`flex-1 min-w-[min(100%,9rem)] sm:min-w-[140px] px-3 py-3 text-sm font-mono font-bold uppercase tracking-wider border-2 cursor-pointer ${adminTabPressable} ${
-                  activeTab === 'active'
-                    ? 'bg-[#ff7e67] text-black border-black ring-2 ring-black ring-offset-2'
-                    : 'bg-[#d89dff] text-black border-black hover:bg-[#b4ff6f]'
-                }`}
-              >
-                Activos visibles ({activeVisibleEvents.length})
-              </button>
-              {moderator && (
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('pending')}
-                  className={`flex-1 min-w-[min(100%,9rem)] sm:min-w-[140px] px-3 py-3 text-sm font-mono font-bold uppercase tracking-wider border-2 cursor-pointer ${adminTabPressable} ${
-                    activeTab === 'pending'
-                      ? 'bg-[#ff7e67] text-black border-black ring-2 ring-black ring-offset-2'
-                      : 'bg-[#d89dff] text-black border-black hover:bg-[#b4ff6f]'
-                  }`}
-                >
-                  Por autorizar ({pendingEvents.length})
-                </button>
-              )}
-            </div>
-          </div>
-          {eventsLoading ? (
-            <p className="font-mono text-sm text-gray-500">Cargando eventos...</p>
-          ) : (
-            <div>
-              <ul className="space-y-4">
-              {/* Acordeón: Nuevo evento */}
-              <AnimatePresence>
-                {formOpen && (
-                  <motion.li
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="border-2 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] overflow-hidden"
+          {activeTab === 'account' ? (
+            <div className="space-y-6">
+
+              <section className="bg-white p-6">
+                <h2 className="font-mono text-xs uppercase tracking-widest text-purple-700 mb-4">
+                  Perfil de organización
+                </h2>
+                <OrganizationProfileForm supabase={supabase} userId={session.user.id} authEmail={userEmail} />
+              </section>
+
+              <section className="bg-white p-6">
+                <h2 className="font-mono text-xs uppercase tracking-widest text-gray-600 mb-4">Correo</h2>
+                <input
+                  type="email"
+                  value={session.user.email ?? ''}
+                  readOnly
+                  className="w-full border-2 border-gray-300 px-3 py-2 bg-gray-50 text-gray-600 cursor-not-allowed"
+                />
+              </section>
+
+              <section className="bg-white p-6">
+                <h2 className="font-mono text-xs uppercase tracking-widest text-gray-600 mb-4">Nombre en el panel</h2>
+                <form onSubmit={handleSaveDisplayName} className="space-y-4">
+                  <input
+                    id="account-display-name"
+                    type="text"
+                    value={accountDisplayName}
+                    onChange={(e) => setAccountDisplayName(e.target.value)}
+                    className="w-full border-2 border-black px-3 py-2 bg-white"
+                    placeholder="Ej. Mariana López"
+                    maxLength={120}
+                    autoComplete="name"
+                  />
+                  {nameError && <p className="text-sm text-red-600">{nameError}</p>}
+                  {nameMessage && <p className="text-sm text-green-700">{nameMessage}</p>}
+                  <button
+                    type="submit"
+                    disabled={savingName}
+                    className="bg-lime-300 text-black border-2 border-black px-4 py-2 text-sm font-bold uppercase tracking-wider hover:bg-lime-400 disabled:opacity-45 cursor-pointer"
                   >
+                    {savingName ? 'Guardando…' : 'Guardar'}
+                  </button>
+                </form>
+              </section>
+
+              <section className="bg-white p-6">
+                <h2 className="font-mono text-xs uppercase tracking-widest text-gray-600 mb-4">Contraseña</h2>
+                <p className="text-sm text-gray-600 mb-3">
+                  Si entraste con enlace mágico, define una contraseña para usar en /ingreso.
+                </p>
+                <form onSubmit={handleChangePassword} className="space-y-4">
+                  <PasswordField
+                    id="account-new-password"
+                    name="new_password"
+                    label="Nueva contraseña"
+                    autoComplete="new-password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                  />
+                  <PasswordField
+                    id="account-confirm-password"
+                    name="confirm_password"
+                    label="Confirmar contraseña"
+                    autoComplete="new-password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                  />
+                  {passwordError && <p className="text-sm text-red-600">{passwordError}</p>}
+                  {passwordMessage && <p className="text-sm text-green-700">{passwordMessage}</p>}
+                  <button
+                    type="submit"
+                    disabled={savingPassword}
+                    className="bg-black text-white border-2 border-black px-4 py-2 text-sm font-bold uppercase tracking-wider hover:bg-orange-300 hover:text-black disabled:opacity-45 cursor-pointer"
+                  >
+                    {savingPassword ? 'Actualizando…' : 'Actualizar'}
+                  </button>
+                </form>
+              </section>
+
+              <section className="bg-white p-6">
+                <h2 className="font-mono text-xs uppercase tracking-widest text-red-700 mb-4">Eliminar cuenta</h2>
+                <p className="text-sm text-gray-600 mb-3">
+                  Esta acción borrará tu cuenta. Tus eventos se conservarán.
+                </p>
+                {!deleteConfirm ? (
+                  <button
+                    type="button"
+                    className="bg-red-600 text-white px-4 py-2 text-sm font-bold uppercase tracking-wider hover:bg-red-700 cursor-pointer"
+                    onClick={() => setDeleteConfirm(true)}
+                  >
+                    Eliminar mi cuenta
+                  </button>
+                ) : (
+                  <div className="space-y-3">
+                    <p className="text-sm font-bold text-red-700">¿Estás seguro? Es irreversible.</p>
+                    {deleteAccountError && <p className="text-sm text-red-600">{deleteAccountError}</p>}
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        className="border-2 border-black bg-white px-3 py-1.5 text-xs font-medium cursor-pointer hover:bg-gray-100"
+                        onClick={() => { setDeleteConfirm(false); setDeleteAccountError(null); }}
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        type="button"
+                        disabled={deletingAccount}
+                        className="bg-red-600 text-white px-3 py-1.5 text-xs font-bold uppercase tracking-wider hover:bg-red-700 disabled:opacity-45 cursor-pointer"
+                        onClick={handleDeleteAccount}
+                      >
+                        {deletingAccount ? 'Eliminando…' : 'Sí, eliminar'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </section>
+            </div>
+          ) : (
+            <>
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+                <div className="flex flex-wrap gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setEventFilter('active')}
+                    className={`${BTN_TAB} ${
+                      eventFilter === 'active'
+                        ? 'bg-orange-300 text-black border-black'
+                        : 'bg-white text-black border-black hover:bg-lime-300'
+                    }`}
+                  >
+                    Activos ({activeEvents.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEventFilter('past')}
+                    className={`${BTN_TAB} ${
+                      eventFilter === 'past'
+                        ? 'bg-orange-300 text-black border-black'
+                        : 'bg-white text-black border-black hover:bg-lime-300'
+                    }`}
+                  >
+                    Pasados ({pastEvents.length})
+                  </button>
+                  {pendingEvents.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setEventFilter('pending')}
+                      className={`${BTN_TAB} ${
+                        eventFilter === 'pending'
+                          ? 'bg-orange-300 text-black border-black'
+                          : 'bg-white text-black border-black hover:bg-lime-300'
+                      }`}
+                    >
+                      Por autorizar ({pendingEvents.length})
+                    </button>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  {moderator && (
+                    <button
+                      type="button"
+                      className={`border-2 border-black bg-white px-3 py-1.5 text-xs font-medium text-black hover:bg-lime-300 cursor-pointer ${BTN_FOCUS}`}
+                      onClick={handleExportCsv}
+                    >
+                      Exportar CSV
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className={`bg-black text-white border-2 border-black px-3 py-2 text-xs font-bold uppercase tracking-wider hover:bg-orange-300 hover:text-black cursor-pointer ${BTN_FOCUS}`}
+                    onClick={openCreate}
+                  >
+                    + Nuevo evento
+                  </button>
+                </div>
+              </div>
+
+              {eventsLoading ? (
+                <p className="font-mono text-sm text-gray-500">Cargando eventos...</p>
+              ) : (
+                <div>
+                  <ul className="space-y-4">
+              {/* Acordeón: Nuevo evento */}
+              {formOpen && (
+                  <li className="border-2 border-black bg-white overflow-hidden">
                     <div className="p-4 border-b border-gray-200 font-bold">Nuevo evento</div>
                     <div className="p-4">
                       <AdminEventForm
@@ -910,28 +1134,26 @@ const AdminEventsPage = () => {
                         session={session}
                       />
                     </div>
-                  </motion.li>
+                  </li>
                 )}
-              </AnimatePresence>
-              {activeTab === 'past' && pastEvents.length === 0 && !formOpen && (
+              {eventFilter === 'past' && pastEvents.length === 0 && !formOpen && (
                 <p className="text-gray-600">
                   No hay eventos pasados todavía.
                 </p>
               )}
-              {activeTab === 'active' && activeVisibleEvents.length === 0 && activeHiddenEvents.length === 0 && !formOpen && (
+              {eventFilter === 'active' && activeVisibleEvents.length === 0 && activeHiddenEvents.length === 0 && !formOpen && (
                 <p className="text-gray-600">
                   {moderator
                     ? 'No hay eventos activos. Puedes crear uno nuevo o revisar los pendientes por autorizar.'
                     : 'No tienes eventos activos aún. Usa «Nuevo evento» para añadir uno a la agenda.'}
                 </p>
               )}
-              {activeTab === 'pending' && moderator && pendingEvents.length === 0 && !formOpen && (
+              {eventFilter === 'pending' && pendingEvents.length === 0 && !formOpen && (
                 <p className="text-gray-600">No hay eventos pendientes por autorizar.</p>
               )}
-              <AnimatePresence>
-                {activeTab === 'active' && paginatedActiveVisibleEvents.map((event) => (
-                  <motion.li key={event.id} layout className="space-y-0">
-                    <div className="border-2 border-black bg-white p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex flex-wrap items-center justify-between gap-4">
+              {eventFilter === 'active' && paginatedActiveVisibleEvents.map((event) => (
+                  <li key={event.id} className="space-y-0">
+                    <div className="border-2 border-black bg-white p-4 flex flex-wrap items-center justify-between gap-4">
                       <div className="min-w-0 flex-1">
                         <p className="font-bold truncate">{event.title}</p>
                         <p className="text-sm text-gray-600">{event.date} · {event.time} · {event.location}</p>
@@ -942,7 +1164,7 @@ const AdminEventsPage = () => {
                       <div className="flex gap-2 flex-wrap">
                         <button
                           type="button"
-                          className={`text-gray-600 px-3 py-1.5 text-sm font-medium hover:bg-gray-200 disabled:opacity-50 flex items-center justify-center rounded-full cursor-pointer ${adminPressableFocus} ${adminOutlinePressable}`}
+                          className={`text-gray-600 px-3 py-1.5 text-sm font-medium hover:bg-gray-200 disabled:opacity-50 flex items-center justify-center rounded-full cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2`}
                           disabled={togglingVisibleId !== null}
                           onClick={() => handleToggleVisible(event)}
                           aria-label="Ocultar en agenda"
@@ -956,7 +1178,7 @@ const AdminEventsPage = () => {
                         {moderator && event.source === 'participation' && (
                           <button
                             type="button"
-                            className={`border-2 border-amber-700 text-amber-700 px-3 py-1.5 text-sm font-medium hover:bg-amber-50 cursor-pointer ${adminOutlinePressable}`}
+                            className={`border-2 border-amber-700 text-amber-700 px-3 py-1.5 text-sm font-medium hover:bg-amber-50 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2`}
                             onClick={() => handleUnpublish(event)}
                           >
                             Pasar a pendiente
@@ -964,14 +1186,14 @@ const AdminEventsPage = () => {
                         )}
                         <button
                           type="button"
-                          className={`border-2 border-black px-3 py-1.5 text-sm font-medium rounded-full bg-white text-black hover:text-white hover:bg-black cursor-pointer ${adminPressableFocus} ${adminLiftShadow}`}
+                          className={`border-2 border-black px-3 py-1.5 text-sm font-medium rounded-full bg-white text-black hover:text-white hover:bg-black cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2`}
                           onClick={() => openEdit(event)}
                         >
                           Editar
                         </button>
                         <button
                           type="button"
-                          className={`text-red-600 px-3 py-1.5 text-sm font-medium bg-pink-500 rounded-full flex items-center justify-center cursor-pointer hover:bg-red-600 hover:text-black ${adminPressableFocus} ${adminOutlinePressable}`}
+                          className={`text-red-500 px-3 py-1.5 text-sm font-medium flex items-center justify-center cursor-pointer hover:bg-gray-50 hover:text-black cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2`}
                           onClick={() => openDeleteConfirm(event.id)}
                           aria-label="Borrar evento"
                         >
@@ -982,14 +1204,14 @@ const AdminEventsPage = () => {
                         <div className="w-full flex justify-end gap-2 mt-2">
                           <button
                             type="button"
-                            className={`px-3 py-1 text-xs font-mono border border-black bg-white text-gray-800 rounded-full hover:bg-black hover:text-white cursor-pointer ${adminOutlinePressable}`}
+                            className={`px-3 py-1 text-xs font-mono border border-black bg-white text-gray-800 rounded-full hover:bg-black hover:text-white cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2`}
                             onClick={() => setDeleteId(null)}
                           >
                             Cancelar
                           </button>
                           <button
                             type="button"
-                            className={`px-3 py-1 text-xs font-mono border border-black rounded-full bg-[#dc2626] text-white hover:text-black hover:bg-[#ff7e67] cursor-pointer ${adminPressableFocus} ${adminOutlinePressable} ${adminDisabled}`}
+                            className={`px-3 py-1 text-xs font-mono border border-black rounded-full bg-red-600 text-white hover:text-black hover:bg-orange-300 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2disabled:opacity-45 disabled:cursor-not-allowed disabled:pointer-events-none`}
                             disabled={deleting}
                             onClick={handleDelete}
                           >
@@ -998,13 +1220,8 @@ const AdminEventsPage = () => {
                         </div>
                       )}
                     </div>
-                    <AnimatePresence>
-                      {editingId === event.id && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.2 }}
+                    {editingId === event.id && (
+                        <div
                           className="border-2 border-t-0 border-black bg-gray-50 overflow-hidden relative z-10"
                         >
                           <div className="p-4 space-y-4" onClick={(e) => e.stopPropagation()}>
@@ -1026,20 +1243,18 @@ const AdminEventsPage = () => {
                               session={session}
                             />
                           </div>
-                        </motion.div>
+                        </div>
                       )}
-                    </AnimatePresence>
-                  </motion.li>
+                  </li>
                 ))}
-              </AnimatePresence>
-              {activeTab === 'active' && paginatedActiveHiddenEvents.length > 0 ? (
+              {eventFilter === 'active' && paginatedActiveHiddenEvents.length > 0 ? (
                 <React.Fragment>
                   <li className="list-none mt-8 mb-2">
                     <p className="text-sm font-mono uppercase tracking-widest text-gray-500">Ocultos (no se muestran en la agenda)</p>
                   </li>
                   {paginatedActiveHiddenEvents.map((event) => (
-                    <motion.li key={event.id} layout className="space-y-0">
-                      <div className="border-2 border-gray-400 bg-gray-100 p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] flex flex-wrap items-center justify-between gap-4">
+                    <li key={event.id} className="space-y-0">
+                      <div className="border-2 border-gray-400 bg-gray-100 p-4 flex flex-wrap items-center justify-between gap-4">
                         <div className="min-w-0 flex-1">
                           <p className="font-bold truncate text-gray-700">{event.title}</p>
                           <p className="text-sm text-gray-600">{event.date} · {event.time} · {event.location}</p>
@@ -1051,7 +1266,7 @@ const AdminEventsPage = () => {
                         <div className="flex gap-2 flex-wrap">
                           <button
                             type="button"
-                            className={`border-2 border-green-700 text-green-700 px-3 py-1.5 text-sm font-medium hover:bg-green-50 disabled:opacity-50 flex items-center justify-center cursor-pointer ${adminOutlinePressable} ${adminDisabled}`}
+                            className={`border-2 border-green-700 text-green-700 px-3 py-1.5 text-sm font-medium hover:bg-green-50 disabled:opacity-50 flex items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 disabled:opacity-45 disabled:cursor-not-allowed disabled:pointer-events-none`}
                             disabled={togglingVisibleId !== null}
                             onClick={() => handleToggleVisible(event)}
                             aria-label="Mostrar en agenda"
@@ -1065,7 +1280,7 @@ const AdminEventsPage = () => {
                           {moderator && event.source === 'participation' && (
                             <button
                               type="button"
-                              className={`border-2 border-amber-700 text-amber-700 px-3 py-1.5 text-sm font-medium hover:bg-amber-50 cursor-pointer ${adminOutlinePressable}`}
+                              className={`border-2 border-amber-700 text-amber-700 px-3 py-1.5 text-sm font-medium hover:bg-amber-50 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2`}
                               onClick={() => handleUnpublish(event)}
                             >
                               Pasar a pendiente
@@ -1073,14 +1288,14 @@ const AdminEventsPage = () => {
                           )}
                           <button
                             type="button"
-                            className={`border-2 border-black px-3 py-1.5 text-sm font-medium hover:bg-gray-100 cursor-pointer ${adminOutlinePressable}`}
+                            className={`border-2 border-black px-3 py-1.5 text-sm font-medium hover:bg-gray-100 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2`}
                             onClick={() => openEdit(event)}
                           >
                             Editar
                           </button>
                           <button
                             type="button"
-                            className={`border-2 border-red-600 text-red-600 px-3 py-1.5 text-sm font-medium rounded-full flex items-center justify-center cursor-pointer hover:bg-red-600 hover:text-white ${adminPressableFocus} ${adminOutlinePressable}`}
+                            className={`border-2 border-red-600 text-red-600 px-3 py-1.5 text-sm font-medium rounded-full flex items-center justify-center cursor-pointer hover:bg-red-600 hover:text-white cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2`}
                             onClick={() => openDeleteConfirm(event.id)}
                             aria-label="Borrar evento"
                           >
@@ -1088,16 +1303,11 @@ const AdminEventsPage = () => {
                           </button>
                         </div>
                       </div>
-                      <AnimatePresence>
-                        {editingId === event.id && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.2 }}
-                            className="border-2 border-t-0 border-gray-400 bg-gray-50 overflow-hidden relative z-10"
-                          >
-                            <div className="p-4 space-y-4" onClick={(e) => e.stopPropagation()}>
+                    {editingId === event.id && (
+                        <div
+                          className="border-2 border-t-0 border-gray-400 bg-gray-50 overflow-hidden relative z-10"
+                        >
+                          <div className="p-4 space-y-4" onClick={(e) => e.stopPropagation()}>
                             <AdminEventForm
                               idPrefix={`edit-hidden-${event.id}`}
                               submitLabel="Guardar"
@@ -1116,17 +1326,15 @@ const AdminEventsPage = () => {
                               session={session}
                             />
                           </div>
-                        </motion.div>
+                        </div>
                       )}
-                    </AnimatePresence>
-                  </motion.li>
+                  </li>
                 ))}
               </React.Fragment>
             ) : null}
-              <AnimatePresence>
-                {activeTab === 'past' && paginatedTabEvents.map((event) => (
-                  <motion.li key={event.id} layout className="space-y-0">
-                    <div className="border-2 border-gray-400 bg-gray-100 p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] flex flex-wrap items-center justify-between gap-4">
+              {eventFilter === 'past' && paginatedTabEvents.map((event) => (
+                  <li key={event.id} className="space-y-0">
+                    <div className="border-2 border-gray-400 bg-gray-100 p-4 flex flex-wrap items-center justify-between gap-4">
                       <div className="min-w-0 flex-1">
                         <p className="font-bold truncate text-gray-700">{event.title}</p>
                         <p className="text-sm text-gray-600">{event.date} · {event.time} · {event.location}</p>
@@ -1141,14 +1349,14 @@ const AdminEventsPage = () => {
                       <div className="flex gap-2 flex-wrap">
                         <button
                           type="button"
-                          className={`border-2 border-black px-3 py-1.5 text-sm font-medium hover:bg-gray-100 cursor-pointer ${adminOutlinePressable}`}
+                          className={`border-2 border-black px-3 py-1.5 text-sm font-medium hover:bg-gray-100 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2`}
                           onClick={() => openEdit(event)}
                         >
                           Editar
                         </button>
                         <button
                           type="button"
-                          className={`border-2 border-red-600 text-red-600 px-3 py-1.5 text-sm font-medium rounded-full flex items-center justify-center cursor-pointer hover:bg-red-600 hover:text-white ${adminPressableFocus} ${adminOutlinePressable}`}
+                          className={`border-2 border-red-600 text-red-600 px-3 py-1.5 text-sm font-medium rounded-full flex items-center justify-center cursor-pointer hover:bg-red-600 hover:text-white cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2`}
                           onClick={() => openDeleteConfirm(event.id)}
                           aria-label="Borrar evento"
                         >
@@ -1159,14 +1367,14 @@ const AdminEventsPage = () => {
                         <div className="w-full flex justify-end gap-2 mt-2">
                           <button
                             type="button"
-                            className={`px-3 py-1 text-xs font-mono border border-black bg-white text-gray-800 rounded-full hover:bg-gray-100 cursor-pointer ${adminOutlinePressable}`}
+                            className={`px-3 py-1 text-xs font-mono border border-black bg-white text-gray-800 rounded-full hover:bg-gray-100 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2`}
                             onClick={() => setDeleteId(null)}
                           >
                             Cancelar
                           </button>
                           <button
                             type="button"
-                            className={`px-3 py-1 text-xs font-mono border border-black rounded-full bg-[#dc2626] text-white hover:text-black hover:bg-[#ff7e67] cursor-pointer ${adminPressableFocus} ${adminOutlinePressable} ${adminDisabled}`}
+                            className={`px-3 py-1 text-xs font-mono border border-black rounded-full bg-red-600 text-white hover:text-black hover:bg-orange-300 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 disabled:opacity-45 disabled:cursor-not-allowed disabled:pointer-events-none`}
                             disabled={deleting}
                             onClick={handleDelete}
                           >
@@ -1175,13 +1383,8 @@ const AdminEventsPage = () => {
                         </div>
                       )}
                     </div>
-                    <AnimatePresence>
-                      {editingId === event.id && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.2 }}
+                    {editingId === event.id && (
+                        <div
                           className="border-2 border-t-0 border-gray-400 bg-gray-50 overflow-hidden relative z-10"
                         >
                           <div className="p-4 space-y-4" onClick={(e) => e.stopPropagation()}>
@@ -1203,16 +1406,13 @@ const AdminEventsPage = () => {
                               session={session}
                             />
                           </div>
-                        </motion.div>
+                        </div>
                       )}
-                    </AnimatePresence>
-                  </motion.li>
+                  </li>
                 ))}
-              </AnimatePresence>
-              <AnimatePresence>
-                {activeTab === 'pending' && moderator && paginatedTabEvents.map((event) => (
-                  <motion.li key={event.id} layout className="space-y-0">
-                    <div className="border-2 border-amber-700/40 bg-amber-50/50 p-4 shadow-[4px_4px_0px_0px_rgba(180,83,9,0.3)] flex flex-wrap items-center justify-between gap-4">
+              {eventFilter === 'pending' && paginatedTabEvents.map((event) => (
+                  <li key={event.id} className="space-y-0">
+                    <div className="border-2 border-amber-700/40 bg-amber-50/50 p-4 flex flex-wrap items-center justify-between gap-4">
                       <div className="min-w-0 flex-1">
                         <p className="font-bold truncate">{event.title}</p>
                         <p className="text-sm text-gray-600">{event.date} · {event.time} · {event.location}</p>
@@ -1221,24 +1421,26 @@ const AdminEventsPage = () => {
                         )}
                       </div>
                       <div className="flex gap-2 flex-wrap">
+                      {moderator && (
                         <button
                           type="button"
-                          className={`border-2 border-green-700 text-green-700 px-3 py-1.5 text-sm font-medium hover:bg-green-100 disabled:opacity-50 cursor-pointer ${adminOutlinePressable} ${adminDisabled}`}
+                          className={`border-2 border-green-700 text-green-700 px-3 py-1.5 text-sm font-medium hover:bg-green-100 disabled:opacity-50 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 disabled:opacity-45 disabled:cursor-not-allowed disabled:pointer-events-none`}
                           disabled={publishingId !== null}
                           onClick={() => handlePublishPending(event)}
                         >
                           {publishingId === event.id ? 'Publicando...' : 'Publicar'}
                         </button>
+                      )}
                         <button
                           type="button"
-                          className={`border-2 border-black px-3 py-1.5 text-sm font-medium hover:bg-gray-100 cursor-pointer ${adminOutlinePressable}`}
+                          className={`border-2 border-black px-3 py-1.5 text-sm font-medium hover:bg-gray-100 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2`}
                           onClick={() => openEdit(event)}
                         >
                           Editar
                         </button>
                         <button
                           type="button"
-                          className={`border-2 border-red-600 text-red-600 px-3 py-1.5 text-sm font-medium rounded-full flex items-center justify-center cursor-pointer hover:bg-red-600 hover:text-white ${adminPressableFocus} ${adminOutlinePressable}`}
+                          className={`border-2 border-red-600 text-red-600 px-3 py-1.5 text-sm font-medium rounded-full flex items-center justify-center cursor-pointer hover:bg-red-600 hover:text-white cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2`}
                           onClick={() => openDeleteConfirm(event.id)}
                           aria-label="Eliminar evento pendiente"
                         >
@@ -1249,14 +1451,14 @@ const AdminEventsPage = () => {
                         <div className="w-full flex justify-end gap-2 mt-2">
                           <button
                             type="button"
-                            className={`px-3 py-1 text-xs font-mono border border-black bg-white text-gray-800 rounded-full hover:bg-gray-100 cursor-pointer ${adminOutlinePressable}`}
+                            className={`px-3 py-1 text-xs font-mono border border-black bg-white text-gray-800 rounded-full hover:bg-gray-100 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2`}
                             onClick={() => setDeleteId(null)}
                           >
                             Cancelar
                           </button>
                           <button
                             type="button"
-                            className={`px-3 py-1 text-xs font-mono border border-black rounded-full bg-[#dc2626] text-white hover:text-black hover:bg-[#ff7e67] cursor-pointer ${adminPressableFocus} ${adminOutlinePressable} ${adminDisabled}`}
+                            className={`px-3 py-1 text-xs font-mono border border-black rounded-full bg-red-600 text-white hover:text-black hover:bg-orange-300 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 disabled:opacity-45 disabled:cursor-not-allowed disabled:pointer-events-none`}
                             disabled={deleting}
                             onClick={handleDelete}
                           >
@@ -1265,13 +1467,8 @@ const AdminEventsPage = () => {
                         </div>
                       )}
                     </div>
-                    <AnimatePresence>
-                      {editingId === event.id && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.2 }}
+                    {editingId === event.id && (
+                        <div
                           className="border-2 border-t-0 border-amber-700/40 bg-amber-50/30 overflow-hidden relative z-10"
                         >
                           <div className="p-4 space-y-4" onClick={(e) => e.stopPropagation()}>
@@ -1294,12 +1491,10 @@ const AdminEventsPage = () => {
                               session={session}
                             />
                           </div>
-                        </motion.div>
+                        </div>
                       )}
-                    </AnimatePresence>
-                  </motion.li>
+                  </li>
                 ))}
-              </AnimatePresence>
             </ul>
             {!eventsLoading && tabEvents.length > 0 && (
               <div className="mt-8 mb-8 flex flex-wrap items-center justify-between gap-3 border-2 border-black bg-white px-3 py-3">
@@ -1311,7 +1506,7 @@ const AdminEventsPage = () => {
                     type="button"
                     onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                     disabled={safePage <= 1}
-                    className={`border-2 border-black px-3 py-1.5 text-sm font-medium bg-white hover:bg-gray-100 cursor-pointer ${adminOutlinePressable} ${adminDisabled}`}
+                    className={`border-2 border-black px-3 py-1.5 text-sm font-medium bg-white hover:bg-gray-100 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 disabled:opacity-45 disabled:cursor-not-allowed disabled:pointer-events-none`}
                   >
                     Anterior
                   </button>
@@ -1322,7 +1517,7 @@ const AdminEventsPage = () => {
                     type="button"
                     onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                     disabled={safePage >= totalPages}
-                    className={`border-2 border-black px-3 py-1.5 text-sm font-medium bg-white hover:bg-gray-100 cursor-pointer ${adminOutlinePressable} ${adminDisabled}`}
+                    className={`border-2 border-black px-3 py-1.5 text-sm font-medium bg-white hover:bg-gray-100 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 disabled:opacity-45 disabled:cursor-not-allowed disabled:pointer-events-none`}
                   >
                     Siguiente
                   </button>
@@ -1330,7 +1525,9 @@ const AdminEventsPage = () => {
               </div>
             )}
             </div>
-          )}
+            )}
+          </>
+        )}
         </section>
       </main>
 

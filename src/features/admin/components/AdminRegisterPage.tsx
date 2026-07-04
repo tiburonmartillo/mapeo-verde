@@ -5,21 +5,12 @@ import { PasswordField } from '../../../components/common/PasswordField';
 import { getSupabaseAuthClient } from '../../../lib/supabase/client';
 import { getAuthEmailRedirectUrl } from '../../../utils/auth/authRedirect';
 import { getOrCreateProfile } from '../../../lib/supabase/organizationProfileQueries';
-import {
-  adminDisabled,
-  adminLiftShadow,
-  adminOutlinePressable,
-  adminPressableFocus,
-  adminTabPressable,
-} from '../../../utils/adminButtonClasses';
 import type { Session } from '@supabase/supabase-js';
-
-type IngresoMode = 'magic' | 'password';
 
 function mapPasswordSignInError(message: string): string {
   const m = message.toLowerCase();
   if (m.includes('invalid login') || m.includes('invalid_credentials') || m.includes('invalid grant')) {
-    return 'Correo o contraseña incorrectos. Si tu cuenta solo usa enlace mágico (sin contraseña), usa «Enlace por correo».';
+    return 'Correo o contraseña incorrectos.';
   }
   if (m.includes('email not confirmed')) {
     return 'Confirma tu correo antes de entrar con contraseña, o usa el enlace mágico.';
@@ -29,13 +20,14 @@ function mapPasswordSignInError(message: string): string {
 
 const AdminRegisterPage = () => {
   const [session, setSession] = useState<Session | null>(null);
-  const [mode, setMode] = useState<IngresoMode>('magic');
   const [authError, setAuthError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [linkSent, setLinkSent] = useState(false);
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [orgName, setOrgName] = useState('');
+  const [email, setEmail] = useState('');
   const [creatingProfile, setCreatingProfile] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
 
   const supabase = getSupabaseAuthClient();
   const [sessionChecked, setSessionChecked] = useState(() => !supabase);
@@ -153,7 +145,7 @@ const AdminRegisterPage = () => {
   if (linkSent && sentTo) {
     return (
       <div className="min-h-screen bg-[#f3f4f0] flex flex-col items-center justify-center px-6 py-10">
-        <div className="w-full max-w-sm border-2 border-black bg-white p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+        <div className="w-full max-w-sm border-2 border-black bg-white p-8">
           <Link to="/" className="block mb-6 mx-auto w-48 md:w-56" aria-label="Mapeo Verde, inicio">
             <LogoMap className="w-full h-auto" />
           </Link>
@@ -166,7 +158,7 @@ const AdminRegisterPage = () => {
           </p>
           <button
             type="button"
-            className={`mb-3 w-full text-center border-2 border-black bg-white px-4 py-2 font-medium hover:bg-gray-100 cursor-pointer ${adminOutlinePressable}`}
+            className={`mb-3 w-full text-center border-2 border-black bg-white px-4 py-2 font-medium hover:bg-gray-100 cursor-pointer cursor-pointer motion-reduce:transition-none transition-[transform,box-shadow,background-color,border-color,opacity,color,filter] duration-300 ease-[cubic-bezier(0.25,0.8,0.25,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2`}
             onClick={() => {
               setLinkSent(false);
               setSentTo(null);
@@ -181,146 +173,139 @@ const AdminRegisterPage = () => {
     );
   }
 
+  if (showLogin) {
+    return (
+      <div className="min-h-screen bg-[#f3f4f0] flex flex-col items-center justify-center px-6 py-10">
+        <div className="w-full max-w-md border-2 border-black bg-white p-8">
+          <Link to="/" className="block mb-6 mx-auto w-52 md:w-64" aria-label="Mapeo Verde, inicio">
+            <LogoMap className="w-full h-auto" />
+          </Link>
+          <h1 className="text-2xl font-bold mb-3 text-center">Entrar</h1>
+          <p className="text-sm text-gray-800 mb-6 text-center leading-relaxed">
+            Ingresa con tu correo y contraseña.
+          </p>
+          <form onSubmit={handlePasswordLogin} className="space-y-4">
+            <div>
+              <label htmlFor="login-email" className="block text-sm font-medium mb-1">Correo</label>
+              <input
+                id="login-email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                className="w-full border-2 border-black px-3 py-2 bg-white"
+                placeholder="tu@email.com"
+              />
+            </div>
+            <PasswordField
+              id="login-password"
+              name="password"
+              label="Contraseña"
+              autoComplete="current-password"
+              required
+              minLength={6}
+              placeholder="••••••••"
+            />
+            {authError && (
+              <p className="text-sm text-red-600" role="alert">{authError}</p>
+            )}
+            <button
+              type="submit"
+              disabled={submitting}
+              className={`w-full bg-black text-white border-2 border-black px-4 py-2 font-medium hover:bg-[#ff7e67] hover:text-black cursor-pointer disabled:cursor-not-allowed cursor-pointer motion-reduce:transition-none transition-[transform,box-shadow,background-color,border-color,opacity,color,filter] duration-300 ease-[cubic-bezier(0.25,0.8,0.25,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 disabled:opacity-45 disabled:cursor-not-allowed disabled:pointer-events-none disabled:hover:translate-y-0 disabled:hover:scale-100 disabled:active:scale-100`}
+            >
+              {submitting ? 'Entrando…' : 'Entrar'}
+            </button>
+          </form>
+          <div className="mt-8 mb-4">
+            <button
+              type="button"
+              className={`block w-full text-center border-2 border-black bg-white px-4 py-2 font-medium text-black hover:bg-gray-100 cursor-pointer cursor-pointer motion-reduce:transition-none transition-[transform,box-shadow,background-color,border-color,opacity,color,filter] duration-300 ease-[cubic-bezier(0.25,0.8,0.25,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2`}
+              onClick={() => {
+                setShowLogin(false);
+                setAuthError(null);
+              }}
+            >
+              Crear cuenta nueva
+            </button>
+          </div>
+        </div>
+        <Link to="/" className="mt-6 text-sm underline">Volver al inicio</Link>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#f3f4f0] flex flex-col items-center justify-center px-6 py-10">
-      <div className="w-full max-w-md border-2 border-black bg-white p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+      <div className="w-full max-w-md border-2 border-black bg-white p-8">
         <Link to="/" className="block mb-6 mx-auto w-52 md:w-64" aria-label="Mapeo Verde, inicio">
           <LogoMap className="w-full h-auto" />
         </Link>
-        <h1 className="text-2xl font-bold mb-3 text-center">Ingreso para organizaciones</h1>
-
-        <div className="flex border-2 border-black mb-6" role="tablist" aria-label="Forma de ingreso">
+        <h1 className="text-2xl font-bold mb-3 text-center">Registro para organizaciones</h1>
+        <p className="text-sm text-gray-800 mb-6 text-center leading-relaxed">
+          Escribe el correo de tu organización y recibirás un enlace para entrar.
+          Después podrás administrar tus eventos en el panel.
+        </p>
+        <form onSubmit={handleMagicLinkSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="org-name" className="block text-sm font-medium mb-1">
+              Nombre de la organización *
+            </label>
+            <input
+              id="org-name"
+              name="orgName"
+              type="text"
+              required
+              value={orgName}
+              onChange={(e) => {
+                setOrgName(e.target.value);
+                setAuthError(null);
+              }}
+              className="w-full border-2 border-black px-3 py-2 bg-white"
+              placeholder="Ej. Colectivo Ambiental"
+              autoComplete="organization"
+            />
+          </div>
+          <div>
+            <label htmlFor="reg-email" className="block text-sm font-medium mb-1">Correo</label>
+            <input
+              id="reg-email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setAuthError(null);
+              }}
+              className="w-full border-2 border-black px-3 py-2 bg-white"
+              placeholder="tu@email.com"
+            />
+          </div>
+          {authError && (
+            <p className="text-sm text-red-600" role="alert">{authError}</p>
+          )}
           <button
-            type="button"
-            role="tab"
-            aria-selected={mode === 'magic'}
-            className={`flex-1 py-2.5 text-xs font-mono uppercase tracking-wider cursor-pointer ${adminTabPressable} ${
-              mode === 'magic'
-                ? 'bg-[#7FB800] text-black ring-2 ring-inset ring-black/20'
-                : 'bg-white text-gray-700 hover:bg-gray-100'
-            }`}
-            onClick={() => {
-              setMode('magic');
-              setAuthError(null);
-            }}
+            type="submit"
+            disabled={submitting || !orgName.trim() || !email.trim()}
+            className={`w-full bg-black text-white border-2 border-black px-4 py-2 font-medium hover:bg-[#ff7e67] hover:text-black cursor-pointer disabled:cursor-not-allowed disabled:opacity-45 disabled:cursor-not-allowed disabled:pointer-events-none disabled:hover:translate-y-0 disabled:hover:scale-100 disabled:active:scale-100 cursor-pointer motion-reduce:transition-none transition-[transform,box-shadow,background-color,border-color,opacity,color,filter] duration-300 ease-[cubic-bezier(0.25,0.8,0.25,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2`}
           >
-            Enlace por correo
+            {submitting ? 'Enviando enlace…' : 'Crear cuenta y recibir enlace'}
           </button>
+        </form>
+        <div className="mt-8 mb-4">
           <button
             type="button"
-            role="tab"
-            aria-selected={mode === 'password'}
-            className={`flex-1 py-2.5 text-xs font-mono uppercase tracking-wider border-l-2 border-black cursor-pointer ${adminTabPressable} ${
-              mode === 'password'
-                ? 'bg-[#7FB800] text-black ring-2 ring-inset ring-black/20'
-                : 'bg-white text-gray-700 hover:bg-gray-100'
-            }`}
+            className={`block w-full text-center border-2 border-black bg-white px-4 py-2 font-medium text-black hover:bg-gray-100 cursor-pointer cursor-pointer motion-reduce:transition-none transition-[transform,box-shadow,background-color,border-color,opacity,color,filter] duration-300 ease-[cubic-bezier(0.25,0.8,0.25,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2`}
             onClick={() => {
-              setMode('password');
+              setShowLogin(true);
               setAuthError(null);
             }}
           >
-            Correo y contraseña
+            ¿Ya tienes cuenta? Entrar
           </button>
         </div>
-
-        {mode === 'magic' ? (
-          <>
-            <p className="text-sm text-gray-800 mb-2 text-center leading-relaxed">
-              Escribe el correo de tu organización y recibirás un enlace para entrar o crear cuenta (sin contraseña).
-              Después podrás administrar tus eventos en <span className="font-mono text-sm">/admin</span>.
-            </p>
-            <p className="text-xs font-mono uppercase tracking-widest text-[#7FB800] mb-6 text-center">
-              Recomendado para cuentas nuevas
-            </p>
-            <form onSubmit={handleMagicLinkSubmit} className="space-y-4">
-              <div>
-                <label htmlFor="org-name" className="block text-sm font-medium mb-1">
-                  Nombre de la organización *
-                </label>
-                <input
-                  id="org-name"
-                  name="orgName"
-                  type="text"
-                  required
-                  value={orgName}
-                  onChange={(e) => {
-                    setOrgName(e.target.value);
-                    setAuthError(null);
-                  }}
-                  className="w-full border-2 border-black px-3 py-2 bg-white"
-                  placeholder="Ej. Colectivo Ambiental"
-                  autoComplete="organization"
-                />
-              </div>
-              <div>
-                <label htmlFor="ingreso-email-magic" className="block text-sm font-medium mb-1">Correo</label>
-                <input
-                  id="ingreso-email-magic"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  className="w-full border-2 border-black px-3 py-2 bg-white"
-                  placeholder="tu@email.com"
-                />
-              </div>
-              {authError && (
-                <p className="text-sm text-red-600" role="alert">{authError}</p>
-              )}
-              <button
-                type="submit"
-                disabled={submitting}
-                className={`w-full bg-black text-white border-2 border-black px-4 py-2 font-medium hover:bg-[#ff7e67] hover:text-black cursor-pointer disabled:cursor-not-allowed ${adminPressableFocus} ${adminLiftShadow} ${adminDisabled}`}
-              >
-                {submitting ? 'Enviando enlace…' : 'Enviar enlace al correo'}
-              </button>
-            </form>
-          </>
-        ) : (
-          <>
-            <p className="text-sm text-gray-800 mb-2 text-center leading-relaxed">
-              Solo si tu cuenta <strong>ya tiene contraseña</strong> en Mapeo Verde (por ejemplo la configuraste antes o usaste recuperación de acceso).
-              No se crean cuentas nuevas desde aquí: para eso usa <strong>Enlace por correo</strong>.
-            </p>
-            <p className="text-xs text-gray-600 mb-6 text-center">
-              Las cuentas solo con enlace mágico no tienen contraseña hasta que definas una en el panel de administración.
-            </p>
-            <form onSubmit={handlePasswordLogin} className="space-y-4">
-              <div>
-                <label htmlFor="ingreso-email-password" className="block text-sm font-medium mb-1">Correo</label>
-                <input
-                  id="ingreso-email-password"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  className="w-full border-2 border-black px-3 py-2 bg-white"
-                  placeholder="tu@email.com"
-                />
-              </div>
-              <PasswordField
-                id="ingreso-password"
-                name="password"
-                label="Contraseña"
-                autoComplete="current-password"
-                required
-                minLength={6}
-                placeholder="••••••••"
-              />
-              {authError && (
-                <p className="text-sm text-red-600" role="alert">{authError}</p>
-              )}
-              <button
-                type="submit"
-                disabled={submitting}
-                className={`w-full bg-black text-white border-2 border-black px-4 py-2 font-medium hover:bg-[#ff7e67] hover:text-black cursor-pointer disabled:cursor-not-allowed ${adminPressableFocus} ${adminLiftShadow} ${adminDisabled}`}
-              >
-                {submitting ? 'Entrando…' : 'Entrar'}
-              </button>
-            </form>
-          </>
-        )}
       </div>
       <Link to="/" className="mt-6 text-sm underline">Volver al inicio</Link>
     </div>

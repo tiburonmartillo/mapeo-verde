@@ -6,17 +6,6 @@ import { PasswordField } from '../../../components/common/PasswordField';
 import { getSupabaseAuthClient } from '../../../lib/supabase/client';
 import { META_DISPLAY_NAME, sessionDisplayLabel } from '../../../utils/auth/adminPasswordSetup';
 import { OrganizationProfileForm } from './OrganizationProfileForm';
-import {
-  adminAccountPrimaryButtonLayout,
-  adminDisabled,
-  adminGhostPressable,
-  adminLiftShadow,
-  adminPageHeader,
-  adminPageHeaderActions,
-  adminPageHeaderBrand,
-  adminPageHeaderUser,
-  adminPressableFocus,
-} from '../../../utils/adminButtonClasses';
 import type { Session } from '@supabase/supabase-js';
 
 const MIN_PASSWORD_LEN = 8;
@@ -138,8 +127,8 @@ const AdminAccountPage = () => {
 
   return (
     <div className="min-h-screen bg-[#f3f4f0] text-black">
-      <header className={adminPageHeader}>
-        <div className={adminPageHeaderBrand}>
+      <header className="border-b border-black bg-white px-4 sm:px-6 py-4 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+        <div className="flex min-w-0 items-center gap-3 sm:gap-4 flex-wrap">
           <Link
             to="/"
             className="block h-8 w-auto shrink-0 aspect-[835/383] hover:opacity-90 focus-visible:rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
@@ -149,8 +138,8 @@ const AdminAccountPage = () => {
           </Link>
           <span className="text-gray-500 font-mono text-sm">/ Mi cuenta</span>
         </div>
-        <div className={adminPageHeaderActions}>
-          <div className={adminPageHeaderUser}>
+        <div className="flex w-full min-w-0 flex-wrap items-center justify-end gap-4 sm:gap-6 sm:w-auto sm:max-w-full">
+          <div className="flex min-w-0 max-w-full sm:max-w-[20rem] flex-col items-end gap-1.5 text-right">
             {displayLabel ? (
               <span className="text-base font-semibold text-black leading-snug truncate w-full" title={displayLabel}>
                 {displayLabel}
@@ -165,7 +154,7 @@ const AdminAccountPage = () => {
           </div>
           <button
             type="button"
-            className={`inline-flex items-center justify-center gap-1 border border-gray-400 bg-white px-2.5 py-1.5 text-[11px] font-medium text-gray-600 cursor-pointer hover:border-gray-700 hover:bg-gray-50 hover:text-black ${adminGhostPressable}`}
+            className={`inline-flex items-center justify-center gap-1 border border-gray-400 bg-white px-2.5 py-1.5 text-[11px] font-medium text-gray-600 cursor-pointer hover:border-gray-700 hover:bg-gray-50 hover:text-black cursor-pointer motion-reduce:transition-none transition-[transform,box-shadow,background-color,border-color,opacity,color,filter] duration-300 ease-[cubic-bezier(0.25,0.8,0.25,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 motion-safe:hover:-translate-y-0.5 motion-safe:hover:scale-[1.02] hover:border-gray-800 motion-safe:active:translate-y-0 motion-safe:active:scale-[0.99] motion-reduce:hover:scale-100 motion-reduce:hover:translate-y-0`}
             onClick={handleLogout}
           >
             <LogOut className="size-3 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
@@ -186,14 +175,14 @@ const AdminAccountPage = () => {
           </p>
         </div>
 
-        <section className="border-2 border-black bg-white p-6 sm:p-8 md:p-10 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+        <section className="border-2 border-black bg-white p-6 sm:p-8 md:p-10">
           <h2 className="font-mono text-xs uppercase tracking-widest text-[#5b21b6] mb-6">
             Perfil de organización
           </h2>
           <OrganizationProfileForm supabase={supabase} userId={session.user.id} authEmail={userEmail} />
         </section>
 
-        <section className="mt-8 mb-8 border-2 border-black bg-white p-6 sm:p-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+        <section className="mt-8 mb-8 border-2 border-black bg-white p-6 sm:p-8">
           <div className="space-y-4">
             <h2 className="font-mono text-xs uppercase tracking-widest text-gray-600">Correo</h2>
             <p className="font-mono text-sm break-all">{session.user.email ?? '—'}</p>
@@ -223,7 +212,7 @@ const AdminAccountPage = () => {
               <button
                 type="submit"
                 disabled={savingName}
-                className={`${adminAccountPrimaryButtonLayout} bg-[#b4ff6f] text-black hover:bg-[#9adf55] ${adminPressableFocus} ${adminLiftShadow} ${adminDisabled}`}
+                className={`admin-account-primary-btn inline-flex items-center justify-center px-8 py-4 text-sm font-bold uppercase tracking-widest border-2 border-black bg-[#b4ff6f] text-black hover:bg-[#9adf55] cursor-pointer motion-reduce:transition-none transition-[transform,box-shadow,background-color,border-color,opacity,color,filter] duration-300 ease-[cubic-bezier(0.25,0.8,0.25,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 motion-safe:hover:-translate-y-1 motion-safe:hover:scale-[1.03] motion-safe:active:translate-y-0.5 motion-safe:active:scale-[0.98] motion-reduce:hover:translate-y-0 motion-reduce:hover:scale-100 motion-reduce:active:scale-100 disabled:opacity-45 disabled:cursor-not-allowed disabled:pointer-events-none disabled:hover:translate-y-0 disabled:hover:scale-100 disabled:active:scale-100`}
               >
                 {savingName ? 'Guardando…' : 'Guardar nombre'}
               </button>
@@ -231,7 +220,7 @@ const AdminAccountPage = () => {
           </div>
         </section>
 
-        <section className="border-2 border-black bg-white p-6 sm:p-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+        <section className="border-2 border-black bg-white p-6 sm:p-8">
           <h2 className="font-mono text-xs uppercase tracking-widest text-gray-600 mb-2">Contraseña</h2>
           <p className="text-sm text-gray-600 mb-4">
             Si entraste solo con enlace mágico, aquí puedes definir o cambiar una contraseña para usar «Correo y
@@ -259,7 +248,7 @@ const AdminAccountPage = () => {
             <button
               type="submit"
               disabled={savingPassword}
-              className={`${adminAccountPrimaryButtonLayout} bg-black text-white hover:bg-[#ff7e67] hover:text-black ${adminPressableFocus} ${adminLiftShadow} ${adminDisabled}`}
+              className={`admin-account-primary-btn inline-flex items-center justify-center px-8 py-4 text-sm font-bold uppercase tracking-widest border-2 border-black bg-black text-white hover:bg-[#ff7e67] hover:text-black cursor-pointer motion-reduce:transition-none transition-[transform,box-shadow,background-color,border-color,opacity,color,filter] duration-300 ease-[cubic-bezier(0.25,0.8,0.25,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 motion-safe:hover:-translate-y-1 motion-safe:hover:scale-[1.03] motion-safe:active:translate-y-0.5 motion-safe:active:scale-[0.98] motion-reduce:hover:translate-y-0 motion-reduce:hover:scale-100 motion-reduce:active:scale-100 disabled:opacity-45 disabled:cursor-not-allowed disabled:pointer-events-none disabled:hover:translate-y-0 disabled:hover:scale-100 disabled:active:scale-100`}
             >
               {savingPassword ? 'Actualizando…' : 'Actualizar contraseña'}
             </button>

@@ -151,7 +151,7 @@ const HeroSection = () => {
               whileHover={{ scale: 1.05, backgroundColor: "#ff7e67", color: "#fff" }}
               whileTap={{ scale: 0.95 }}
               onClick={() => navigate('/agenda')}
-              className="inline-flex w-full shrink-0 items-center justify-center px-6 py-3 text-center font-bold uppercase tracking-wider text-sm text-white transition-colors border-2 border-black bg-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none hover:bg-[#ff7e67] focus:outline-none focus:ring-2 focus:ring-black md:w-auto md:whitespace-nowrap"
+              className="inline-flex w-full shrink-0 items-center justify-center px-6 py-3 text-center font-bold uppercase tracking-wider text-sm text-white transition-colors border-2 border-black bg-black hover:bg-[#ff7e67] focus:outline-none focus:ring-2 focus:ring-black md:w-auto md:whitespace-nowrap"
               aria-label="Ver la agenda de eventos y actividades"
             >
               Ver agenda

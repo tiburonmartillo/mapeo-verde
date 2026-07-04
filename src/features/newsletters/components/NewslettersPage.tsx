@@ -270,7 +270,7 @@ const NewslettersPage = () => {
 
       {/* Toolbar - Sticky Top */}
       <div
-        className="sticky z-30 shadow-sm p-4 border-b border-black bg-white flex flex-col md:flex-row gap-4 items-center justify-between transition-[top] duration-300 ease-in-out"
+        className="sticky z-30 p-4 border-b border-black bg-white flex flex-col md:flex-row gap-4 items-center justify-between transition-[top] duration-300 ease-in-out"
         style={{
           top: `${navbarHeight}px`,
           zIndex: 30,
@@ -328,7 +328,7 @@ const NewslettersPage = () => {
 
         {/* TOP SECTION: Data Table (100vw) */}
         <div className="w-full border-b border-black bg-[#f3f4f0] p-6">
-          <div className="bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <div className="bg-white border-2 border-black">
             {viewMode === 'table' ? (
               <div className="overflow-x-auto">
                 <table className="w-full text-left font-mono text-xs md:text-sm">
@@ -376,7 +376,7 @@ const NewslettersPage = () => {
                               onClick={(e) => {
                                 e.stopPropagation();
                               }}
-                              className="inline-block px-3 py-1 border-2 border-black bg-[#fccb4e] hover:bg-[#ff9d9d] hover:text-white transition-colors font-mono text-xs uppercase font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] cursor-pointer"
+                              className="inline-block px-3 py-1 border-2 border-black bg-[#fccb4e] hover:bg-[#ff9d9d] hover:text-white transition-colors font-mono text-xs uppercase font-bold active:translate-x-[2px] active:translate-y-[2px] cursor-pointer"
                             >
                               VER PDF
                             </a>
@@ -399,8 +399,8 @@ const NewslettersPage = () => {
                     key={card.id}
                     onClick={() => handleSelectProject(card.id, card.lat, card.lng)}
                     className={`
-                          border-2 border-black bg-white p-4 cursor-pointer hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all h-full
-                          ${selectedProjectId === card.id ? 'shadow-[4px_4px_0px_0px_#ff9d9d] border-[#ff9d9d]' : 'shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'}
+                          border-2 border-black bg-white p-4 cursor-pointer transition-all h-full
+                          ${selectedProjectId === card.id ? ' border-[#ff9d9d]' : ''}
                         `}
                   >
                     <div className="flex justify-between items-start mb-2">
@@ -423,7 +423,7 @@ const NewslettersPage = () => {
                           onClick={(e) => {
                             e.stopPropagation();
                           }}
-                          className="block w-full px-2 py-1.5 border-2 border-black bg-[#fccb4e] hover:bg-[#ff9d9d] hover:text-white transition-colors font-mono text-xs uppercase font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] text-center cursor-pointer"
+                          className="block w-full px-2 py-1.5 border-2 border-black bg-[#fccb4e] hover:bg-[#ff9d9d] hover:text-white transition-colors font-mono text-xs uppercase font-bold active:translate-x-[2px] active:translate-y-[2px] text-center cursor-pointer"
                         >
                           VER PDF
                         </a>
@@ -443,7 +443,7 @@ const NewslettersPage = () => {
                 <button
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="p-2 border-2 border-black bg-white hover:bg-[#ff7e67] hover:text-white disabled:hover:bg-white disabled:hover:text-black transition-colors shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="p-2 border-2 border-black bg-white hover:bg-[#ff7e67] hover:text-white disabled:hover:bg-white disabled:hover:text-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <ChevronLeft size={16} />
                 </button>
@@ -453,7 +453,7 @@ const NewslettersPage = () => {
                 <button
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages || totalPages === 0}
-                  className="p-2 border-2 border-black bg-white hover:bg-[#ff7e67] hover:text-white disabled:hover:bg-white disabled:hover:text-black transition-colors shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="p-2 border-2 border-black bg-white hover:bg-[#ff7e67] hover:text-white disabled:hover:bg-white disabled:hover:text-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <ChevronRight size={16} />
                 </button>
@@ -497,13 +497,13 @@ const NewslettersPage = () => {
                       color="white"
                       size={40}
                       strokeWidth={1.5}
-                      className="drop-shadow-md"
+                      className=""
                     />
                   </div>
                 </Overlay>
               ))}
             </Map>
-            <div className="absolute top-4 right-4 bg-white border border-black p-2 shadow-sm pointer-events-none opacity-90 z-20">
+            <div className="absolute top-4 right-4 bg-white border border-black p-2 pointer-events-none opacity-90 z-20">
               <p className="text-[10px] font-mono uppercase font-bold mb-1">Mapa {selectedYear}</p>
             </div>
           </div>
@@ -618,7 +618,7 @@ const NewslettersPage = () => {
                         href={selectedProject.filename || selectedProject.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="w-full flex items-center justify-center gap-2 bg-[#fccb4e] hover:bg-[#ff9d9d] hover:text-white transition-colors font-bold uppercase py-4 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none text-lg"
+                        className="w-full flex items-center justify-center gap-2 bg-[#fccb4e] hover:bg-[#ff9d9d] hover:text-white transition-colors font-bold uppercase py-4 border-2 border-black active:translate-x-[4px] active:translate-y-[4px] text-lg"
                       >
                         <FileText size={20} />
                         CONSULTAR BOLETÍN
@@ -630,7 +630,7 @@ const NewslettersPage = () => {
                         href={`https://www.google.com/maps?q=${lat},${lng}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-black bg-white hover:bg-gray-100 transition-colors font-bold uppercase text-sm shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+                        className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-black bg-white hover:bg-gray-100 transition-colors font-bold uppercase text-sm active:translate-x-[2px] active:translate-y-[2px]"
                       >
                         <ExternalLink size={16} />
                         Google Maps
@@ -674,7 +674,7 @@ Mantente informado sobre los proyectos de construccion en tu ciudad y participa 
                         })()}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-black bg-[#25D366] hover:bg-[#20ba5a] text-white transition-colors font-bold uppercase text-sm shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+                        className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-black bg-[#25D366] hover:bg-[#20ba5a] text-white transition-colors font-bold uppercase text-sm active:translate-x-[2px] active:translate-y-[2px]"
                       >
                         <MessageCircle size={16} />
                         Compartir WhatsApp
@@ -696,7 +696,7 @@ Mantente informado sobre los proyectos de construccion en tu ciudad y participa 
 
         {/* CTA Section - Restored Previous Design in Bottom Position */}
         <div className="bg-[#f3f4f0] p-6 md:p-12 border-b border-black">
-          <div className="border-2 border-black bg-black text-white p-6 md:p-8 relative z-10 max-w-5xl mx-auto shadow-[8px_8px_0px_0px_#d4d4d8]" style={{ boxShadow: '8px 8px 0px 0px #d4d4d8' }}>
+          <div className="border-2 border-black bg-black text-white p-6 md:p-8 relative z-10 max-w-5xl mx-auto" style={{ boxShadow: '8px 8px 0px 0px #d4d4d8' }}>
             <h3 className="text-2xl font-bold mb-4 flex items-center gap-2">
               <AlertCircle className="text-[#ff9d9d]" />
               ALERTAS CIUDADANAS
@@ -705,10 +705,10 @@ Mantente informado sobre los proyectos de construccion en tu ciudad y participa 
               Recibe un resumen semanal de los nuevos proyectos ingresados y resolutivos. Entérate antes de que empiecen a construir.
             </p>
             <div className="flex flex-col md:flex-row gap-4">
-              <button className="flex-1 bg-[#ff9d9d] text-black font-bold uppercase py-3 px-4 flex items-center justify-center gap-2 hover:bg-[#ff7e67] hover:text-white transition-colors border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+              <button className="flex-1 bg-[#ff9d9d] text-black font-bold uppercase py-3 px-4 flex items-center justify-center gap-2 hover:bg-[#ff7e67] hover:text-white transition-colors border-2 border-black">
                 <Mail size={18} /> Suscribir al Boletín
               </button>
-              <button className="flex-1 bg-[#25D366] text-black font-bold uppercase py-3 px-4 flex items-center justify-center gap-2 hover:bg-[#ff7e67] hover:text-white transition-colors border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+              <button className="flex-1 bg-[#25D366] text-black font-bold uppercase py-3 px-4 flex items-center justify-center gap-2 hover:bg-[#ff7e67] hover:text-white transition-colors border-2 border-black">
                 <MessageCircle size={18} /> Grupo de WhatsApp
               </button>
             </div>

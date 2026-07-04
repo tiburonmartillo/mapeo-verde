@@ -24,8 +24,6 @@ const AdminRegisterPage = React.lazy(() => import('./features/admin/components/A
 const AdminModerationUsersPage = React.lazy(
   () => import('./features/admin/components/AdminModerationUsersPage'),
 );
-const AdminAccountPage = React.lazy(() => import('./features/admin/components/AdminAccountPage'));
-
 const PageLoader = () => (
   <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
     <motion.div
@@ -38,7 +36,7 @@ const PageLoader = () => (
         repeat: Infinity,
         ease: "easeInOut"
       }}
-      className="w-16 h-16 border-4 border-[#b4ff6f] border-t-black rounded-full shadow-lg"
+      className="w-16 h-16 border-4 border-[#b4ff6f] border-t-black rounded-full"
     />
     <motion.span
       initial={{ opacity: 0 }}
@@ -265,15 +263,7 @@ const AdminModerationUsersPageWrapper = () => {
   );
 };
 
-const AdminAccountPageWrapper = () => {
-  return (
-    <div className="min-h-screen bg-[#f3f4f0] font-sans">
-      <React.Suspense fallback={<PageLoader />}>
-        <AdminAccountPage />
-      </React.Suspense>
-    </div>
-  );
-};
+const AdminAccountPageWrapper = () => <Navigate to="/admin" replace />;
 
 /** Tras enlace mágico que abre en portada, envía a /admin una vez establecida la sesión. */
 const SupabaseMagicLinkLandingRedirect = () => {
