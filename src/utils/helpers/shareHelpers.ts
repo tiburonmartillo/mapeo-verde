@@ -4,7 +4,7 @@ import { getGoogleCalendarUrl } from './calendarHelpers';
 /**
  * Genera la URL para compartir un evento en WhatsApp
  */
-export function shareToWhatsApp(event: GoogleCalendarEvent, baseUrl?: string): string {
+export function shareToWhatsApp(event: GoogleCalendarEvent, _baseUrl?: string): string {
   const calendarUrl = getGoogleCalendarUrl(event);
   const [y, m, d] = event.date.split('-').map(Number);
   const eventDate = new Date(y, m - 1, d);

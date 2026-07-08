@@ -15,6 +15,7 @@ import {
 import type { EventInsert } from '../../../lib/supabase/types';
 import { fetchOrganizationProfileByOwner } from '../../../lib/supabase/organizationProfileQueries';
 import { OrganizationProfileForm } from './OrganizationProfileForm';
+import EventLocationField from '../../shared/components/EventLocationField';
 import type { Session } from '@supabase/supabase-js';
 import { resolveEventsModerator } from '../../../utils/auth/eventsModerator';
 import {
@@ -43,10 +44,6 @@ const BTN_TAB =
   'px-3 py-1.5 text-xs font-mono font-bold uppercase tracking-wider border-2 border-black cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2';
 const BTN_FOCUS =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2';
-const BTN_ACTION =
-  `border-2 border-black px-3 py-1.5 text-sm font-medium cursor-pointer ${BTN_FOCUS}`;
-const BTN_DANGER =
-  `border-2 border-red-600 text-red-600 px-3 py-1.5 text-sm font-medium rounded-full flex items-center justify-center cursor-pointer hover:bg-red-600 hover:text-white ${BTN_FOCUS}`;
 
 type AdminEventFormProps = {
   idPrefix: string;

@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { vi, beforeAll, afterAll, afterEach } from 'vitest';
+import { vi, afterEach } from 'vitest';
 import { cleanup } from '@testing-library/react';
 
 // Runs a cleanup after each test case (e.g. clearing jsdom)

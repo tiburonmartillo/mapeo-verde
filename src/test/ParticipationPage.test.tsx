@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import ParticipationPage from '../features/participation/components/ParticipationPage';
@@ -29,7 +29,7 @@ describe('ParticipationPage form', () => {
   beforeEach(() => {
     insertMock.mockReset();
     fromMock.mockClear();
-    (getSupabaseClient as unknown as vi.Mock).mockReturnValue({
+    (getSupabaseClient as unknown as Mock).mockReturnValue({
       from: fromMock,
     });
   });
