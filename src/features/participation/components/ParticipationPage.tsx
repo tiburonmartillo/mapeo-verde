@@ -6,6 +6,7 @@ import { getNavbarHeight } from '../../../utils/helpers/layoutHelpers';
 import { getSupabaseClient } from '../../../lib/supabase';
 import { Map, Marker } from 'pigeon-maps';
 import { SafeImage } from '../../../components/common/SafeImage';
+import { uploadAndCompressImage } from '../../../utils/image-upload';
 
 const HALF_HOUR_TIME_OPTIONS = Array.from({ length: 24 * 2 }, (_, index) => {
   const hours = Math.floor(index / 2)
@@ -221,49 +222,21 @@ const ParticipationPage = () => {
                    }
 
                    let eventImageUrl: string | null = null;
-                   let imageStatusMessage: string | null = null;
-                   if (entryType === 'EVENT') {
-                     if (eventImageFile) {
-                       try {
-                         const ext = eventImageFile.name.split('.').pop() || 'jpg';
-                         const safeExt = ext.toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
-                         const path = `event-banners/${Date.now()}-${Math.random()
-                           .toString(36)
-                           .slice(2)}.${safeExt}`;
-
-                         const { data: uploadData, error: uploadError } = await client.storage
-                           .from('event_banners')
-                           .upload(path, eventImageFile, {
-                             cacheControl: '3600',
-                             upsert: false,
-                           });
-
-                         if (uploadError) {
-                           imageStatusMessage = `No se pudo subir la imagen del evento: ${uploadError.message}`;
-                         } else if (uploadData?.path) {
-                           const { data: publicUrlData } = client.storage
-                             .from('event_banners')
-                             .getPublicUrl(uploadData.path);
-                           if (publicUrlData?.publicUrl) {
-                             eventImageUrl = publicUrlData.publicUrl;
-                             imageStatusMessage = 'Imagen del evento cargada correctamente.';
-                           } else {
-                             imageStatusMessage =
-                               'No se pudo obtener la URL pública del cartel del evento.';
-                           }
-                         } else {
-                           imageStatusMessage =
-                             'No se recibió información de la ruta de la imagen subida.';
-                         }
-                       } catch (error: any) {
-                         imageStatusMessage =
-                           'Error inesperado al subir la imagen del evento. Detalle: ' +
-                           (error?.message || 'sin mensaje de error');
-                       }
-                     } else {
-                       imageStatusMessage = 'No se detectó ningún archivo de imagen adjunto.';
-                     }
-                   }
+                    let imageStatusMessage: string | null = null;
+                    if (entryType === 'EVENT') {
+                      if (eventImageFile) {
+                        try {
+                          eventImageUrl = await uploadAndCompressImage(eventImageFile, 80)
+                          imageStatusMessage = 'Imagen del evento cargada correctamente.'
+                        } catch (error: any) {
+                          imageStatusMessage =
+                            'Error inesperado al subir la imagen del evento. Detalle: ' +
+                            (error?.message || 'sin mensaje de error');
+                        }
+                      } else {
+                        imageStatusMessage = 'No se detectó ningún archivo de imagen adjunto.';
+                      }
+                    }
 
                    if (entryType === 'GREEN_AREA') {
                      const payload = {

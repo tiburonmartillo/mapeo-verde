@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { ChevronDown, Eye, Upload } from 'lucide-react';
 import { SafeImage } from '../../../components/common/SafeImage';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { uploadAndCompressImage } from '../../../utils/image-upload';
 import {
   DEFAULT_FIELD_VISIBILITY,
   type OrgDirectoryLevel,
@@ -336,28 +337,10 @@ export function OrganizationProfileForm({ supabase, userId, authEmail }: Props) 
     setLogoFileName(file.name);
     setLogoUploading(true);
     try {
-      const ext = file.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
-      const safeExt = ext.length > 8 ? 'jpg' : ext;
-      const path = `${userId}/logo-${Date.now()}-${Math.random().toString(36).slice(2)}.${safeExt}`;
-      const { error: upErr } = await supabase.storage.from('organization_logos').upload(path, file, {
-        cacheControl: '3600',
-        upsert: false,
-      });
-      if (upErr) {
-        setLogoUploadError(
-          upErr.message.includes('Bucket not found')
-            ? 'Falta el bucket organization_logos en Supabase (Storage). Revisa la documentación del proyecto.'
-            : upErr.message,
-        );
-        setLogoUploading(false);
-        return;
-      }
-      const { data: pub } = supabase.storage.from('organization_logos').getPublicUrl(path);
-      if (pub?.publicUrl) {
-        setLogoUrl(pub.publicUrl);
-        setLogoFileName(null);
-        if (logoInputRef.current) logoInputRef.current.value = '';
-      }
+      const url = await uploadAndCompressImage(file, 80, { bucket: 'organization_logos' })
+      setLogoUrl(url)
+      setLogoFileName(null)
+      if (logoInputRef.current) logoInputRef.current.value = ''
     } catch (err) {
       setLogoUploadError(err instanceof Error ? err.message : 'Error al subir');
     } finally {

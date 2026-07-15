@@ -18,6 +18,7 @@ import { OrganizationProfileForm } from './OrganizationProfileForm';
 import EventLocationField from '../../shared/components/EventLocationField';
 import type { Session } from '@supabase/supabase-js';
 import { resolveEventsModerator } from '../../../utils/auth/eventsModerator';
+import { uploadAndCompressImage } from '../../../utils/image-upload';
 import {
   META_ADMIN_PASSWORD_DONE,
   META_DISPLAY_NAME,
@@ -427,38 +428,12 @@ const AdminEventsPage = () => {
     if (imagePreview) URL.revokeObjectURL(imagePreview);
     setImagePreview(URL.createObjectURL(file));
     try {
-      const ext = file.name.split('.').pop() || 'jpg';
-      const safeExt = ext.toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
-      const uid = session.user.id;
-      const path = `event-banners/${uid}/admin-${Date.now()}-${Math.random()
-        .toString(36)
-        .slice(2)}.${safeExt}`;
-
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('event_banners')
-        .upload(path, file, {
-          cacheControl: '3600',
-          upsert: false,
-        });
-
-      if (uploadError) {
-        console.error('Image upload error:', uploadError);
-        setImageUploadError(uploadError.message);
-      } else if (uploadData?.path) {
-        const { data: publicUrlData } = supabase.storage
-          .from('event_banners')
-          .getPublicUrl(uploadData.path);
-        if (publicUrlData?.publicUrl) {
-          setForm((prev) => ({ ...prev, image: publicUrlData.publicUrl }));
-        } else {
-          setImageUploadError('No se pudo obtener la URL pública de la imagen.');
-        }
-      } else {
-        setImageUploadError('No se recibió información de la ruta de la imagen subida.');
-      }
+      const url = await uploadAndCompressImage(file, 80)
+      setForm((prev) => ({ ...prev, image: url }))
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'sin mensaje de error';
-      setImageUploadError('Error al subir la imagen: ' + msg);
+      console.error('Image upload error:', err);
+      setImageUploadError(msg);
     } finally {
       setImageUploading(false);
     }
