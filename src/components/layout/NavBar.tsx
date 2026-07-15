@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, ChevronDown } from 'lucide-react';
 import { LogoMap } from '../common/LogoMap';
 
 interface NavBarProps {
@@ -23,22 +23,34 @@ const NavBar = ({ activeTab, onNavigate }: NavBarProps) => {
   const tabs: Tab[] = [
     { id: 'HOME', label: 'INICIO', color: 'bg-[#b4ff6f]', hoverColor: 'hover:bg-[#b4ff6f]' },
     { id: 'AGENDA', label: 'AGENDA', color: 'bg-[#ff7e67]', hoverColor: 'hover:bg-[#ff7e67]' },
+    { id: 'MONITOR', label: 'MONITOR AMBIENTAL', color: 'bg-[#fcd34d]', hoverColor: 'hover:bg-[#fcd34d]' },
     { id: 'PARTICIPATION', label: 'PARTICIPACIÓN', color: 'bg-[#d89dff]', hoverColor: 'hover:bg-[#d89dff]' },
   ];
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNavbarVisible, setIsNavbarVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [monitorDropdownOpen, setMonitorDropdownOpen] = useState(false);
+  const [monitorMobileOpen, setMonitorMobileOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const isMonitorActive = activeTab === 'NEWSLETTERS' || activeTab === 'GAZETTES';
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setMonitorDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Hide/show navbar on scroll (mobile only)
   useEffect(() => {
     const handleScroll = () => {
-      // Early return for desktop - navbar is always visible via sticky
-      if (window.innerWidth >= 768) {
-        return;
-      }
-
-      // Mobile only: hide/show navbar
+      if (window.innerWidth >= 768) return;
       const currentScrollY = window.scrollY;
       if (currentScrollY > lastScrollY && currentScrollY > 100) {
         setIsNavbarVisible(false);
@@ -55,7 +67,14 @@ const NavBar = ({ activeTab, onNavigate }: NavBarProps) => {
   const handleTabClick = (tabId: string) => {
     onNavigate(tabId);
     setIsMenuOpen(false);
+    setMonitorDropdownOpen(false);
+    setMonitorMobileOpen(false);
   };
+
+  const monitorSubItems = [
+    { id: 'NEWSLETTERS', label: 'BOLETINES SSMAA' },
+    { id: 'GAZETTES', label: 'GACETAS SEMARNAT' },
+  ];
 
   return (
     <>
@@ -91,21 +110,13 @@ const NavBar = ({ activeTab, onNavigate }: NavBarProps) => {
       </nav>
 
       {/* Desktop Navbar - Sticky (only visible on desktop) */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.3 }}
+      <div
         className="hidden md:block sticky top-0 z-50"
         data-navbar-desktop
-        style={{ 
-          position: 'sticky', 
-          top: 0, 
-          zIndex: 50
-        }}
       >
         <nav
           aria-label="Navegación principal"
-          className="w-full border-b border-black bg-white text-xs md:text-sm font-mono tracking-wider uppercase overflow-x-auto scrollbar-hide flex"
+          className="w-full border-b border-black bg-white text-xs md:text-sm font-mono tracking-wider uppercase flex"
           style={{ backgroundColor: 'white' }}
         >
           <button
@@ -115,24 +126,63 @@ const NavBar = ({ activeTab, onNavigate }: NavBarProps) => {
           >
             <Logo />
           </button>
-          {tabs.map((tab, idx) => (
-            <motion.button
-              key={tab.id}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.1 + idx * 0.05, duration: 0.2 }}
-              onClick={() => onNavigate(tab.id)}
-              aria-current={activeTab === tab.id ? "page" : undefined}
-              className={`
-                flex-1 min-w-[100px] px-4 py-3 border-r border-black text-left transition-colors duration-200 outline-none focus:ring-inset focus:ring-2 focus:ring-black
-                ${activeTab === tab.id ? tab.color : `bg-white ${tab.hoverColor}`}
-              `}
-            >
-              {tab.label}
-            </motion.button>
-          ))}
+          {tabs.map((tab, idx) => {
+            if (tab.id === 'MONITOR') {
+              return (
+                <div
+                  key={tab.id}
+                  ref={dropdownRef}
+                  onClick={() => setMonitorDropdownOpen(!monitorDropdownOpen)}
+                  aria-current={isMonitorActive ? "page" : undefined}
+                  aria-expanded={monitorDropdownOpen}
+                  className={`
+                    relative flex-1 min-w-[100px] px-4 py-3 border-r border-black transition-colors duration-200 outline-none cursor-pointer flex items-center justify-between gap-1
+                    ${isMonitorActive ? tab.color : `bg-white ${tab.hoverColor}`}
+                  `}
+                >
+                  <span>{tab.label}</span>
+                  <ChevronDown
+                    className={`h-3 w-3 shrink-0 transition-transform duration-200 ${monitorDropdownOpen ? 'rotate-180' : ''}`}
+                  />
+                  {monitorDropdownOpen && (
+                    <div className="absolute left-0 right-0 top-full bg-white border border-black border-t-0 shadow-lg z-50">
+                      {monitorSubItems.map((item) => (
+                        <button
+                          key={item.id}
+                          onClick={(e) => { e.stopPropagation(); handleTabClick(item.id); }}
+                          className={`
+                            w-full px-4 py-3 text-left transition-colors duration-200 outline-none focus:ring-inset focus:ring-2 focus:ring-black border-t border-black
+                            ${activeTab === item.id ? 'bg-[#fcd34d] text-black font-bold' : 'bg-white text-black hover:bg-gray-100'}
+                          `}
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
+            return (
+              <motion.button
+                key={tab.id}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.1 + idx * 0.05, duration: 0.2 }}
+                onClick={() => onNavigate(tab.id)}
+                aria-current={activeTab === tab.id ? "page" : undefined}
+                className={`
+                  flex-1 min-w-[100px] px-4 py-3 border-r border-black text-left transition-colors duration-200 outline-none focus:ring-inset focus:ring-2 focus:ring-black
+                  ${activeTab === tab.id ? tab.color : `bg-white ${tab.hoverColor}`}
+                `}
+              >
+                {tab.label}
+              </motion.button>
+            );
+          })}
         </nav>
-      </motion.div>
+      </div>
 
       {/* Mobile Menu Overlay */}
       <AnimatePresence>
@@ -172,27 +222,74 @@ const NavBar = ({ activeTab, onNavigate }: NavBarProps) => {
 
               {/* Menu Items */}
               <nav className="flex flex-col bg-white">
-                {tabs.map((tab, index) => (
-                  <motion.button
-                    key={tab.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                    onClick={() => handleTabClick(tab.id)}
-                    className={`
-                      w-full px-6 py-5 text-left border-b border-black
-                      font-mono text-sm uppercase tracking-wider
-                      transition-all duration-200 flex items-center justify-between
-                      ${activeTab === tab.id
-                        ? `${tab.color} text-black font-black`
-                        : 'bg-white text-black hover:bg-black hover:text-white'
-                      }
-                    `}
-                  >
-                    <span>{tab.label}</span>
-                    {activeTab === tab.id && <motion.div layoutId="activeTabIcon" className="w-2 h-2 bg-black rounded-full" />}
-                  </motion.button>
-                ))}
+                {tabs.map((tab, index) => {
+                  if (tab.id === 'MONITOR') {
+                    return (
+                      <div key={tab.id}>
+                        <button
+                          onClick={() => setMonitorMobileOpen(!monitorMobileOpen)}
+                          className={`
+                            w-full px-6 py-5 text-left border-b border-black
+                            font-mono text-sm uppercase tracking-wider
+                            transition-all duration-200 flex items-center justify-between
+                            ${isMonitorActive
+                              ? `${tab.color} text-black font-black`
+                              : 'bg-white text-black hover:bg-black hover:text-white'
+                            }
+                          `}
+                        >
+                          <span>{tab.label}</span>
+                          <ChevronDown
+                            className={`h-4 w-4 transition-transform duration-200 ${monitorMobileOpen ? 'rotate-180' : ''}`}
+                          />
+                        </button>
+                        {monitorMobileOpen && (
+                          <div className="bg-gray-50">
+                            {monitorSubItems.map((item) => (
+                              <button
+                                key={item.id}
+                                onClick={() => handleTabClick(item.id)}
+                                className={`
+                                  w-full px-10 py-4 text-left border-b border-black/10
+                                  font-mono text-xs uppercase tracking-wider
+                                  transition-all duration-200
+                                  ${activeTab === item.id
+                                    ? 'bg-[#fcd34d] text-black font-bold'
+                                    : 'bg-transparent text-black hover:bg-gray-100'
+                                  }
+                                `}
+                              >
+                                {item.label}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <motion.button
+                      key={tab.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      onClick={() => handleTabClick(tab.id)}
+                      className={`
+                        w-full px-6 py-5 text-left border-b border-black
+                        font-mono text-sm uppercase tracking-wider
+                        transition-all duration-200 flex items-center justify-between
+                        ${activeTab === tab.id
+                          ? `${tab.color} text-black font-black`
+                          : 'bg-white text-black hover:bg-black hover:text-white'
+                        }
+                      `}
+                    >
+                      <span>{tab.label}</span>
+                      {activeTab === tab.id && <motion.div layoutId="activeTabIcon" className="w-2 h-2 bg-black rounded-full" />}
+                    </motion.button>
+                  );
+                })}
               </nav>
             </motion.div>
           </motion.div>

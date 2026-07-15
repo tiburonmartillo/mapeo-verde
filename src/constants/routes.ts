@@ -3,6 +3,7 @@ export const TAB_ROUTES = {
   AGENDA: '/agenda',
   NEWSLETTERS: '/boletines',
   GAZETTES: '/gacetas',
+  INVESTIGACION: '/investigacion',
   PARTICIPATION: '/participacion'
 } as const;
 

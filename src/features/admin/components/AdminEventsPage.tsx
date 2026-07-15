@@ -361,6 +361,11 @@ const AdminEventsPage = () => {
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
   const [deleteAccountError, setDeleteAccountError] = useState<string | null>(null);
+  type CsvPeriod = 'all' | 'this-month' | 'this-year' | 'custom';
+  const [csvPeriod, setCsvPeriod] = useState<CsvPeriod>('all');
+  const [csvDateFrom, setCsvDateFrom] = useState('');
+  const [csvDateTo, setCsvDateTo] = useState('');
+  const [csvModalOpen, setCsvModalOpen] = useState(false);
   const [eventFilter, setEventFilter] = useState<'past' | 'active' | 'pending'>('active');
 
   const pendingEvents = events.filter((e) => e.status === 'pending');
@@ -689,6 +694,8 @@ const AdminEventsPage = () => {
       place_name: form.place_name || null,
       organizers: form.organizers || null,
       ...(editingId !== null ? {} : { status: 'published' as const, source: 'admin', created_by: session?.user?.id, organization_id: form.organization_id || null }),
+      contact_name: session?.user?.user_metadata?.[META_DISPLAY_NAME] || session?.user?.user_metadata?.full_name || null,
+      contact_email: session?.user?.email || null,
     };
     if (editingId !== null) {
       const { error } = await updateEvent(supabase, editingId, payload);
@@ -760,15 +767,43 @@ const AdminEventsPage = () => {
     notifyEventsUpdated();
   };
 
-  const handleExportCsv = () => {
+  const handleOpenCsvModal = () => {
+    setCsvModalOpen(true);
+  };
+
+  const handleCsvExport = () => {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
     const rows = events
       .slice()
+      .filter((event) => {
+        if (csvPeriod === 'all') return true;
+        const d = new Date(event.date + 'T00:00:00');
+        if (csvPeriod === 'this-month') {
+          return d.getFullYear() === currentYear && d.getMonth() === currentMonth;
+        }
+        if (csvPeriod === 'this-year') {
+          return d.getFullYear() === currentYear;
+        }
+        if (csvPeriod === 'custom') {
+          if (csvDateFrom && d < new Date(csvDateFrom + 'T00:00:00')) return false;
+          if (csvDateTo) {
+            const toEnd = new Date(csvDateTo + 'T23:59:59');
+            if (d > toEnd) return false;
+          }
+          return true;
+        }
+        return true;
+      })
       .sort((a, b) => a.date.localeCompare(b.date))
       .map((event) => [
         event.id,
         event.title,
-        event.date,
+        (() => { const d = new Date(event.date + 'T12:00:00'); const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic']; return `${meses[d.getMonth()]}-${String(d.getDate()).padStart(2,'0')}-${d.getFullYear()}`; })(),
+        new Date(event.date + 'T12:00:00').toLocaleDateString('es-MX', { weekday: 'long' }),
         event.time,
+        event.organizers ?? '',
         event.location,
         event.category,
         event.visible === false ? 'no' : 'si',
@@ -784,7 +819,9 @@ const AdminEventsPage = () => {
       'id',
       'titulo',
       'fecha',
+      'dia_semana',
       'horario',
+      'organiza',
       'ubicacion',
       'categoria',
       'visible',
@@ -805,11 +842,12 @@ const AdminEventsPage = () => {
     const dateStamp = new Date().toISOString().slice(0, 10);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `eventos-publicados-${dateStamp}.csv`;
+    link.download = `eventos-${dateStamp}.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+    setCsvModalOpen(false);
   };
 
   if (loading) {
@@ -1083,12 +1121,12 @@ const AdminEventsPage = () => {
                     </button>
                   )}
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap items-center">
                   {moderator && (
                     <button
                       type="button"
                       className={`border-2 border-black bg-white px-3 py-1.5 text-xs font-medium text-black hover:bg-lime-300 cursor-pointer ${BTN_FOCUS}`}
-                      onClick={handleExportCsv}
+                      onClick={handleOpenCsvModal}
                     >
                       Exportar CSV
                     </button>
@@ -1528,6 +1566,69 @@ const AdminEventsPage = () => {
         </section>
       </main>
 
+      {csvModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div
+            className="bg-white border-2 border-black w-full max-w-sm mx-4 p-6"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="csv-modal-title"
+          >
+            <h2 id="csv-modal-title" className="font-mono text-xs uppercase tracking-widest text-gray-700 mb-4">
+              Exportar CSV — periodo
+            </h2>
+            <div className="flex flex-wrap gap-2 mb-4">
+              {(['all', 'this-month', 'this-year', 'custom'] as const).map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => setCsvPeriod(p)}
+                  className={`px-3 py-1.5 text-xs font-mono font-bold uppercase tracking-wider border-2 border-black cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 ${
+                    csvPeriod === p
+                      ? 'bg-orange-300 text-black'
+                      : 'bg-white text-black hover:bg-lime-300'
+                  }`}
+                >
+                  {p === 'all' ? 'Todo' : p === 'this-month' ? 'Este mes' : p === 'this-year' ? 'Este año' : 'Rango'}
+                </button>
+              ))}
+            </div>
+            {csvPeriod === 'custom' && (
+              <div className="flex items-center gap-2 mb-4">
+                <input
+                  type="date"
+                  value={csvDateFrom}
+                  onChange={(e) => setCsvDateFrom(e.target.value)}
+                  className="flex-1 border-2 border-black px-2 py-1.5 text-sm bg-white"
+                />
+                <span className="text-sm">→</span>
+                <input
+                  type="date"
+                  value={csvDateTo}
+                  onChange={(e) => setCsvDateTo(e.target.value)}
+                  className="flex-1 border-2 border-black px-2 py-1.5 text-sm bg-white"
+                />
+              </div>
+            )}
+            <div className="flex gap-2 justify-end">
+              <button
+                type="button"
+                className="border-2 border-black px-3 py-1.5 text-sm font-medium hover:bg-gray-100 cursor-pointer"
+                onClick={() => setCsvModalOpen(false)}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="bg-black text-white border-2 border-black px-3 py-1.5 text-sm font-bold uppercase tracking-wider hover:bg-orange-300 hover:text-black cursor-pointer"
+                onClick={handleCsvExport}
+              >
+                Exportar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
