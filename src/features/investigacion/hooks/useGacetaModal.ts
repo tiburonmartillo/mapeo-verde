@@ -15,14 +15,15 @@ async function fetchGacetas(): Promise<any[]> {
 
   gacetasPromise = (async () => {
     const supabase = getInvestigacionClient()
-    const { data: rows, error } = await supabase
-      .from('gacetas')
-      .select(`
-        *,
-        gacetas_registros(*)
-      `)
+    const { data: jsonRow, error } = await supabase
+      .from('gacetas_json')
+      .select('data')
+      .eq('id', 1)
+      .single()
     if (error) throw new Error(error.message)
-    gacetasCache = rows || []
+    const rawData = jsonRow?.data as any
+    const analyses = rawData?.analyses || []
+    gacetasCache = analyses
     return gacetasCache
   })()
 
@@ -62,7 +63,7 @@ export function useGacetaModal() {
       const gaceta = rows.find((g: any) => g.gaceta_id === gacetaId)
       if (gaceta) {
         let registroEncontrado: RegistroGaceta | null = null
-        const registros = gaceta.gacetas_registros || []
+        const registros = gaceta.analisis_completo?.registros || []
         registroEncontrado = registros.find((r: any) => r.id_db === registroId) || null
 
         setSelectedGaceta({
@@ -120,7 +121,7 @@ export function useGacetaModal() {
       if (!gaceta) return
 
       let registroEncontrado: RegistroGaceta | null = null
-      const registros = gaceta.gacetas_registros || []
+      const registros = gaceta.analisis_completo?.registros || []
       registroEncontrado = registros.find((r: any) => r.id_db === registroId) || null
 
       setSelectedGaceta({

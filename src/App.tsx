@@ -15,6 +15,7 @@ const EventsPage = React.lazy(() => import('./features/agenda/components/EventsP
 const ImpactDetailPage = React.lazy(() => import('./features/agenda/components/ImpactDetailPage'));
 const NewslettersPage = React.lazy(() => import('./features/newsletters/components/NewslettersPage'));
 const GazettesPage = React.lazy(() => import('./features/gazettes/components/GazettesPage'));
+const InvestigacionPage = React.lazy(() => import('./features/investigacion/components/InvestigacionPage'));
 const ParticipationPage = React.lazy(() => import('./features/participation/components/ParticipationPage'));
 const ManifestoPage = React.lazy(() => import('./features/manifesto/components/ManifestoPage'));
 const LinktreePage = React.lazy(() => import('./features/linktree/components/LinktreePage'));
@@ -156,6 +157,12 @@ const MainApp = () => {
             <EventsPage />
           </Suspense>
         );
+      case 'INVESTIGACION':
+        return (
+          <Suspense fallback={<PageLoader />}>
+            <InvestigacionPage />
+          </Suspense>
+        );
       case 'PARTICIPATION':
         return (
           <Suspense fallback={<PageLoader />}>
@@ -189,6 +196,20 @@ const MainApp = () => {
         </AnimatePresence>
       </main>
       <Footer />
+    </div>
+  );
+};
+
+const EmailGeneratorPage = React.lazy(
+  () => import('./features/investigacion/components/EmailGeneratorPage'),
+);
+
+const EmailGeneratorPageWrapper = () => {
+  return (
+    <div className="min-h-screen bg-[#f3f4f0] font-sans">
+      <React.Suspense fallback={<PageLoader />}>
+        <EmailGeneratorPage />
+      </React.Suspense>
     </div>
   );
 };
@@ -310,9 +331,11 @@ export default function App() {
         <Route path="/agenda/:id" element={<MainApp />} />
         <Route path="/boletines" element={<MainApp />} />
         <Route path="/gacetas" element={<MainApp />} />
+        <Route path="/investigacion" element={<MainApp />} />
         <Route path="/participacion" element={<MainApp />} />
         <Route path="/manifiesto" element={<ManifestoPageWrapper />} />
         <Route path="/links" element={<LinktreePageWrapper />} />
+        <Route path="/email-generator" element={<EmailGeneratorPageWrapper />} />
         <Route path="/aviso-de-privacidad" element={<PrivacyPageWrapper />} />
         <Route path="/ingreso" element={<IngresoPageWrapper />} />
         <Route path="/admin/registro" element={<AdminRegisterPageWrapper />} />

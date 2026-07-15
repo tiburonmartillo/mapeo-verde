@@ -31,3 +31,7 @@ export function addCacheBust(url: string, key = 'v'): string {
   const separator = url.includes('?') ? '&' : '?'
   return `${url}${separator}${key}=${Date.now()}`
 }
+
+export function getSemarnatEdgeFunctionUrl(): string {
+  return `https://${INVESTIGACION_PROJECT_ID}.supabase.co/functions/v1/semarnat-proxy`
+}

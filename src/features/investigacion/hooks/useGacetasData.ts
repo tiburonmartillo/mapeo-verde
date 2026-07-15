@@ -169,94 +169,29 @@ export function useGacetasData() {
 
         const supabase = getInvestigacionClient()
 
-        const { data: gacetasRows, error: gacetasError } = await supabase
-          .from('gacetas')
-          .select(`
-            *,
-            gacetas_registros(*)
-          `)
-          .order('fecha_publicacion', { ascending: false, nullsLast: true })
+        const { data: jsonRow, error: jsonError } = await supabase
+          .from('gacetas_json')
+          .select('data')
+          .eq('id', 1)
+          .single()
 
-        if (gacetasError) throw new Error(gacetasError.message)
+        if (jsonError) throw new Error(jsonError.message)
 
-        if (!gacetasRows || gacetasRows.length === 0) {
-          throw new Error('No se encontraron gacetas en la base de datos')
+        if (!jsonRow?.data) {
+          throw new Error('No se encontraron datos de gacetas en la base de datos')
+        }
+
+        const rawData = jsonRow.data as GacetasData
+        const analyses = rawData.analyses
+        const meta = rawData.metadata
+
+        if (!analyses || analyses.length === 0) {
+          throw new Error('El archivo de gacetas no contiene análisis')
         }
 
         if (!isMounted) return
 
-        // Reconstruct GacetasData-like structure for backward compat
-        const analyses: GacetaAnalysis[] = gacetasRows.map((g: any) => {
-          const registros: RegistroGaceta[] = (g.gacetas_registros || []).map((r: any) => ({
-            id: r.registro_id || '',
-            clave_proyecto: r.clave_proyecto || '',
-            tipo_registro: r.tipo_registro || '',
-            seccion_documento: r.seccion_documento || '',
-            entidad: r.entidad || '',
-            municipio: r.municipio || '',
-            proyecto_nombre: r.proyecto_nombre || '',
-            promovente: r.promovente || '',
-            modalidad: r.modalidad || '',
-            tipo_proyecto: r.tipo_proyecto || '',
-            fecha_ingreso: r.fecha_ingreso || null,
-            fecha_resolucion: r.fecha_resolucion || null,
-            estatus: r.estatus || null,
-            vigencia: r.vigencia,
-            superficie: r.superficie,
-            vegetacion: r.vegetacion,
-            ubicacion_especifica: r.ubicacion_especifica || null,
-            descripcion: r.descripcion || null,
-            cambio_uso_suelo: r.cambio_uso_suelo,
-            areas_forestales: r.areas_forestales,
-            observaciones: r.observaciones || null,
-            id_db: r.id_db,
-            proyecto_ingresado_id: r.proyecto_ingresado_id,
-            resolutivos_ids: r.resolutivos_ids || [],
-            gaceta_id: g.gaceta_id,
-            semarnat_data: r.semarnat_data,
-            semarnat_historial: r.semarnat_historial,
-          }))
-
-          const ac: AnalisisCompleto | null = g.total_registros > 0 ? {
-            gaceta: {
-              numero: g.gaceta_numero || '',
-              fecha_publicacion: g.gaceta_fecha_publicacion || g.fecha_publicacion || '',
-              anio: g.gaceta_anio || g.año,
-            },
-            resumen: {
-              total_registros: g.total_registros,
-              proyectos_ingresados: g.proyectos_ingresados_count,
-              resolutivos_emitidos: g.resolutivos_emitidos_count,
-              tramites_unificados: g.tramites_unificados_count,
-              consultas_publicas: g.consultas_publicas_count,
-              hectareas_totales: g.hectareas_totales,
-            },
-            registros,
-          } : null
-
-          return {
-            url: g.url,
-            año: g.año,
-            gaceta_id: g.gaceta_id,
-            fecha_publicacion: g.fecha_publicacion || null,
-            palabras_clave_encontradas: g.palabras_clave_encontradas || [],
-            paginas: g.paginas || [],
-            secciones: g.secciones || null,
-            analisis_completo: ac,
-            resumen: g.resumen || null,
-          } as GacetaAnalysis
-        })
-
-        const meta: GacetasData['metadata'] = {
-          created: analyses.length ? '2025-12-05T13:26:27.924186' : '',
-          last_updated: '2026-01-19T00:48:05.505240',
-          total_analyzed: analyses.length,
-          year_range: analyses.length > 0
-            ? `${Math.min(...analyses.map(a => a.año))}-${Math.max(...analyses.map(a => a.año))}`
-            : `${new Date().getFullYear()}`,
-        }
-        const gacetasData: GacetasData = { metadata: meta, analyses }
-        setData(gacetasData)
+        setData(rawData)
 
         // --- Processing (same logic as before, operating on DB data) ---
 
