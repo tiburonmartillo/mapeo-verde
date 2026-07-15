@@ -19,6 +19,8 @@ export function getInvestigacionClient(): SupabaseClient {
   return investigacionClient
 }
 
+
+
 export function getBoletinesDataUrl(): string {
   return '/data/boletines.json'
 }
@@ -33,5 +35,5 @@ export function addCacheBust(url: string, key = 'v'): string {
 }
 
 export function getSemarnatEdgeFunctionUrl(): string {
-  return `https://${INVESTIGACION_PROJECT_ID}.supabase.co/functions/v1/semarnat-proxy`
+  return '/api/semarnat-proxy'
 }
