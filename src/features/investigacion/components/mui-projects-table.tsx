@@ -28,7 +28,7 @@ import {
   Popover
 } from "@mui/material"
 import { FilterList, Clear, ArrowUpward, ArrowDownward } from "@mui/icons-material"
-import { styled } from "@mui/material/styles"
+import { styled } from "@mui/material"
 import { MapModal } from "./map-modal"
 import { BoletinModal } from "./boletin-modal"
 import { useBoletinModal } from "../hooks/useBoletinModal"

@@ -20,7 +20,7 @@ import {
   Tooltip
 } from "@mui/material"
 import { Clear, OpenInNew } from "@mui/icons-material"
-import { styled } from "@mui/material/styles"
+import { styled } from "@mui/material"
 import type { ProyectoGacetaProcessed, ResolutivoGacetaProcessed } from "../hooks/useGacetasData"
 import { useGacetaModal } from "../hooks/useGacetaModal"
 import { GacetaModal } from "./gaceta-modal"

@@ -1,4 +1,4 @@
-import { ThemeProvider, createTheme } from '@mui/material/styles'
+import { ThemeProvider, createTheme } from '@mui/material'
 import { CssBaseline } from '@mui/material'
 
 const theme = createTheme({
