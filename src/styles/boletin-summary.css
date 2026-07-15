@@ -1,0 +1,443 @@
+/* Estilos específicos para el resumen de boletines ambientales */
+
+/* Fuentes */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+/* Variables CSS para colores del diseño */
+:root {
+  --boletin-orange: var(--color-section-accent);
+  --boletin-orange-dark: var(--color-section-accent-hover);
+  --boletin-text-primary: var(--color-section-text);
+  --boletin-text-secondary: #6B7280;
+  --boletin-text-light: #9CA3AF;
+  --boletin-border: #E5E7EB;
+  --boletin-border-light: #F3F4F6;
+  --boletin-bg-light: #F9FAFB;
+  --boletin-white: #FFFFFF;
+  --boletin-shadow: rgba(0, 0, 0, 0.1);
+}
+
+/* Estilos base para el resumen */
+.boletin-summary {
+  font-family: 'Poppins', 'Arial', sans-serif;
+  color: var(--boletin-text-primary);
+  line-height: 1.6;
+}
+
+/* Header naranja */
+.boletin-header {
+  background: linear-gradient(135deg, var(--boletin-orange) 0%, var(--boletin-orange-dark) 100%);
+  color: var(--boletin-white);
+  padding: 2rem 2.5rem;
+  text-align: center;
+  border-radius: 8px 8px 0 0;
+  box-shadow: 0 4px 12px var(--boletin-shadow);
+}
+
+.boletin-header h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.boletin-header h2 {
+  font-size: 1.25rem;
+  font-weight: 400;
+  margin: 0;
+  opacity: 0.95;
+}
+
+/* Contenido principal */
+.boletin-content {
+  padding: 2.5rem;
+  background: var(--boletin-white);
+}
+
+/* Títulos de sección */
+.boletin-section-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--boletin-text-primary);
+  margin: 0 0 1rem 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--boletin-border-light);
+}
+
+/* Fecha límite */
+.boletin-fecha-limite {
+  font-size: 1rem;
+  color: var(--boletin-text-secondary);
+  margin-bottom: 1.5rem;
+  padding: 0.75rem 1rem;
+  background: var(--boletin-bg-light);
+  border-left: 4px solid var(--boletin-orange);
+  border-radius: 0 4px 4px 0;
+}
+
+/* Cards de proyectos */
+.boletin-project-card {
+  background: var(--boletin-white);
+  border: 1px solid var(--boletin-border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px var(--boletin-shadow);
+  transition: box-shadow 0.2s ease;
+}
+
+.boletin-project-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.boletin-project-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--boletin-text-primary);
+  margin: 0 0 1rem 0;
+}
+
+/* Información del proyecto */
+.boletin-project-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.boletin-info-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.boletin-info-label {
+  font-weight: 600;
+  color: var(--boletin-text-primary);
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+}
+
+.boletin-info-value {
+  color: var(--boletin-text-secondary);
+  font-size: 0.875rem;
+  margin-left: 0.5rem;
+}
+
+/* Naturaleza del proyecto */
+.boletin-naturaleza {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: var(--boletin-bg-light);
+  border: 1px solid var(--boletin-border);
+  border-radius: 4px;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--boletin-text-primary);
+}
+
+/* Mapa estático */
+.boletin-map-container {
+  width: 400px;
+  height: 300px;
+  flex-shrink: 0;
+}
+
+.boletin-map-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border: 1px solid var(--boletin-border);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.boletin-map-image:hover {
+  transform: scale(1.02);
+}
+
+.boletin-map-info {
+  margin-top: 0.5rem;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--boletin-text-secondary);
+}
+
+.boletin-map-link {
+  color: var(--boletin-orange);
+  text-decoration: none;
+  font-size: 0.75rem;
+}
+
+.boletin-map-link:hover {
+  text-decoration: underline;
+}
+
+/* Sección de resolutivos */
+.boletin-resolutivos {
+  text-align: center;
+  margin: 2rem 0;
+}
+
+.boletin-resolutivos-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--boletin-text-primary);
+  margin: 0;
+}
+
+/* Botones de acción */
+.boletin-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin: 2rem 0;
+}
+
+.boletin-btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Poppins', 'Arial', sans-serif;
+}
+
+.boletin-btn-outline {
+  background: transparent;
+  color: var(--boletin-orange);
+  border: 2px solid var(--boletin-orange);
+}
+
+.boletin-btn-outline:hover {
+  background: var(--boletin-orange);
+  color: var(--boletin-white);
+  transform: translateY(-1px);
+}
+
+.boletin-btn-primary {
+  background: var(--boletin-orange);
+  color: var(--boletin-white);
+  border: 2px solid var(--boletin-orange);
+}
+
+.boletin-btn-primary:hover {
+  background: var(--boletin-orange-dark);
+  border-color: var(--boletin-orange-dark);
+  transform: translateY(-1px);
+}
+
+/* Footer */
+.boletin-footer {
+  background: var(--boletin-bg-light);
+  border-top: 1px solid var(--boletin-border);
+  padding: 1.5rem 2.5rem;
+  border-radius: 0 0 8px 8px;
+}
+
+.boletin-footer-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.boletin-footer-text {
+  flex: 1;
+  font-size: 0.75rem;
+  color: var(--boletin-text-secondary);
+  line-height: 1.4;
+}
+
+.boletin-footer-text p {
+  margin: 0 0 0.5rem 0;
+}
+
+.boletin-footer-link {
+  color: var(--boletin-orange);
+  text-decoration: none;
+}
+
+.boletin-footer-link:hover {
+  text-decoration: underline;
+}
+
+.boletin-footer-logo {
+  margin-left: 1.5rem;
+  height: 60px;
+  width: auto;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .boletin-header {
+    padding: 1.5rem 1rem;
+  }
+  
+  .boletin-header h1 {
+    font-size: 1.5rem;
+  }
+  
+  .boletin-header h2 {
+    font-size: 1.125rem;
+  }
+  
+  .boletin-content {
+    padding: 1.5rem 1rem;
+  }
+  
+  .boletin-project-card {
+    padding: 1rem;
+  }
+  
+  .boletin-map-container {
+    width: 100%;
+    height: 250px;
+    margin-top: 1rem;
+  }
+  
+  .boletin-footer {
+    padding: 1rem;
+  }
+  
+  .boletin-footer-content {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .boletin-footer-logo {
+    margin: 1rem 0 0 0;
+  }
+  
+  .boletin-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .boletin-btn {
+    width: 100%;
+    max-width: 200px;
+  }
+}
+
+/* Estilos para impresión */
+@media print {
+  .boletin-summary {
+    box-shadow: none !important;
+    border: none !important;
+  }
+  
+  .boletin-header {
+    background: var(--boletin-orange) !important;
+    -webkit-print-color-adjust: exact;
+    color-adjust: exact;
+  }
+  
+  .boletin-project-card {
+    box-shadow: none !important;
+    border: 1px solid var(--boletin-border) !important;
+    page-break-inside: avoid;
+  }
+  
+  .boletin-map-image {
+    max-width: 300px;
+    max-height: 225px;
+  }
+  
+  .boletin-actions {
+    display: none !important;
+  }
+  
+  .boletin-footer {
+    background: var(--boletin-bg-light) !important;
+    -webkit-print-color-adjust: exact;
+    color-adjust: exact;
+  }
+  
+  /* Evitar saltos de página en elementos importantes */
+  .boletin-project-card,
+  .boletin-header,
+  .boletin-section-title {
+    page-break-after: avoid;
+  }
+  
+  /* Forzar salto de página después de cada proyecto si es necesario */
+  .boletin-project-card:nth-child(2n) {
+    page-break-after: auto;
+  }
+}
+
+/* Animaciones suaves */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.boletin-summary {
+  animation: fadeIn 0.6s ease-out;
+}
+
+.boletin-project-card {
+  animation: fadeIn 0.4s ease-out;
+}
+
+/* Estados de carga */
+.boletin-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  color: var(--boletin-text-secondary);
+}
+
+.boletin-loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--boletin-border-light);
+  border-top: 4px solid var(--boletin-orange);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-right: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Estados de error */
+.boletin-error {
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  color: #DC2626;
+  padding: 1rem;
+  border-radius: 6px;
+  text-align: center;
+}
+
+/* Mejoras de accesibilidad */
+.boletin-summary:focus-within {
+  outline: 2px solid var(--boletin-orange);
+  outline-offset: 2px;
+}
+
+.boletin-btn:focus {
+  outline: 2px solid var(--boletin-orange);
+  outline-offset: 2px;
+}
+
+/* Mejoras de contraste para mejor legibilidad */
+.boletin-text-high-contrast {
+  color: #000000;
+}
+
+.boletin-bg-high-contrast {
+  background: #FFFFFF;
+}

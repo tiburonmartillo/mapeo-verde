@@ -5,6 +5,7 @@ export const pathToTab = (pathname: string) => {
   const pathWithoutId = pathname.split('/').slice(0, 2).join('/');
   if (pathWithoutId === '/agenda' || pathname.startsWith('/agenda/')) return 'AGENDA';
   if (pathname.startsWith('/participacion')) return 'PARTICIPATION';
+  if (pathname.startsWith('/investigacion')) return 'INVESTIGACION';
   if (pathname.startsWith('/boletines')) return 'NEWSLETTERS';
   if (pathname.startsWith('/gacetas')) return 'GAZETTES';
   return 'HOME';
@@ -17,6 +18,7 @@ export const getAccentColor = (tab: string): string => {
     'AGENDA': '#ff7e67',
     'NEWSLETTERS': '#ff9d9d',
     'GAZETTES': '#9dcdff',
+    'INVESTIGACION': '#fcd34d',
     'PARTICIPATION': '#d89dff',
   };
   return accentColors[tab] || '#ff7e67'; // Default to AGENDA color

@@ -60,6 +60,15 @@
   --chart-3: oklch(.398 .07 227.392);
   --chart-4: oklch(.828 .189 84.429);
   --chart-5: oklch(.769 .188 70.08);
+  --color-section-accent: #d97706;
+  --color-section-accent-hover: #b45309;
+  --color-section-text: #4b5563;
+  --color-boletin-yellow: #fde68a;
+  --color-boletin-yellow-hover: #fbbf24;
+  --color-boletin-yellow-light: #fef9c3;
+  --color-boletin-red: #ef4444;
+  --color-whatsapp: #25d366;
+  --color-whatsapp-hover: #1da851;
   --radius: .625rem;
   --sidebar: oklch(.985 0 0);
   --sidebar-foreground: oklch(.145 0 0);
