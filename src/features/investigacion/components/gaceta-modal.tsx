@@ -143,6 +143,8 @@ export function GacetaModal({ gaceta, registro, isOpen, onClose }: GacetaModalPr
     const controller = new AbortController()
     abortControllerRef.current = controller
 
+    const apiTimeoutId = setTimeout(() => controller.abort(), 6000)
+
     const fetchSemarnatData = async () => {
       setLoadingSemarnat(true)
       setErrorSemarnat(null)
@@ -207,6 +209,7 @@ export function GacetaModal({ gaceta, registro, isOpen, onClose }: GacetaModalPr
     fetchSemarnatData()
 
     return () => {
+      clearTimeout(apiTimeoutId)
       controller.abort()
     }
   }, [isOpen, registro?.clave_proyecto, registroKey, semarnatDataFromRegistro])
@@ -240,6 +243,7 @@ export function GacetaModal({ gaceta, registro, isOpen, onClose }: GacetaModalPr
 
     // PRIORIDAD 1: Intentar obtener historial desde la API en tiempo real
     const controller = new AbortController()
+    const historialTimeoutId = setTimeout(() => controller.abort(), 6000)
 
     const fetchHistorialData = async () => {
       setLoadingHistorial(true)
@@ -308,6 +312,7 @@ export function GacetaModal({ gaceta, registro, isOpen, onClose }: GacetaModalPr
     fetchHistorialData()
 
     return () => {
+      clearTimeout(historialTimeoutId)
       controller.abort()
     }
   }, [isOpen, registro, historialRegistroId, historialRegistroClave, historialNumBitacora, historialFromRegistro])

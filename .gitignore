@@ -49,3 +49,5 @@ public/mapeov.jpg
 # TypeScript
 *.tsbuildinfo
 .supabase/
+.vercel
+.env*

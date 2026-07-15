@@ -1,0 +1,13 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "vercel": {
+      "type": "local",
+      "command": ["npx", "-y", "@vercel/mcp-adapter"],
+      "enabled": true,
+      "env": {
+        "VERCEL_TOKEN": "{env:VERCEL_TOKEN}"
+      }
+    }
+  }
+}

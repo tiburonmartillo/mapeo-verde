@@ -1,11 +1,1 @@
-{
-  "imports": {
-    "hono": "jsr:@hono/hono@^4.0.0",
-    "hono/cors": "jsr:@hono/hono@^4.0.0/cors",
-    "hono/logger": "jsr:@hono/hono@^4.0.0/logger"
-  },
-  "compilerOptions": {
-    "jsx": "react-jsx",
-    "jsxImportSource": "react"
-  }
-}
+{}
