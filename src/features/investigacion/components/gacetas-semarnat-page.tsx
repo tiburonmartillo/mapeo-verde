@@ -135,7 +135,7 @@ export function GacetasSEMARNATPage() {
                     e.preventDefault()
                     setSubStatus('loading')
                     try {
-                      const res = await fetch('https://api.mapeoverde.mx/subscribe', {
+                      const res = await fetch('https://jvwtihesgbzixitfwxaf.supabase.co/functions/v1/subscribe', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ email: subEmail, fuente: 'gacetas-semarnat' }),
