@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react"
-import { Box, Typography, Alert } from "@mui/material"
 import { MuiGacetasStats } from "./mui-gacetas-stats"
 import { MuiGacetasProjectsTable } from "./mui-gacetas-projects-table"
 import { useGacetasData } from "../hooks/useGacetasData"
@@ -24,78 +23,74 @@ export function GacetasSEMARNATPage() {
 
   if (!mounted || loading) {
     return (
-      <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <p className="text-gray-500 font-mono text-sm">Cargando datos...</p>
-      </Box>
+      <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: 'var(--background-default)' }}>
+        <p className="font-mono text-sm text-gray-500">Cargando datos...</p>
+      </div>
     )
   }
 
   if (error || !processedData || !stats) {
     return (
-      <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2 }}>
-        <Alert severity="error" sx={{ maxWidth: 600 }}>
-          <Typography variant="h6" gutterBottom>
-            Error al cargar los datos
-          </Typography>
-          <Typography variant="body2" component="pre" sx={{ mt: 2, whiteSpace: 'pre-wrap' }}>
-            {error || "No se pudieron cargar los datos de gacetas."}
-          </Typography>
-          <Typography variant="body2" sx={{ mt: 2 }}>
-            Verifica que el JSON esté disponible en: <code>{getGacetasDataUrl()}</code>
-          </Typography>
-        </Alert>
-      </Box>
+      <div className="flex min-h-screen items-center justify-center p-2" style={{ backgroundColor: 'var(--background-default)' }}>
+        <div className="max-w-[600px] rounded-lg border border-red-200 bg-red-50 p-4">
+          <h6 className="mb-2 text-base font-semibold text-red-800">Error al cargar los datos</h6>
+          <pre className="mt-2 whitespace-pre-wrap text-sm text-red-700">{error || "No se pudieron cargar los datos de gacetas."}</pre>
+          <p className="mt-2 text-sm text-red-600">
+            Verifica que el JSON esté disponible en: <code className="bg-red-100 px-1">{getGacetasDataUrl()}</code>
+          </p>
+        </div>
+      </div>
     )
   }
 
   return (
     <div className="min-h-screen bg-neutral/30">
         <div className="w-full pb-6 md:pb-10">
-          <section className="bg-white border-b border-gray-100">
-            <div className="max-w-7xl mx-auto px-6 py-8 sm:py-10">
-              <span className="inline-flex items-center rounded-full bg-[#FFC0CB] px-3 py-1 text-xs font-semibold tracking-wide text-black uppercase mb-3">
+          <section className="border-b border-gray-100 bg-white">
+            <div className="mx-auto max-w-7xl px-6 py-8 sm:py-10">
+              <span className="mb-3 inline-flex items-center rounded-full bg-[#FFC0CB] px-3 py-1 text-xs font-semibold uppercase tracking-wide text-black">
                 SEMARNAT
               </span>
-              <h1 className="text-3xl sm:text-4xl md:text-5xl leading-[1.1] tracking-tight text-black font-bold">
+              <h1 className="text-3xl font-bold leading-[1.1] tracking-tight text-black sm:text-4xl md:text-5xl">
                 Gacetas Ecológicas
               </h1>
-              <p className="mt-2 text-base sm:text-lg text-[var(--color-section-text)] max-w-2xl">
+              <p className="mt-2 max-w-2xl text-base text-[var(--color-section-text)] sm:text-lg">
                 Visualización interactiva de las gacetas ecológicas publicadas por la Secretaría de Medio Ambiente y Recursos Naturales.
               </p>
               <a
                 href="https://www.semarnat.gob.mx/gobmx/transparencia/gaceta.html"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-block mt-2 text-sm text-blue-700 underline hover:text-blue-900"
+                className="mt-2 inline-block text-sm text-blue-700 underline hover:text-blue-900"
               >
                 semarnat.gob.mx/gobmx/transparencia/gaceta.html
               </a>
             </div>
           </section>
 
-          <section className="bg-white border-b border-gray-100">
-            <div className="max-w-7xl mx-auto px-6 py-4">
+          <section className="border-b border-gray-100 bg-white">
+            <div className="mx-auto max-w-7xl px-6 py-4">
               <div className="flex flex-wrap gap-6">
                 <div>
-                  <p className="text-2xl sm:text-3xl font-display text-[var(--color-section-accent)]">{stats.totalGacetas}</p>
+                  <p className="font-display text-2xl text-[var(--color-section-accent)] sm:text-3xl">{stats.totalGacetas}</p>
                   <p className="text-xs text-[var(--color-section-text)]">Gacetas ({yearRange})</p>
                 </div>
                 <div>
-                  <p className="text-2xl sm:text-3xl font-display text-[var(--color-section-accent)]">{stats.totalProyectos}</p>
+                  <p className="font-display text-2xl text-[var(--color-section-accent)] sm:text-3xl">{stats.totalProyectos}</p>
                   <p className="text-xs text-[var(--color-section-text)]">Proyectos</p>
                 </div>
                 <div>
-                  <p className="text-2xl sm:text-3xl font-display text-[var(--color-section-accent)]">{stats.totalResolutivos}</p>
+                  <p className="font-display text-2xl text-[var(--color-section-accent)] sm:text-3xl">{stats.totalResolutivos}</p>
                   <p className="text-xs text-[var(--color-section-text)]">Resolutivos</p>
                 </div>
               </div>
             </div>
           </section>
 
-          <div className="max-w-7xl mx-auto px-6 py-6 sm:py-8">
+          <div className="mx-auto max-w-7xl px-6 py-6 sm:py-8">
             <div className="flex flex-col gap-6 sm:gap-8">
-              <div className="flex items-center justify-center py-3 px-4 bg-white rounded-xl border border-[var(--color-section-accent)]/10">
-                <Typography variant="body2" color="text.secondary" className="text-center text-xs sm:text-sm">
+              <div className="flex items-center justify-center rounded-xl border border-[var(--color-section-accent)]/10 bg-white px-4 py-3">
+                <p className="text-center text-xs text-gray-500 sm:text-sm">
                   Última actualización: {(() => {
                     try {
                       if (!metadata?.lastUpdated) return 'Fecha no disponible'
@@ -104,7 +99,7 @@ export function GacetasSEMARNATPage() {
                       return `${date.getDate()} de ${monthNames[date.getMonth()]} de ${date.getFullYear()}`
                     } catch { return 'Fecha no disponible' }
                   })()}
-                </Typography>
+                </p>
               </div>
 
               <MuiGacetasStats
@@ -119,14 +114,14 @@ export function GacetasSEMARNATPage() {
                 resolutivos={resolutivos}
               />
 
-              <div className="rounded-xl border border-[var(--color-section-accent)]/10 bg-white px-6 py-10 sm:px-10 sm:py-12 text-center">
-                <p className="text-sm font-semibold tracking-widest uppercase text-[var(--color-section-accent)] mb-4">
+              <div className="rounded-xl border border-[var(--color-section-accent)]/10 bg-white px-6 py-10 text-center sm:px-10 sm:py-12">
+                <p className="mb-4 text-sm font-semibold uppercase tracking-widest text-[var(--color-section-accent)]">
                   Mantente informado
                 </p>
-                <h2 className="text-2xl sm:text-3xl leading-[1.1] tracking-tight text-black mb-4 font-bold">
+                <h2 className="mb-4 text-2xl font-bold leading-[1.1] tracking-tight text-black sm:text-3xl">
                   Suscríbete a nuestro boletín
                 </h2>
-                <p className="text-sm sm:text-base text-[var(--color-section-text)] mb-6 max-w-lg mx-auto leading-relaxed">
+                <p className="mx-auto mb-6 max-w-lg text-sm leading-relaxed text-[var(--color-section-text)] sm:text-base">
                   Recibe las últimas gacetas ecológicas de SEMARNAT directamente en tu correo.
                 </p>
 
@@ -158,20 +153,20 @@ export function GacetasSEMARNATPage() {
                   return subStatus === 'success' ? (
                     <p className="text-base font-semibold text-green-700">{subMessage}</p>
                   ) : (
-                    <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+                    <form onSubmit={handleSubmit} className="mx-auto flex max-w-md flex-col gap-3 sm:flex-row">
                       <input
                         type="email"
                         value={subEmail}
                         onChange={e => setSubEmail(e.target.value)}
                         placeholder="Tu correo electrónico"
-                        className="flex-1 px-5 py-3 rounded-full border border-gray-200 text-sm focus:outline-none focus:border-[var(--color-section-accent)] focus:ring-1 focus:ring-[var(--color-section-accent)] transition-colors"
+                        className="flex-1 rounded-full border border-gray-200 px-5 py-3 text-sm transition-colors focus:border-[var(--color-section-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--color-section-accent)]"
                         required
                         disabled={subStatus === 'loading'}
                       />
                       <button
                         type="submit"
                         disabled={subStatus === 'loading'}
-                        className="px-8 py-3 rounded-full text-sm font-semibold text-white bg-[var(--color-section-accent)] hover:bg-[var(--color-section-accent-hover)] transition-colors whitespace-nowrap disabled:opacity-50"
+                        className="whitespace-nowrap rounded-full bg-[var(--color-section-accent)] px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-section-accent-hover)] disabled:opacity-50"
                       >
                         {subStatus === 'loading' ? 'Enviando...' : 'Suscribirse'}
                       </button>

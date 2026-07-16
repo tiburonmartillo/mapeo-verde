@@ -1,6 +1,5 @@
 
 import { useEffect, useMemo, useRef, useState } from "react"
-import { Box, Card, CardContent } from "@mui/material"
 import { coordinateValidator } from "../lib/coordinate-validator"
 
 type Proyecto = {
@@ -385,51 +384,21 @@ export function ProjectsMap({ proyectos, onSelectExpediente, compact, focusExped
   }, [focusExpediente, ready, proyectosProcesados])
 
   return (
-    <Card
-      elevation={0}
-      sx={{
-        borderRadius: "20px",
-        height: "100%",
-        minHeight: compact ? 220 : 300,
-        width: "100%",
-        maxWidth: "100%",
-        overflow: "hidden",
-      }}
+    <div
+      className="h-full w-full max-w-full overflow-hidden"
+      style={{ borderRadius: "20px", minHeight: compact ? 220 : 300 }}
     >
-      <CardContent sx={{ p: 0, height: "100%", "&:last-child": { pb: 0 } }}>
-        <Box
-          sx={{
-            height: "100%",
-            minHeight: compact ? 220 : 300,
-            width: "100%",
-            maxWidth: "100%",
-            borderRadius: 3,
-            overflow: "hidden",
-            position: "relative",
-            zIndex: 0,
-          }}
-          className="adna-map"
-        >
-          {!ready && (
-            <Box
-              sx={{
-                position: "absolute",
-                inset: 0,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                bgcolor: "grey.100",
-                color: "text.secondary",
-                fontSize: "0.875rem",
-              }}
-            >
-              Cargando mapa...
-            </Box>
-          )}
-          <div ref={mapRef} className={`w-full h-full ${ready ? "visible" : "invisible"}`} />
-        </Box>
-      </CardContent>
-      {/* Forzar que Leaflet quede por debajo de cualquier modal */}
+      <div
+        className="adna-map relative h-full w-full max-w-full overflow-hidden"
+        style={{ borderRadius: 12, minHeight: compact ? 220 : 300, zIndex: 0 }}
+      >
+        {!ready && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-sm text-gray-500">
+            Cargando mapa...
+          </div>
+        )}
+        <div ref={mapRef} className={`h-full w-full ${ready ? "visible" : "invisible"}`} />
+      </div>
       <style jsx global>{`
         .adna-map { z-index: 0 !important; }
         .adna-map .leaflet-pane,
@@ -437,7 +406,7 @@ export function ProjectsMap({ proyectos, onSelectExpediente, compact, focusExped
         .adna-map .leaflet-top,
         .adna-map .leaflet-bottom { z-index: 10 !important; }
       `}</style>
-    </Card>
+    </div>
   )
 }
 

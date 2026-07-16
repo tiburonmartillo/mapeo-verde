@@ -1,24 +1,12 @@
-import { Box, Chip } from "@mui/material"
-
 interface StatsChipProps {
   label: string
 }
 
 function StatsChip({ label }: StatsChipProps) {
   return (
-    <Chip
-      label={label}
-      className="text-sm sm:text-base"
-      sx={{
-        fontWeight: 600,
-        py: 1.5,
-        px: 0.5,
-        borderRadius: 2,
-        border: '1px solid rgba(30, 58, 138, 0.15)',
-        bgcolor: 'background.paper',
-        '& .MuiChip-label': { px: 2 },
-      }}
-    />
+    <span className="inline-flex items-center rounded-lg border border-blue-900/15 bg-white px-4 py-1.5 text-sm font-semibold sm:text-base">
+      {label}
+    </span>
   )
 }
 
@@ -31,7 +19,7 @@ interface MuiGacetasStatsProps {
 
 export function MuiGacetasStats({ totalGacetas, yearRange, totalProyectos, totalResolutivos }: MuiGacetasStatsProps) {
   return (
-    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
+    <div className="flex flex-wrap gap-1.5">
       <StatsChip label={`${totalGacetas.toLocaleString()} gacetas con análisis disponible`} />
       {totalProyectos !== undefined && (
         <StatsChip label={`${totalProyectos.toLocaleString()} proyectos ingresados`} />
@@ -40,7 +28,6 @@ export function MuiGacetasStats({ totalGacetas, yearRange, totalProyectos, total
         <StatsChip label={`${totalResolutivos.toLocaleString()} resolutivos emitidos`} />
       )}
       <StatsChip label={`Rango ${yearRange}`} />
-    </Box>
+    </div>
   )
 }
-

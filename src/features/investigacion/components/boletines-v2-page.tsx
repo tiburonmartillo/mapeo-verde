@@ -1,7 +1,6 @@
-import { useState, useMemo, useRef, useEffect } from "react"
+import { useState, useMemo, useRef, useEffect, useSyncExternalStore } from "react"
 import { useSearchParams } from "react-router-dom"
 import { MapPin, X, Search } from "lucide-react"
-import { Drawer, IconButton, useMediaQuery } from "@mui/material"
 import { MuiProjectsTable } from "./mui-projects-table"
 import { ClientOnly } from "./client-only"
 import { useDashboardData } from "../hooks/useDashboardData"
@@ -39,9 +38,9 @@ function DetailPanelContent({
       {showCloseButton && onClose && (
         <div className="flex shrink-0 items-center justify-between border-b border-gray-200 bg-white px-4 py-3">
           <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">Detalle</span>
-          <IconButton onClick={onClose} aria-label="Cerrar" size="small" sx={{ color: "#6B7280" }}>
+          <button onClick={onClose} aria-label="Cerrar" className="inline-flex items-center justify-center text-gray-500 hover:text-gray-700">
             <X className="h-5 w-5" />
-          </IconButton>
+          </button>
         </div>
       )}
       {selectedItem && (
@@ -151,12 +150,20 @@ function DetailPanelContent({
   )
 }
 
-const isMobileBreakpoint = "(max-width: 1023px)"
+function subscribeMobile(cb: () => void) {
+  const mql = window.matchMedia("(max-width: 1023px)")
+  mql.addEventListener("change", cb)
+  return () => mql.removeEventListener("change", cb)
+}
+
+function useIsMobile(): boolean {
+  return useSyncExternalStore(subscribeMobile, () => window.matchMedia("(max-width: 1023px)").matches)
+}
 
 export function BoletinesV2Page() {
   const [searchParams] = useSearchParams()
   const { data, processedData, loading, error } = useDashboardData()
-  const isMobile = useMediaQuery(isMobileBreakpoint)
+  const isMobile = useIsMobile()
   const [search, setSearch] = useState("")
   const [selectedItem, setSelectedItem] = useState<any>(null)
   const [showFiltersPanel, setShowFiltersPanel] = useState(false)
@@ -334,24 +341,21 @@ export function BoletinesV2Page() {
             </div>
 
             {/* Móvil: side sheet con detalle + mapa al seleccionar una fila */}
-            <Drawer
-              anchor="right"
-              open={isMobile && !!selectedItem}
-              onClose={() => setSelectedItem(null)}
-              slotProps={{ backdrop: { sx: { backgroundColor: "rgba(0,0,0,0.4)" } } }}
-              PaperProps={{
-                sx: { width: "100%", maxWidth: 420, borderTopLeftRadius: 12, borderBottomLeftRadius: 12 },
-              }}
-            >
-              <DetailPanelContent
-                selectedItem={selectedItem}
-                filteredProyectos={filteredProyectos}
-                filteredResolutivos={filteredResolutivos}
-                onSelectItem={setSelectedItem}
-                onClose={() => setSelectedItem(null)}
-                showCloseButton
-              />
-            </Drawer>
+            {isMobile && !!selectedItem && (
+              <>
+                <div className="fixed inset-0 z-40 bg-black/40" onClick={() => setSelectedItem(null)} />
+                <div className="fixed inset-y-0 right-0 z-50 w-full max-w-[420px] rounded-l-xl bg-white shadow-xl">
+                  <DetailPanelContent
+                    selectedItem={selectedItem}
+                    filteredProyectos={filteredProyectos}
+                    filteredResolutivos={filteredResolutivos}
+                    onSelectItem={setSelectedItem}
+                    onClose={() => setSelectedItem(null)}
+                    showCloseButton
+                  />
+                </div>
+              </>
+            )}
         </div>
       </div>
   )

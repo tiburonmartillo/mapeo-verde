@@ -7,7 +7,4 @@ export const TAB_ROUTES = {
   PARTICIPATION: '/participacion'
 } as const;
 
-export const DATA_PATHS = {
-  BOLETINES: '/data/boletines.json',
-  GACETAS: '/data/gacetas_semarnat_analizadas.json'
-} as const;
+

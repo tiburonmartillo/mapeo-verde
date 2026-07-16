@@ -1,9 +1,7 @@
 
-import React, { useEffect, useState, useMemo, useRef, useCallback } from 'react'
-import { Box, Typography, Button, IconButton, Paper, Divider, Chip, Alert, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material"
+import { useEffect, useState, useMemo, useRef, useCallback } from 'react'
+import { X, ExternalLink } from "lucide-react"
 import ReactMarkdown from "react-markdown"
-import CloseIcon from '@mui/icons-material/Close'
-import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import type { ProcessedGacetaAnalysis, RegistroGaceta } from '../hooks/useGacetasData'
 import { FrogLoading } from './frog-loading'
 import { getSemarnatEdgeFunctionUrl } from '../lib/supabase-data'
@@ -38,30 +36,26 @@ export function GacetaModal({ gaceta, registro, isOpen, onClose }: GacetaModalPr
   const [loadingHistorial, setLoadingHistorial] = useState(false)
   const [errorHistorial, setErrorHistorial] = useState<string | null>(null)
   const [historialDataSource, setHistorialDataSource] = useState<'api' | 'json' | null>(null)
-  // Manejar escape key
+
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
         onClose()
       }
     }
-
     if (isOpen) {
       document.addEventListener('keydown', handleEscape)
       document.body.style.overflow = 'hidden'
     }
-
     return () => {
       document.removeEventListener('keydown', handleEscape)
       document.body.style.overflow = 'unset'
     }
   }, [isOpen, onClose])
 
-  // Usar useRef para trackear el registro actual y cancelar requests anteriores
   const registroKeyRef = useRef<string | null>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
 
-  // Memoizar clave única del registro para evitar re-fetches innecesarios
   const registroId = registro?.id
   const registroClave = registro?.clave_proyecto
   const registroKey = useMemo(() => {
@@ -69,40 +63,32 @@ export function GacetaModal({ gaceta, registro, isOpen, onClose }: GacetaModalPr
     return `${registroId || registroClave || ''}-${registroClave || ''}`
   }, [registro, registroId, registroClave])
 
-  // Procesar datos SEMARNAT desde el registro (memoizado)
   const registroSemarnatData = registro?.semarnat_data
   const semarnatDataFromRegistro = useMemo(() => {
     if (!registroSemarnatData) return null
-    
     if (registroSemarnatData.error) {
       return { error: registroSemarnatData.error, data: null }
     }
-    
     if (registroSemarnatData.mensaje === 'error' && 
         !registroSemarnatData.resumen && 
         !registroSemarnatData.estudio && 
         !registroSemarnatData.resolutivo) {
       return { error: registroSemarnatData.detalle || 'Sin documentos disponibles', data: null }
     }
-    
     return { error: null, data: registroSemarnatData }
   }, [registroSemarnatData])
 
-  // Procesar historial desde el registro (memoizado)
   const semarnatHistorial = registro?.semarnat_historial
   const historialFromRegistro = useMemo(() => {
     if (!semarnatHistorial) return null
-    
     const tieneHistorial = (semarnatHistorial.historial && 
                            Array.isArray(semarnatHistorial.historial) && 
                            semarnatHistorial.historial.length > 0) ||
                           (Array.isArray(semarnatHistorial) && 
                            semarnatHistorial.length > 0)
-    
     if (tieneHistorial) {
       return { error: null, data: semarnatHistorial }
     }
-    
     if (semarnatHistorial.error || 
         (semarnatHistorial.mensaje === 'error' && !tieneHistorial)) {
       return { 
@@ -112,18 +98,13 @@ export function GacetaModal({ gaceta, registro, isOpen, onClose }: GacetaModalPr
         data: null 
       }
     }
-    
     return { error: null, data: semarnatHistorial }
   }, [semarnatHistorial])
 
-  // Efecto para cargar datos SEMARNAT
-  // PRIORIDAD: Primero intentar API en tiempo real, luego fallback a JSON enriquecido
   useEffect(() => {
-    // Cancelar request anterior si existe
     if (abortControllerRef.current) {
       abortControllerRef.current.abort()
     }
-
     if (!isOpen || !registro?.clave_proyecto) {
       setSemarnatData(null)
       setErrorSemarnat(null)
@@ -131,42 +112,28 @@ export function GacetaModal({ gaceta, registro, isOpen, onClose }: GacetaModalPr
       setLoadingSemarnat(false)
       return
     }
-
-    // Si el registro cambió, limpiar estados
     if (registroKeyRef.current !== registroKey) {
       registroKeyRef.current = registroKey
       setPdfResponseData({})
       setLoadingPdf({})
     }
-
-    // PRIORIDAD 1: Intentar obtener datos desde la API en tiempo real
     const controller = new AbortController()
     abortControllerRef.current = controller
-
     const apiTimeoutId = setTimeout(() => controller.abort(), 6000)
-
     const fetchSemarnatData = async () => {
       setLoadingSemarnat(true)
       setErrorSemarnat(null)
       setSemarnatData(null)
-
       try {
         const response = await fetch(`${semarnatApiUrl}/proyecto`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ clave: registro.clave_proyecto }),
           signal: controller.signal
         })
-
         if (controller.signal.aborted) return
-
         const data: SemarnatApiResponse = await response.json()
-
         if (controller.signal.aborted) return
-
-        // Si la petición fue exitosa y tiene datos válidos
         if (response.ok && !data.error && (data.resumen || data.estudio || data.resolutivo)) {
           setSemarnatData(data)
           setErrorSemarnat(null)
@@ -174,14 +141,9 @@ export function GacetaModal({ gaceta, registro, isOpen, onClose }: GacetaModalPr
           setLoadingSemarnat(false)
           return
         }
-
-        // Si la petición fue rechazada o falló, hacer fallback al JSON
         throw new Error(data.error || 'Petición rechazada')
-
       } catch (error: any) {
         if (error.name === 'AbortError') return
-        
-        // FALLBACK: Usar datos del JSON enriquecido si están disponibles
         if (semarnatDataFromRegistro) {
           if (semarnatDataFromRegistro.error) {
             setErrorSemarnat(semarnatDataFromRegistro.error)
@@ -195,8 +157,6 @@ export function GacetaModal({ gaceta, registro, isOpen, onClose }: GacetaModalPr
           setLoadingSemarnat(false)
           return
         }
-
-        // Si no hay datos en el JSON ni en la API, mostrar error
         setErrorSemarnat('Error al conectar con el servicio de SEMARNAT')
         setSemarnatData(null)
       } finally {
@@ -205,23 +165,20 @@ export function GacetaModal({ gaceta, registro, isOpen, onClose }: GacetaModalPr
         }
       }
     }
-
     fetchSemarnatData()
-
     return () => {
       clearTimeout(apiTimeoutId)
       controller.abort()
     }
   }, [isOpen, registro?.clave_proyecto, registroKey, semarnatDataFromRegistro])
 
-  // Efecto separado para cargar historial
-  // PRIORIDAD: Primero intentar API en tiempo real, luego fallback a JSON enriquecido
   const historialRegistroId = registro?.id
   const historialRegistroClave = registro?.clave_proyecto
   const historialNumBitacora =
     (registro as any)?.semarnat_proyecto?.tramite?.numBitacora ||
     (registro as any)?.semarnat_bitacora?.tramite?.numBitacora ||
     (registro as any)?.semarnat_proyecto_bitacora?.tramite?.numBitacora
+
   useEffect(() => {
     if (!isOpen || !registro) {
       setHistorialData(null)
@@ -230,9 +187,7 @@ export function GacetaModal({ gaceta, registro, isOpen, onClose }: GacetaModalPr
       setLoadingHistorial(false)
       return
     }
-
     const bitacoraParam = historialNumBitacora || historialRegistroId || historialRegistroClave
-
     if (!bitacoraParam) {
       setHistorialData(null)
       setErrorHistorial(null)
@@ -240,36 +195,24 @@ export function GacetaModal({ gaceta, registro, isOpen, onClose }: GacetaModalPr
       setLoadingHistorial(false)
       return
     }
-
-    // PRIORIDAD 1: Intentar obtener historial desde la API en tiempo real
     const controller = new AbortController()
     const historialTimeoutId = setTimeout(() => controller.abort(), 6000)
-
     const fetchHistorialData = async () => {
       setLoadingHistorial(true)
       setErrorHistorial(null)
       setHistorialData(null)
-
       try {
         const response = await fetch(`${semarnatApiUrl}/historial`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ numBitacora: bitacoraParam }),
           signal: controller.signal
         })
-
         if (controller.signal.aborted) return
-
         const data = await response.json()
-
         if (controller.signal.aborted) return
-
-        // Si la petición fue exitosa y tiene historial válido
         const tieneHistorial = (data.historial && Array.isArray(data.historial) && data.historial.length > 0) ||
                               (Array.isArray(data) && data.length > 0)
-
         if (response.ok && tieneHistorial) {
           setHistorialData(data)
           setErrorHistorial(null)
@@ -277,14 +220,9 @@ export function GacetaModal({ gaceta, registro, isOpen, onClose }: GacetaModalPr
           setLoadingHistorial(false)
           return
         }
-
-        // Si la petición fue rechazada o falló, hacer fallback al JSON
         throw new Error(data.error || data.mensaje || 'Petición rechazada')
-
       } catch (error: any) {
         if (error.name === 'AbortError') return
-        
-        // FALLBACK: Usar historial del JSON enriquecido si está disponible
         if (historialFromRegistro) {
           if (historialFromRegistro.error) {
             setErrorHistorial(historialFromRegistro.error)
@@ -298,8 +236,6 @@ export function GacetaModal({ gaceta, registro, isOpen, onClose }: GacetaModalPr
           setLoadingHistorial(false)
           return
         }
-
-        // Si no hay datos en el JSON ni en la API, mostrar error
         setErrorHistorial('Error al conectar con el servicio de historial')
         setHistorialData(null)
       } finally {
@@ -308,24 +244,69 @@ export function GacetaModal({ gaceta, registro, isOpen, onClose }: GacetaModalPr
         }
       }
     }
-
     fetchHistorialData()
-
     return () => {
       clearTimeout(historialTimeoutId)
       controller.abort()
     }
   }, [isOpen, registro, historialRegistroId, historialRegistroClave, historialNumBitacora, historialFromRegistro])
 
+  const handlePdfDownload = useCallback(async (tipo: string, dataPath: string) => {
+    setLoadingPdf(prev => ({ ...prev, [tipo]: true }))
+    try {
+      const response = await fetch(`${semarnatApiUrl}/pdf`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: dataPath
+      })
+      if (response.ok) {
+        const contentType = response.headers.get('content-type')
+        if (contentType?.includes('application/pdf')) {
+          const blob = await response.blob()
+          const url = window.URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.href = url
+          a.download = `${tipo}_${registro?.clave_proyecto || 'documento'}.pdf`
+          document.body.appendChild(a)
+          a.click()
+          window.URL.revokeObjectURL(url)
+          document.body.removeChild(a)
+          setPdfResponseData(prev => ({
+            ...prev,
+            [tipo]: { tipo: 'PDF', tamaño: blob.size, descargado: true }
+          }))
+        } else {
+          try {
+            const data = await response.json()
+            setPdfResponseData(prev => ({ ...prev, [tipo]: data }))
+            if (data.url) {
+              window.open(data.url, '_blank', 'noopener,noreferrer')
+            }
+          } catch {
+            const text = await response.text()
+            setPdfResponseData(prev => ({ ...prev, [tipo]: { respuesta: text } }))
+          }
+        }
+      } else {
+        const errorText = await response.text()
+        setPdfResponseData(prev => ({ ...prev, [tipo]: { error: errorText, status: response.status } }))
+      }
+    } catch (error) {
+      setPdfResponseData(prev => ({
+        ...prev,
+        [tipo]: { error: error instanceof Error ? error.message : 'Error desconocido' }
+      }))
+    } finally {
+      setLoadingPdf(prev => ({ ...prev, [tipo]: false }))
+    }
+  }, [semarnatApiUrl, registro?.clave_proyecto])
+
   if (!gaceta || !isOpen) return null
 
-  // Verificar si la fecha es solo año (formato YYYY-01-01) o una fecha completa
   const fechaFormateada = (() => {
     try {
       const fecha = new Date(gaceta.fecha_publicacion)
-      // Si la fecha es el 1 de enero, probablemente es solo el año
       if (fecha.getMonth() === 0 && fecha.getDate() === 1) {
-        // Verificar si es el mismo año que gaceta.año
         if (fecha.getFullYear() === gaceta.año) {
           return `Año ${gaceta.año}`
         }
@@ -341,896 +322,369 @@ export function GacetaModal({ gaceta, registro, isOpen, onClose }: GacetaModalPr
   })()
 
   return (
-    <Box
-      sx={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 1300,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        p: { xs: 2, sm: 4 }
-      }}
-    >
-      {/* Overlay */}
-      <Box
-        sx={{
-          position: 'absolute',
-          inset: 0,
-          bgcolor: 'rgba(0, 0, 0, 0.75)',
-          zIndex: -1
-        }}
-        onClick={onClose}
-      />
-
-      {/* Modal */}
-      <Paper
-        elevation={24}
-        sx={{
-          position: 'relative',
-          maxWidth: '900px',
-          width: '100%',
-          maxHeight: { xs: '95vh', sm: '90vh' },
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-          borderRadius: 2
-        }}
-      >
-        {/* Header - Fixed */}
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            p: { xs: 2, sm: 3 },
-            borderBottom: '1px solid',
-            borderColor: 'divider',
-            flexShrink: 0,
-            bgcolor: 'background.paper',
-            zIndex: 10
-          }}
-        >
-          <Box sx={{ flex: 1, minWidth: 0, pr: 2 }}>
-            <Typography
-              variant="h6"
-              component="h2"
-              fontWeight="semibold"
-              className="text-lg sm:text-xl"
-              sx={{
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap'
-              }}
-            >
+    <div className="fixed inset-0 z-[1300] flex items-center justify-center p-4 sm:p-8">
+      <div className="fixed inset-0 -z-10 bg-black/75" onClick={onClose} />
+      <div className="relative flex max-h-[95vh] w-full max-w-[900px] flex-col overflow-hidden rounded-xl bg-white shadow-2xl sm:max-h-[90vh]">
+        {/* Header */}
+        <div className="flex shrink-0 items-center justify-between border-b border-gray-200 bg-white px-4 py-3 sm:px-6">
+          <div className="min-w-0 flex-1 pr-2">
+            <h2 className="truncate text-lg font-semibold text-gray-900 sm:text-xl">
               Gaceta Ecológica SEMARNAT {gaceta.gaceta_id ? `#${gaceta.gaceta_id}` : ''}
-            </Typography>
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              className="text-sm sm:text-base"
-              sx={{ mt: 0.5 }}
-            >
-              {fechaFormateada}
-            </Typography>
-          </Box>
-          <IconButton
+            </h2>
+            <p className="mt-1 text-sm text-gray-500 sm:text-base">{fechaFormateada}</p>
+          </div>
+          <button
             onClick={onClose}
-            size="small"
-            sx={{ flexShrink: 0 }}
+            className="flex shrink-0 items-center justify-center rounded-full p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
             aria-label="Cerrar"
           >
-            <CloseIcon />
-          </IconButton>
-        </Box>
+            <X className="h-5 w-5" />
+          </button>
+        </div>
 
-        {/* Content - Scrollable */}
-        <Box
-          sx={{
-            flex: 1,
-            overflowY: 'auto',
-            overscrollBehavior: 'contain',
-            minHeight: 0,
-            position: 'relative'
-          }}
-        >
-          <Box sx={{ p: { xs: 2, sm: 3 }, pb: { xs: 10, sm: 12 } }}>
-            {/* Información del Registro Seleccionado */}
+        {/* Content */}
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
+          <div className="px-4 py-4 pb-16 sm:px-6 sm:pb-20">
             {registro && (
-              <Box>
-                <Box sx={{ mb: 4 }}>
-                  <Typography
-                    variant="h6"
-                    fontWeight="semibold"
-                    className="text-lg sm:text-xl"
-                    sx={{ mb: 2 }}
-                  >
-                    Información del Registro
-                  </Typography>
-                  
-                  <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
-                    <Box>
-                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                        Clave del Proyecto
-                      </Typography>
-                      <Typography variant="body2" fontWeight="medium" sx={{ mb: 2 }}>
-                        {registro.clave_proyecto || 'N/A'}
-                      </Typography>
-                    </Box>
-                    
-                    <Box>
-                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                        Tipo de Registro
-                      </Typography>
-                      <Chip 
-                        label={registro.tipo_registro === 'proyecto_ingresado' ? 'Proyecto Ingresado' : 
-                               registro.tipo_registro === 'resolutivo_emitido' ? 'Resolutivo Emitido' :
-                               registro.tipo_registro === 'tramite_unificado' ? 'Trámite Unificado' :
-                               registro.tipo_registro} 
-                        size="small" 
-                        color={registro.tipo_registro === 'resolutivo_emitido' ? 'success' : 'primary'}
-                        sx={{ mb: 2 }}
-                      />
-                    </Box>
-                    
-                    <Box sx={{ gridColumn: { xs: 'span 1', md: 'span 2' } }}>
-                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                        Nombre del Proyecto
-                      </Typography>
-                      <Typography variant="body2" sx={{ mb: 2 }}>
-                        {registro.proyecto_nombre || 'N/A'}
-                      </Typography>
-                    </Box>
-                    
-                    <Box>
-                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                        Promovente
-                      </Typography>
-                      <Typography variant="body2" sx={{ mb: 2 }}>
-                        {registro.promovente || 'N/A'}
-                      </Typography>
-                    </Box>
-                    
-                    <Box>
-                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                        Modalidad
-                      </Typography>
-                      <Typography variant="body2" sx={{ mb: 2 }}>
-                        {registro.modalidad || 'N/A'}
-                      </Typography>
-                    </Box>
-                    
-                    <Box>
-                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                        Entidad
-                      </Typography>
-                      <Typography variant="body2" sx={{ mb: 2 }}>
-                        {registro.entidad || 'N/A'}
-                      </Typography>
-                    </Box>
-                    
-                    <Box>
-                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                        Municipio
-                      </Typography>
-                      <Typography variant="body2" sx={{ mb: 2 }}>
-                        {registro.municipio || 'N/A'}
-                      </Typography>
-                    </Box>
-                    
-                    <Box>
-                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                        Tipo de Proyecto
-                      </Typography>
-                      <Typography variant="body2" sx={{ mb: 2 }}>
-                        {registro.tipo_proyecto || 'N/A'}
-                      </Typography>
-                    </Box>
-                    
+              <div>
+                {/* Información del Registro */}
+                <div className="mb-6">
+                  <h3 className="mb-3 text-lg font-semibold sm:text-xl">Información del Registro</h3>
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                    <div>
+                      <span className="mb-1 block text-xs text-gray-500">Clave del Proyecto</span>
+                      <p className="mb-2 text-sm font-medium">{registro.clave_proyecto || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <span className="mb-1 block text-xs text-gray-500">Tipo de Registro</span>
+                      <span className={`mb-2 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                        registro.tipo_registro === 'resolutivo_emitido'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-blue-100 text-blue-800'
+                      }`}>
+                        {registro.tipo_registro === 'proyecto_ingresado' ? 'Proyecto Ingresado' : 
+                         registro.tipo_registro === 'resolutivo_emitido' ? 'Resolutivo Emitido' :
+                         registro.tipo_registro === 'tramite_unificado' ? 'Trámite Unificado' :
+                         registro.tipo_registro}
+                      </span>
+                    </div>
+                    <div className="md:col-span-2">
+                      <span className="mb-1 block text-xs text-gray-500">Nombre del Proyecto</span>
+                      <p className="mb-2 text-sm">{registro.proyecto_nombre || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <span className="mb-1 block text-xs text-gray-500">Promovente</span>
+                      <p className="mb-2 text-sm">{registro.promovente || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <span className="mb-1 block text-xs text-gray-500">Modalidad</span>
+                      <p className="mb-2 text-sm">{registro.modalidad || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <span className="mb-1 block text-xs text-gray-500">Entidad</span>
+                      <p className="mb-2 text-sm">{registro.entidad || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <span className="mb-1 block text-xs text-gray-500">Municipio</span>
+                      <p className="mb-2 text-sm">{registro.municipio || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <span className="mb-1 block text-xs text-gray-500">Tipo de Proyecto</span>
+                      <p className="mb-2 text-sm">{registro.tipo_proyecto || 'N/A'}</p>
+                    </div>
                     {registro.fecha_ingreso && (
-                      <Box>
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                          Fecha de Ingreso
-                        </Typography>
-                        <Typography variant="body2" sx={{ mb: 2 }}>
+                      <div>
+                        <span className="mb-1 block text-xs text-gray-500">Fecha de Ingreso</span>
+                        <p className="mb-2 text-sm">
                           {new Date(registro.fecha_ingreso).toLocaleDateString('es-MX', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
+                            year: 'numeric', month: 'long', day: 'numeric'
                           })}
-                        </Typography>
-                      </Box>
+                        </p>
+                      </div>
                     )}
-                    
                     {registro.fecha_resolucion && (
-                      <Box>
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                          Fecha de Resolución
-                        </Typography>
-                        <Typography variant="body2" sx={{ mb: 2 }}>
+                      <div>
+                        <span className="mb-1 block text-xs text-gray-500">Fecha de Resolución</span>
+                        <p className="mb-2 text-sm">
                           {new Date(registro.fecha_resolucion).toLocaleDateString('es-MX', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
+                            year: 'numeric', month: 'long', day: 'numeric'
                           })}
-                        </Typography>
-                      </Box>
+                        </p>
+                      </div>
                     )}
-                    
                     {registro.estatus && (
-                      <Box>
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                          Estatus
-                        </Typography>
-                        <Chip 
-                          label={registro.estatus} 
-                          size="small" 
-                          color={registro.estatus === 'autorizado' ? 'success' : 'default'}
-                          sx={{ mb: 2 }}
-                        />
-                      </Box>
+                      <div>
+                        <span className="mb-1 block text-xs text-gray-500">Estatus</span>
+                        <span className={`mb-2 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                          registro.estatus === 'autorizado' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          {registro.estatus}
+                        </span>
+                      </div>
                     )}
-                    
                     {registro.vigencia?.texto_completo && (
-                      <Box>
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                          Vigencia
-                        </Typography>
-                        <Typography variant="body2" sx={{ mb: 2 }}>
-                          {registro.vigencia.texto_completo}
-                        </Typography>
-                      </Box>
+                      <div>
+                        <span className="mb-1 block text-xs text-gray-500">Vigencia</span>
+                        <p className="mb-2 text-sm">{registro.vigencia.texto_completo}</p>
+                      </div>
                     )}
-                    
                     {registro.superficie && (registro.superficie.total_hectareas || registro.superficie.cambio_uso_suelo_hectareas) && (
-                      <Box>
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                          Superficie
-                        </Typography>
-                        <Typography variant="body2" sx={{ mb: 2 }}>
+                      <div>
+                        <span className="mb-1 block text-xs text-gray-500">Superficie</span>
+                        <p className="mb-2 text-sm">
                           {registro.superficie.total_hectareas ? `${registro.superficie.total_hectareas} ha` : ''}
                           {registro.superficie.cambio_uso_suelo_hectareas && (
-                            <span> (Cambio de uso: {registro.superficie.cambio_uso_suelo_hectareas} ha)</span>
+                            <> (Cambio de uso: {registro.superficie.cambio_uso_suelo_hectareas} ha)</>
                           )}
-                        </Typography>
-                      </Box>
+                        </p>
+                      </div>
                     )}
-                    
                     {registro.vegetacion?.tipo && (
-                      <Box>
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                          Vegetación
-                        </Typography>
-                        <Typography variant="body2" sx={{ mb: 2 }}>
+                      <div>
+                        <span className="mb-1 block text-xs text-gray-500">Vegetación</span>
+                        <p className="mb-2 text-sm">
                           {registro.vegetacion.tipo}
                           {registro.vegetacion.remocion && ` - Remoción: ${registro.vegetacion.remocion}`}
-                        </Typography>
-                      </Box>
+                        </p>
+                      </div>
                     )}
-                    
                     {registro.ubicacion_especifica && (
-                      <Box sx={{ gridColumn: { xs: 'span 1', md: 'span 2' } }}>
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                          Ubicación Específica
-                        </Typography>
-                        <Typography variant="body2" sx={{ mb: 2 }}>
-                          {registro.ubicacion_especifica}
-                        </Typography>
-                      </Box>
+                      <div className="md:col-span-2">
+                        <span className="mb-1 block text-xs text-gray-500">Ubicación Específica</span>
+                        <p className="mb-2 text-sm">{registro.ubicacion_especifica}</p>
+                      </div>
                     )}
-                    
                     {registro.descripcion && (
-                      <Box sx={{ gridColumn: { xs: 'span 1', md: 'span 2' } }}>
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                          Descripción
-                        </Typography>
-                        <Typography 
-                          variant="body2" 
-                          sx={{ 
-                            mb: 2,
-                            whiteSpace: 'pre-wrap',
-                            textAlign: 'justify'
-                          }}
-                        >
-                          {registro.descripcion}
-                        </Typography>
-                      </Box>
+                      <div className="md:col-span-2">
+                        <span className="mb-1 block text-xs text-gray-500">Descripción</span>
+                        <p className="mb-2 whitespace-pre-wrap text-justify text-sm">{registro.descripcion}</p>
+                      </div>
                     )}
-                  </Box>
-                </Box>
-                
-                <Divider sx={{ my: 3 }} />
+                  </div>
+                </div>
 
-                {/* Información de SEMARNAT API - Documentos */}
-                <Box sx={{ mb: 4 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1 }}>
-                      <Typography
-                        variant="h6"
-                        fontWeight="semibold"
-                        className="text-lg sm:text-xl"
-                      >
-                        Documentos del Sistema SEMARNAT
-                      </Typography>
+                <hr className="my-6 border-gray-200" />
+
+                {/* Documentos SEMARNAT */}
+                <div className="mb-6">
+                  <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-lg font-semibold sm:text-xl">Documentos del Sistema SEMARNAT</h3>
                       {semarnatDataSource && (
-                        <Chip
-                          label={semarnatDataSource === 'api' ? 'API' : 'JSON'}
-                          size="small"
-                          color={semarnatDataSource === 'api' ? 'success' : 'info'}
-                          className="text-xs sm:text-sm"
-                          sx={{ height: '20px' }}
-                        />
+                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${
+                          semarnatDataSource === 'api' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
+                        }`}>
+                          {semarnatDataSource === 'api' ? 'API' : 'JSON'}
+                        </span>
                       )}
-                    </Box>
+                    </div>
                     {registro?.clave_proyecto && (
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        startIcon={<OpenInNewIcon />}
+                      <button
                         onClick={() => {
-                          // URL de consulta en SEMARNAT con la clave como parámetro
                           const consultaUrl = `https://app.semarnat.gob.mx/consulta-tramite/#/portal-consulta?clave=${encodeURIComponent(registro.clave_proyecto)}`
                           window.open(consultaUrl, '_blank', 'noopener,noreferrer')
                         }}
-                        className="text-sm sm:text-base"
+                        className="inline-flex items-center gap-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
                       >
+                        <ExternalLink className="h-4 w-4" />
                         Consultar en SEMARNAT
-                      </Button>
+                      </button>
                     )}
-                  </Box>
-                  
-                  {loadingSemarnat && (
-                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, py: 2 }}>
-                      <FrogLoading fullScreen={false} size={80} message="Cargando documentos del sistema SEMARNAT..." className="min-h-0" />
-                    </Box>
-                  )}
-                  
-                  {errorSemarnat && (
-                    <Alert severity="warning" sx={{ mb: 2 }}>
-                      {errorSemarnat}
-                    </Alert>
-                  )}
-                  
-                  {semarnatData && !loadingSemarnat && (
-                    <Box>
-                      {/* Mostrar enlaces a PDFs si están disponibles */}
-                      {semarnatData.resumen || semarnatData.estudio || semarnatData.resolutivo ? (
-                        <Box sx={{ mb: 3 }}>
-                          <Typography
-                            variant="subtitle2"
-                            fontWeight="medium"
-                            color="text.secondary"
-                            className="text-sm sm:text-base"
-                            sx={{ mb: 2 }}
-                          >
-                            Documentos Disponibles
-                          </Typography>
-                          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 2 }}>
-                            {semarnatData.resumen && (
-                              <Box>
-                                <Button
-                                  fullWidth
-                                  variant="outlined"
-                                  color="primary"
-                                  startIcon={loadingPdf['resumen'] ? <FrogLoading iconOnly size={18} /> : <OpenInNewIcon />}
-                                  disabled={loadingPdf['resumen']}
-                                  onClick={async () => {
-                                    setLoadingPdf(prev => ({ ...prev, resumen: true }))
-                                    try {
-                                      const response = await fetch(`${semarnatApiUrl}/pdf`, {
-                                        method: 'POST',
-                                        headers: {
-                                          'Content-Type': 'text/plain',
-                                        },
-                                        body: semarnatData.resumen
-                                      })
+                  </div>
 
-                                      if (response.ok) {
-                                        const contentType = response.headers.get('content-type')
-                                        if (contentType?.includes('application/pdf')) {
-                                          // Es un PDF, crear blob y descargarlo
-                                          const blob = await response.blob()
-                                          const url = window.URL.createObjectURL(blob)
-                                          const a = document.createElement('a')
-                                          a.href = url
-                                          a.download = `resumen_${registro?.clave_proyecto || 'documento'}.pdf`
-                                          document.body.appendChild(a)
-                                          a.click()
-                                          window.URL.revokeObjectURL(url)
-                                          document.body.removeChild(a)
-                                          
-                                          // Guardar información de la respuesta
-                                          setPdfResponseData(prev => ({
-                                            ...prev,
-                                            resumen: { tipo: 'PDF', tamaño: blob.size, descargado: true }
-                                          }))
-                                        } else {
-                                          // Es JSON con URL u otros datos
-                                          try {
-                                            const data = await response.json()
-                                            setPdfResponseData(prev => ({
-                                              ...prev,
-                                              resumen: data
-                                            }))
-                                            if (data.url) {
-                                              window.open(data.url, '_blank', 'noopener,noreferrer')
-                                            }
-                                          } catch {
-                                            const text = await response.text()
-                                            setPdfResponseData(prev => ({
-                                              ...prev,
-                                              resumen: { respuesta: text }
-                                            }))
-                                          }
-                                        }
-                                      } else {
-                                        const errorText = await response.text()
-                                        setPdfResponseData(prev => ({
-                                          ...prev,
-                                          resumen: { error: errorText, status: response.status }
-                                        }))
-                                      }
-                                    } catch (error) {
-                                      setPdfResponseData(prev => ({
-                                        ...prev,
-                                        resumen: { error: error instanceof Error ? error.message : 'Error desconocido' }
-                                      }))
-                                    } finally {
-                                      setLoadingPdf(prev => ({ ...prev, resumen: false }))
-                                    }
-                                  }}
-                                  className="text-sm sm:text-base"
-                                  sx={{ py: 1.5 }}
-                                >
-                                  {loadingPdf['resumen'] ? 'Cargando...' : 'Resumen PDF'}
-                                </Button>
-                              </Box>
+                  {loadingSemarnat && (
+                    <div className="flex flex-col items-center gap-2 py-4">
+                      <FrogLoading fullScreen={false} size={80} message="Cargando documentos del sistema SEMARNAT..." className="min-h-0" />
+                    </div>
+                  )}
+
+                  {errorSemarnat && (
+                    <div className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                      <span className="font-medium">Advertencia:</span> {errorSemarnat}
+                    </div>
+                  )}
+
+                  {semarnatData && !loadingSemarnat && (
+                    <div>
+                      {semarnatData.resumen || semarnatData.estudio || semarnatData.resolutivo ? (
+                        <div className="mb-4">
+                          <p className="mb-3 text-sm font-medium text-gray-500">Documentos Disponibles</p>
+                          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                            {semarnatData.resumen && (
+                              <button
+                                onClick={() => handlePdfDownload('resumen', semarnatData.resumen)}
+                                disabled={loadingPdf['resumen']}
+                                className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                              >
+                                {loadingPdf['resumen'] ? <FrogLoading iconOnly size={18} /> : <ExternalLink className="h-4 w-4" />}
+                                {loadingPdf['resumen'] ? 'Cargando...' : 'Resumen PDF'}
+                              </button>
                             )}
                             {semarnatData.estudio && (
-                              <Box>
-                                <Button
-                                  fullWidth
-                                  variant="outlined"
-                                  color="primary"
-                                  startIcon={loadingPdf['estudio'] ? <FrogLoading iconOnly size={18} /> : <OpenInNewIcon />}
-                                  disabled={loadingPdf['estudio']}
-                                  onClick={async () => {
-                                    setLoadingPdf(prev => ({ ...prev, estudio: true }))
-                                    try {
-                                      const response = await fetch(`${semarnatApiUrl}/pdf`, {
-                                        method: 'POST',
-                                        headers: {
-                                          'Content-Type': 'text/plain',
-                                        },
-                                        body: semarnatData.estudio
-                                      })
-
-                                      if (response.ok) {
-                                        const contentType = response.headers.get('content-type')
-                                        if (contentType?.includes('application/pdf')) {
-                                          // Es un PDF, crear blob y descargarlo
-                                          const blob = await response.blob()
-                                          const url = window.URL.createObjectURL(blob)
-                                          const a = document.createElement('a')
-                                          a.href = url
-                                          a.download = `estudio_${registro?.clave_proyecto || 'documento'}.pdf`
-                                          document.body.appendChild(a)
-                                          a.click()
-                                          window.URL.revokeObjectURL(url)
-                                          document.body.removeChild(a)
-                                          
-                                          // Guardar información de la respuesta
-                                          setPdfResponseData(prev => ({
-                                            ...prev,
-                                            estudio: { tipo: 'PDF', tamaño: blob.size, descargado: true }
-                                          }))
-                                        } else {
-                                          // Es JSON con URL u otros datos
-                                          try {
-                                            const data = await response.json()
-                                            setPdfResponseData(prev => ({
-                                              ...prev,
-                                              estudio: data
-                                            }))
-                                            if (data.url) {
-                                              window.open(data.url, '_blank', 'noopener,noreferrer')
-                                            }
-                                          } catch {
-                                            const text = await response.text()
-                                            setPdfResponseData(prev => ({
-                                              ...prev,
-                                              estudio: { respuesta: text }
-                                            }))
-                                          }
-                                        }
-                                      } else {
-                                        const errorText = await response.text()
-                                        setPdfResponseData(prev => ({
-                                          ...prev,
-                                          estudio: { error: errorText, status: response.status }
-                                        }))
-                                      }
-                                    } catch (error) {
-                                      setPdfResponseData(prev => ({
-                                        ...prev,
-                                        estudio: { error: error instanceof Error ? error.message : 'Error desconocido' }
-                                      }))
-                                    } finally {
-                                      setLoadingPdf(prev => ({ ...prev, estudio: false }))
-                                    }
-                                  }}
-                                  className="text-sm sm:text-base"
-                                  sx={{ py: 1.5 }}
-                                >
-                                  {loadingPdf['estudio'] ? 'Cargando...' : 'Estudio PDF'}
-                                </Button>
-                              </Box>
+                              <button
+                                onClick={() => handlePdfDownload('estudio', semarnatData.estudio)}
+                                disabled={loadingPdf['estudio']}
+                                className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                              >
+                                {loadingPdf['estudio'] ? <FrogLoading iconOnly size={18} /> : <ExternalLink className="h-4 w-4" />}
+                                {loadingPdf['estudio'] ? 'Cargando...' : 'Estudio PDF'}
+                              </button>
                             )}
                             {semarnatData.resolutivo && (
-                              <Box>
-                                <Button
-                                  fullWidth
-                                  variant="outlined"
-                                  color="primary"
-                                  startIcon={loadingPdf['resolutivo'] ? <FrogLoading iconOnly size={18} /> : <OpenInNewIcon />}
-                                  disabled={loadingPdf['resolutivo']}
-                                  onClick={async () => {
-                                    setLoadingPdf(prev => ({ ...prev, resolutivo: true }))
-                                    try {
-                                      const response = await fetch(`${semarnatApiUrl}/pdf`, {
-                                        method: 'POST',
-                                        headers: {
-                                          'Content-Type': 'text/plain',
-                                        },
-                                        body: semarnatData.resolutivo
-                                      })
-
-                                      if (response.ok) {
-                                        const contentType = response.headers.get('content-type')
-                                        if (contentType?.includes('application/pdf')) {
-                                          // Es un PDF, crear blob y descargarlo
-                                          const blob = await response.blob()
-                                          const url = window.URL.createObjectURL(blob)
-                                          const a = document.createElement('a')
-                                          a.href = url
-                                          a.download = `resolutivo_${registro?.clave_proyecto || 'documento'}.pdf`
-                                          document.body.appendChild(a)
-                                          a.click()
-                                          window.URL.revokeObjectURL(url)
-                                          document.body.removeChild(a)
-                                          
-                                          // Guardar información de la respuesta
-                                          setPdfResponseData(prev => ({
-                                            ...prev,
-                                            resolutivo: { tipo: 'PDF', tamaño: blob.size, descargado: true }
-                                          }))
-                                        } else {
-                                          // Es JSON con URL u otros datos
-                                          try {
-                                            const data = await response.json()
-                                            setPdfResponseData(prev => ({
-                                              ...prev,
-                                              resolutivo: data
-                                            }))
-                                            if (data.url) {
-                                              window.open(data.url, '_blank', 'noopener,noreferrer')
-                                            }
-                                          } catch {
-                                            const text = await response.text()
-                                            setPdfResponseData(prev => ({
-                                              ...prev,
-                                              resolutivo: { respuesta: text }
-                                            }))
-                                          }
-                                        }
-                                      } else {
-                                        const errorText = await response.text()
-                                        setPdfResponseData(prev => ({
-                                          ...prev,
-                                          resolutivo: { error: errorText, status: response.status }
-                                        }))
-                                      }
-                                    } catch (error) {
-                                      setPdfResponseData(prev => ({
-                                        ...prev,
-                                        resolutivo: { error: error instanceof Error ? error.message : 'Error desconocido' }
-                                      }))
-                                    } finally {
-                                      setLoadingPdf(prev => ({ ...prev, resolutivo: false }))
-                                    }
-                                  }}
-                                  className="text-sm sm:text-base"
-                                  sx={{ py: 1.5 }}
-                                >
-                                  {loadingPdf['resolutivo'] ? 'Cargando...' : 'Resolutivo PDF'}
-                                </Button>
-                              </Box>
-                            )}
-                          </Box>
-                          
-                          {/* Mostrar respuestas JSON de los PDFs */}
-                          {Object.keys(pdfResponseData).length > 0 && (
-                            <Box sx={{ mt: 3 }}>
-                              <Typography
-                                variant="subtitle2"
-                                fontWeight="medium"
-                                color="text.secondary"
-                                sx={{ mb: 1,  }}
+                              <button
+                                onClick={() => handlePdfDownload('resolutivo', semarnatData.resolutivo)}
+                                disabled={loadingPdf['resolutivo']}
+                                className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
                               >
-                                Respuestas de las Peticiones PDF
-                              </Typography>
-                              {Object.entries(pdfResponseData).map(([tipo, data]) => (
-                                <Box key={tipo} sx={{ mb: 2 }}>
-                                  <Typography
-                                    variant="caption"
-                                    fontWeight="medium"
-                                    sx={{ display: 'block', mb: 0.5 }}
-                                  >
-                                    {tipo === 'resumen' ? 'Resumen' : tipo === 'estudio' ? 'Estudio' : 'Resolutivo'}:
-                                  </Typography>
-                                  <Paper
-                                    variant="outlined"
-                                    sx={{
-                                      p: 2,
-                                      bgcolor: 'background.default',
-                                      maxHeight: '200px',
-                                      overflow: 'auto'
-                                    }}
-                                  >
-                                    <Typography
-                                      variant="body2"
-                                      component="pre"
-                                      sx={{
-                                        whiteSpace: 'pre-wrap',
-                                        wordBreak: 'break-word',
-                                        fontFamily: 'monospace',
-                                        m: 0
-                                      }}
-                                    >
-                                      {JSON.stringify(data, null, 2)}
-                                    </Typography>
-                                  </Paper>
-                                </Box>
-                              ))}
-                            </Box>
-                          )}
-                        </Box>
-                      ) : (
-                        <Alert severity="info" sx={{ mb: 2 }}>
-                          Sin documentos disponibles
-                        </Alert>
-                      )}
-                    </Box>
-                  )}
-                </Box>
+                                {loadingPdf['resolutivo'] ? <FrogLoading iconOnly size={18} /> : <ExternalLink className="h-4 w-4" />}
+                                {loadingPdf['resolutivo'] ? 'Cargando...' : 'Resolutivo PDF'}
+                              </button>
+                            )}
+                          </div>
 
-                {/* Historial del Trámite - Sección Separada */}
-                <Box sx={{ mb: 4 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                    <Typography
-                      variant="h6"
-                      fontWeight="semibold"
-                      className="text-lg sm:text-xl"
-                    >
-                      Historial del Trámite
-                    </Typography>
+                          {Object.keys(pdfResponseData).length > 0 && (
+                            <div className="mt-4">
+                              <p className="mb-2 text-sm font-medium text-gray-500">Respuestas de las Peticiones PDF</p>
+                              {Object.entries(pdfResponseData).map(([tipo, data]) => (
+                                <div key={tipo} className="mb-3">
+                                  <span className="mb-1 block text-xs font-medium text-gray-700">
+                                    {tipo === 'resumen' ? 'Resumen' : tipo === 'estudio' ? 'Estudio' : 'Resolutivo'}:
+                                  </span>
+                                  <div className="max-h-[200px] overflow-auto rounded-lg border border-gray-200 bg-gray-50 p-3">
+                                    <pre className="m-0 whitespace-pre-wrap break-all font-mono text-xs">
+                                      {JSON.stringify(data, null, 2)}
+                                    </pre>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="mb-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+                          Sin documentos disponibles
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Historial del Trámite */}
+                <div className="mb-6">
+                  <div className="mb-3 flex items-center gap-2">
+                    <h3 className="text-lg font-semibold sm:text-xl">Historial del Trámite</h3>
                     {historialDataSource && (
-                      <Chip
-                        label={historialDataSource === 'api' ? 'API' : 'JSON'}
-                        size="small"
-                        color={historialDataSource === 'api' ? 'success' : 'info'}
-                        className="text-xs sm:text-sm"
-                          sx={{ height: '20px' }}
-                      />
+                      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${
+                        historialDataSource === 'api' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
+                      }`}>
+                        {historialDataSource === 'api' ? 'API' : 'JSON'}
+                      </span>
                     )}
-                  </Box>
-                    
-                    {loadingHistorial && (
-                      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, py: 2 }}>
-                        <FrogLoading fullScreen={false} size={80} message="Cargando historial..." className="min-h-0" />
-                      </Box>
-                    )}
-                    
-                    {errorHistorial && (
-                      <Alert severity="warning" sx={{ mb: 2 }}>
-                        {errorHistorial}
-                      </Alert>
-                    )}
-                    
-                    {/* Mostrar historial si existe en cualquier formato */}
-                    {(historialData?.historial && Array.isArray(historialData.historial) && historialData.historial.length > 0) || 
-                     (Array.isArray(historialData) && historialData.length > 0) ? (
-                      <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: '400px' }}>
-                        <Table stickyHeader size="small">
-                          <TableHead>
-                            <TableRow>
-                              <TableCell className="text-sm sm:text-base font-bold">
-                                No.
-                              </TableCell>
-                              <TableCell className="text-sm sm:text-base font-bold">
-                                Fecha
-                              </TableCell>
-                              <TableCell className="text-sm sm:text-base font-bold">
-                                Descripción de la Situación
-                              </TableCell>
-                            </TableRow>
-                          </TableHead>
-                          <TableBody>
-                            {(historialData?.historial || (Array.isArray(historialData) ? historialData : [])).map((item: any, index: number) => (
-                              <TableRow key={index} hover>
-                                <TableCell className="text-sm sm:text-base" sx={{ width: '60px' }}>
-                                  {index + 1}
-                                </TableCell>
-                                <TableCell className="text-sm sm:text-base whitespace-nowrap">
-                                  {item.historialFechaTurn || item.fecha || item.historialFecha || 'N/A'}
-                                </TableCell>
-                                <TableCell className="text-sm sm:text-base">
-                                  {item.descipcionSituacion || item.descripcion || item.situacion || item.descpicionSituacion || 'N/A'}
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </TableContainer>
-                    ) : historialData && !errorHistorial && historialData.mensaje === 'error' && !historialData.historial ? (
-                      // Solo mostrar mensaje si realmente no hay historial y mensaje es "error"
-                      <Alert severity="info">
-                        No hay historial disponible para este trámite.
-                      </Alert>
-                    ) : null}
-                  </Box>
-              </Box>
+                  </div>
+
+                  {loadingHistorial && (
+                    <div className="flex flex-col items-center gap-2 py-4">
+                      <FrogLoading fullScreen={false} size={80} message="Cargando historial..." className="min-h-0" />
+                    </div>
+                  )}
+
+                  {errorHistorial && (
+                    <div className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                      <span className="font-medium">Advertencia:</span> {errorHistorial}
+                    </div>
+                  )}
+
+                  {((historialData?.historial && Array.isArray(historialData.historial) && historialData.historial.length > 0) || 
+                    (Array.isArray(historialData) && historialData.length > 0)) ? (
+                    <div className="max-h-[400px] overflow-auto border border-gray-200">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="bg-blue-900/5">
+                            <th className="w-[60px] px-3 py-2 text-left text-sm font-bold">No.</th>
+                            <th className="whitespace-nowrap px-3 py-2 text-left text-sm font-bold">Fecha</th>
+                            <th className="px-3 py-2 text-left text-sm font-bold">Descripción de la Situación</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {(historialData?.historial || (Array.isArray(historialData) ? historialData : [])).map((item: any, index: number) => (
+                            <tr key={index} className="border-b border-gray-100 text-sm transition-colors hover:bg-black/[0.03]">
+                              <td className="px-3 py-2">{index + 1}</td>
+                              <td className="whitespace-nowrap px-3 py-2">{item.historialFechaTurn || item.fecha || item.historialFecha || 'N/A'}</td>
+                              <td className="px-3 py-2">{item.descipcionSituacion || item.descripcion || item.situacion || item.descpicionSituacion || 'N/A'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : historialData && !errorHistorial && historialData.mensaje === 'error' && !historialData.historial ? (
+                    <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+                      No hay historial disponible para este trámite.
+                    </div>
+                  ) : null}
+                </div>
+              </div>
             )}
 
             {/* Palabras Clave */}
             {gaceta.palabras_clave_encontradas.length > 0 && (
-              <Box sx={{ mb: 3 }}>
-                <Typography
-                  variant="subtitle2"
-                  fontWeight="medium"
-                  color="text.secondary"
-                  sx={{ mb: 1,  }}
-                >
-                  Palabras Clave
-                </Typography>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              <div className="mb-4">
+                <p className="mb-2 text-sm font-medium text-gray-500">Palabras Clave</p>
+                <div className="flex flex-wrap gap-2">
                   {gaceta.palabras_clave_encontradas.map((palabra, idx) => (
-                    <Chip
-                      key={idx}
-                      label={palabra}
-                      size="small"
-                      className="text-sm sm:text-base"
-                    />
+                    <span key={idx} className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-800">
+                      {palabra}
+                    </span>
                   ))}
-                </Box>
-              </Box>
+                </div>
+              </div>
             )}
 
             {/* Páginas */}
             {gaceta.paginas.length > 0 && (
-              <Box sx={{ mb: 3 }}>
-                <Typography
-                  variant="subtitle2"
-                  fontWeight="medium"
-                  color="text.secondary"
-                  sx={{ mb: 1,  }}
-                >
-                  Páginas mencionadas
-                </Typography>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              <div className="mb-4">
+                <p className="mb-2 text-sm font-medium text-gray-500">Páginas mencionadas</p>
+                <div className="flex flex-wrap gap-2">
                   {gaceta.paginas.map((pagina, idx) => (
-                    <Chip
-                      key={idx}
-                      label={`Página ${pagina}`}
-                      size="small"
-                      variant="outlined"
-                      className="text-sm sm:text-base"
-                    />
+                    <span key={idx} className="inline-flex items-center rounded-full border border-gray-300 px-3 py-1 text-sm text-gray-700">
+                      Página {pagina}
+                    </span>
                   ))}
-                </Box>
-              </Box>
+                </div>
+              </div>
             )}
 
-            <Divider sx={{ my: 3 }} />
+            <hr className="my-6 border-gray-200" />
 
-            {/* Resumen de la Gaceta */}
-            <Box>
-              <Typography
-                variant="subtitle2"
-                fontWeight="semibold"
-                className="text-sm sm:text-base"
-                            sx={{ mb: 2 }}
-              >
-                Resumen
-              </Typography>
+            {/* Resumen */}
+            <div>
+              <h3 className="mb-3 text-sm font-semibold sm:text-base">Resumen</h3>
               {gaceta.resumen ? (
-                <Box
-                  className="text-sm sm:text-base"
-                  sx={{
+                <div
+                  className="prose prose-sm max-w-none text-sm leading-relaxed text-gray-900"
+                  style={{
                     lineHeight: 1.7,
-                    color: 'text.primary',
-                    '& p': {
-                      margin: '0 0 1em 0',
-                      lineHeight: 1.7
-                    },
-                    '& p:last-of-type': {
-                      marginBottom: 0
-                    },
-                    '& ul, & ol': {
-                      margin: '0 0 1em 0',
-                      paddingLeft: '1.5em',
-                    },
-                    '& li': {
-                      marginBottom: '0.5em',
-                      lineHeight: 1.7
-                    },
-                    '& strong': {
-                      fontWeight: 600
-                    },
-                    '& em': {
-                      fontStyle: 'italic'
-                    },
-                    '& h1, & h2, & h3, & h4, & h5, & h6': {
-                      margin: '1em 0 0.5em 0',
-                      fontWeight: 600,
-                    },
-                    '& h1:first-of-type, & h2:first-of-type, & h3:first-of-type, & h4:first-of-type, & h5:first-of-type, & h6:first-of-type': {
-                      marginTop: 0
-                    }
                   }}
                 >
                   <ReactMarkdown>{gaceta.resumen}</ReactMarkdown>
-                </Box>
+                </div>
               ) : (
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ fontStyle: 'italic' }}
-                >
-                  Sin resumen disponible
-                </Typography>
+                <p className="text-sm italic text-gray-500">Sin resumen disponible</p>
               )}
-            </Box>
-          </Box>
+            </div>
+          </div>
 
           {/* Floating Button */}
-          <Box
-            sx={{
-              position: 'sticky',
-              bottom: 0,
-              left: 0,
-              right: 0,
-              display: 'flex',
-              justifyContent: 'center',
-              p: 2,
-              bgcolor: 'background.paper',
-              borderTop: '1px solid',
-              borderColor: 'divider',
-              zIndex: 20,
-              boxShadow: '0 -4px 12px rgba(0, 0, 0, 0.1)'
-            }}
-          >
-            <Button
-              variant="contained"
-              color="primary"
-              className="text-sm sm:text-base"
-              startIcon={<OpenInNewIcon />}
+          <div className="sticky bottom-0 left-0 right-0 z-20 flex justify-center border-t border-gray-200 bg-white px-4 py-3 shadow-lg">
+            <button
               onClick={() => window.open(gaceta.url, '_blank', 'noopener,noreferrer')}
-              sx={{
-                px: { xs: 3, sm: 4 },
-                py: { xs: 1.5, sm: 2 },
-                boxShadow: 3,
-                '&:hover': {
-                  boxShadow: 6
-                }
-              }}
+              className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-2 text-sm font-medium text-white shadow-md transition-all hover:bg-blue-700 hover:shadow-lg sm:px-8 sm:py-3"
             >
+              <ExternalLink className="h-4 w-4" />
               Consultar Gaceta Original
-            </Button>
-          </Box>
-        </Box>
-      </Paper>
-    </Box>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }
-

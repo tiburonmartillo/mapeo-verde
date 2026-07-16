@@ -254,16 +254,6 @@ const AdminEventsPageWrapper = () => {
   );
 };
 
-const IngresoPageWrapper = () => {
-  return (
-    <div className="min-h-screen bg-[#f3f4f0] font-sans">
-      <React.Suspense fallback={<PageLoader />}>
-        <AdminRegisterPage />
-      </React.Suspense>
-    </div>
-  );
-};
-
 const AdminRegisterPageWrapper = () => {
   return (
     <div className="min-h-screen bg-[#f3f4f0] font-sans">
@@ -337,7 +327,7 @@ export default function App() {
         <Route path="/links" element={<LinktreePageWrapper />} />
         <Route path="/email-generator" element={<EmailGeneratorPageWrapper />} />
         <Route path="/aviso-de-privacidad" element={<PrivacyPageWrapper />} />
-        <Route path="/ingreso" element={<IngresoPageWrapper />} />
+        <Route path="/ingreso" element={<AdminRegisterPageWrapper />} />
         <Route path="/admin/registro" element={<AdminRegisterPageWrapper />} />
         <Route path="/admin/usuarios" element={<AdminModerationUsersPageWrapper />} />
         <Route path="/admin/cuenta" element={<AdminAccountPageWrapper />} />
