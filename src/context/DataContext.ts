@@ -16,7 +16,13 @@ import {
   deduplicateEventsByIdAndContent,
 } from '../lib/supabase';
 import { mapBoletinesToProjects, mapGacetasToDataset } from '../utils/helpers';
-import { isPerfLazyDataEnabled, getAgendaRefreshMs } from '../config/perf';
+import {
+  isPerfLazyDataEnabled,
+  getAgendaRefreshMs,
+  getRequiredDataSlices,
+  shouldLoadHealth,
+  type DataSlice,
+} from '../config/perf';
 import {
   checkSupabaseHealth,
   loadEvents,
@@ -73,7 +79,92 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
   const [error, setError] = useState<string | null>(null);
   const [supabaseConnected, setSupabaseConnected] = useState(false);
   const [supabaseError, setSupabaseError] = useState<string | null>(null);
+
+  const eventsLoadedRef = useRef(false);
+  const greenLoadedRef = useRef(false);
+  const healthLoadedRef = useRef(false);
   const lastAgendaEventsHashRef = useRef<string>('');
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  /** Carga slices según lo que necesite la ruta actual. */
+  const ensureSlices = useCallback(async (needed: Set<DataSlice>, pathname: string) => {
+    const tasks: Promise<void>[] = [];
+
+    if (needed.has('events') && !eventsLoadedRef.current) {
+      eventsLoadedRef.current = true;
+      tasks.push(
+        loadEvents({ useCache: false })
+          .then((result) => {
+            if (!mountedRef.current) return;
+            lastAgendaEventsHashRef.current = hashAgendaEvents(result.events);
+            setData((prev) => ({
+              ...prev,
+              events: result.events,
+              pastEvents: result.pastEvents,
+            }));
+          })
+          .catch((err) => {
+            if (!mountedRef.current) return;
+            eventsLoadedRef.current = false;
+            setData((prev) => ({
+              ...prev,
+              events: EVENTS_DATA,
+              pastEvents: PAST_EVENTS_DATA,
+            }));
+            setError(err instanceof Error ? err.message : 'Error al cargar eventos');
+          }),
+      );
+    }
+
+    if (needed.has('greenAreas') && !greenLoadedRef.current) {
+      greenLoadedRef.current = true;
+      tasks.push(
+        loadGreenAreas({ useCache: true, includeParticipation: true })
+          .then((areas) => {
+            if (!mountedRef.current) return;
+            setData((prev) => ({ ...prev, greenAreas: areas }));
+          })
+          .catch((err) => {
+            if (!mountedRef.current) return;
+            greenLoadedRef.current = false;
+            setData((prev) => ({ ...prev, greenAreas: GREEN_AREAS_DATA }));
+            setError(err instanceof Error ? err.message : 'Error al cargar áreas verdes');
+          }),
+      );
+    }
+
+    if (tasks.length > 0) {
+      setLoading(true);
+      setError(null);
+      await Promise.all(tasks);
+      if (mountedRef.current) setLoading(false);
+    }
+
+    // Health check deferred (no bloquea UI)
+    if (shouldLoadHealth(pathname) && !healthLoadedRef.current) {
+      healthLoadedRef.current = true;
+      setTimeout(() => {
+        checkSupabaseHealth({ useCache: true })
+          .then((connection) => {
+            if (!mountedRef.current) return;
+            setSupabaseConnected(connection.connected);
+            setSupabaseError(connection.error ?? null);
+          })
+          .catch(() => {
+            if (!mountedRef.current) return;
+            setSupabaseConnected(false);
+            setSupabaseError('Error de conexión');
+          });
+      }, 0);
+    }
+  }, []);
 
   const fetchAgendaEvents = useCallback(async () => {
     try {
@@ -102,44 +193,6 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
       setData((prev) => ({ ...prev, events: deduped }));
     } catch {
       // refresh silencioso: si falla, conservar lo ya mostrado
-    }
-  }, []);
-
-  /** Path lazy: health + events + green areas. Sin projects/gazettes ni JSON 2MB. */
-  const fetchDataLazy = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const [connection, eventsBundle, greenAreas] = await Promise.all([
-        checkSupabaseHealth({ useCache: true }),
-        loadEvents({ useCache: false }),
-        loadGreenAreas({ useCache: true, includeParticipation: true }),
-      ]);
-
-      setSupabaseConnected(connection.connected);
-      setSupabaseError(connection.error ?? null);
-
-      lastAgendaEventsHashRef.current = hashAgendaEvents(eventsBundle.events);
-
-      setData({
-        greenAreas,
-        projects: [],
-        gazettes: [],
-        events: eventsBundle.events,
-        pastEvents: eventsBundle.pastEvents,
-      });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error desconocido al cargar datos');
-      setData({
-        greenAreas: GREEN_AREAS_DATA,
-        projects: [],
-        gazettes: [],
-        events: EVENTS_DATA,
-        pastEvents: PAST_EVENTS_DATA,
-      });
-    } finally {
-      setLoading(false);
     }
   }, []);
 
@@ -279,17 +332,15 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, []);
 
-  const fetchData = useCallback(async () => {
-    if (isPerfLazyDataEnabled()) {
-      await fetchDataLazy();
-    } else {
-      await fetchDataLegacy();
-    }
-  }, [fetchDataLazy, fetchDataLegacy]);
-
+  // Lazy: carga por ruta. Legacy: carga completa al montar.
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    if (lazy) {
+      ensureSlices(getRequiredDataSlices(location.pathname), location.pathname);
+    } else {
+      fetchDataLegacy();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lazy, location.pathname]);
 
   // Polling de agenda: en lazy solo en /agenda* y con pestaña visible.
   useEffect(() => {
@@ -333,8 +384,16 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
   }, [fetchAgendaEvents]);
 
   const refresh = useCallback(async () => {
-    await fetchData();
-  }, [fetchData]);
+    if (lazy) {
+      eventsLoadedRef.current = false;
+      greenLoadedRef.current = false;
+      healthLoadedRef.current = false;
+      lastAgendaEventsHashRef.current = '';
+      await ensureSlices(getRequiredDataSlices(location.pathname), location.pathname);
+    } else {
+      await fetchDataLegacy();
+    }
+  }, [lazy, location.pathname, ensureSlices, fetchDataLegacy]);
 
   const contextValue: DataContextType = useMemo(
     () => ({
