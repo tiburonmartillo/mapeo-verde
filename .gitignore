@@ -51,3 +51,4 @@ public/mapeov.jpg
 .supabase/
 .vercel
 .env*
+!.env.example
