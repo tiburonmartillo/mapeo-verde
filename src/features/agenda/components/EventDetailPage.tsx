@@ -43,6 +43,8 @@ const EventDetailPage = ({ eventId, onBack }: EventDetailPageProps) => {
 
   const heroRef = useRef<HTMLDivElement>(null);
   const [heroOffset, setHeroOffset] = useState(0);
+  const [backBtnTop, setBackBtnTop] = useState(64);
+  const lastScrollYRef = useRef(0);
 
   useEffect(() => {
     const el = heroRef.current;
@@ -51,9 +53,22 @@ const EventDetailPage = ({ eventId, onBack }: EventDetailPageProps) => {
       const rect = el.getBoundingClientRect();
       const offset = rect.top < 0 ? rect.top * -0.3 : 0;
       setHeroOffset(offset);
+      const isMobile = window.innerWidth < 768;
+      if (isMobile) {
+        const currentY = window.scrollY;
+        const navbarHidden = document.querySelector('[data-navbar-mobile]')?.classList.contains('-translate-y-full');
+        setBackBtnTop(navbarHidden ? 8 : 64);
+      } else {
+        setBackBtnTop(64);
+      }
     };
+    onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    window.addEventListener('resize', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
   }, []);
 
   const handleBack = () => {
@@ -121,7 +136,7 @@ const EventDetailPage = ({ eventId, onBack }: EventDetailPageProps) => {
   return (
     <div className="min-h-screen bg-[#f3f4f0]">
       {createPortal(
-        <div className="fixed top-4 left-4 z-[60]">
+        <div className="fixed left-4 z-[60] transition-[top] duration-300 ease-in-out" style={{ top: `${backBtnTop}px` }}>
           <button
             onClick={handleBack}
             className="flex items-center gap-2 bg-white/90 text-black px-3 py-2 font-mono uppercase text-xs font-bold border-2 border-black hover:bg-[#ff7e67] hover:text-white transition-colors cursor-pointer"
