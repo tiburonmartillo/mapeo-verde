@@ -13,6 +13,7 @@ const HomeLanding = React.lazy(() => import('./features/home/components/HomeLand
 // Lazy load pages
 const EventsPage = React.lazy(() => import('./features/agenda/components/EventsPage'));
 const ImpactDetailPage = React.lazy(() => import('./features/agenda/components/ImpactDetailPage'));
+const EventDetailPage = React.lazy(() => import('./features/agenda/components/EventDetailPage'));
 const NewslettersPage = React.lazy(() => import('./features/newsletters/components/NewslettersPage'));
 const GazettesPage = React.lazy(() => import('./features/gazettes/components/GazettesPage'));
 const InvestigacionPage = React.lazy(() => import('./features/investigacion/components/InvestigacionPage'));
@@ -75,7 +76,9 @@ const MainApp = () => {
 
   // Extract ID from URL if present
   const pathParts = location.pathname.split('/').filter(Boolean);
-  const isDetailPage = pathParts.length === 2 && pathParts[0] === 'agenda';
+  const isImpactDetail = pathParts.length === 2 && pathParts[0] === 'agenda';
+  const isEventDetail = pathParts.length === 2 && pathParts[0] === 'e';
+  const isDetailPage = isImpactDetail || isEventDetail;
   const detailId = isDetailPage ? pathParts[1] : null;
   const detailType = isDetailPage ? pathParts[0] : null;
 
@@ -108,15 +111,30 @@ const MainApp = () => {
 
   const renderContent = () => {
     // Detail view overrides
-    if (detailType === 'agenda' && detailId) {
+    if ((detailType === 'agenda' || detailType === 'e') && detailId) {
+      if (detailType === 'e') {
+        return (
+          <Suspense fallback={<PageLoader />}>
+            <EventDetailPage
+              eventId={detailId}
+              onBack={() => navigate(TAB_ROUTES.AGENDA)}
+            />
+          </Suspense>
+        );
+      }
       return (
         <Suspense fallback={<PageLoader />}>
-          <ImpactDetailPage
-            eventId={detailId}
-            onBack={() => {
-              navigate(TAB_ROUTES.AGENDA);
-            }}
-          />
+          {isImpactDetail ? (
+            <ImpactDetailPage
+              eventId={detailId}
+              onBack={() => navigate(TAB_ROUTES.AGENDA)}
+            />
+          ) : (
+            <EventDetailPage
+              eventId={detailId}
+              onBack={() => navigate(TAB_ROUTES.AGENDA)}
+            />
+          )}
         </Suspense>
       );
     }
@@ -254,16 +272,6 @@ const AdminEventsPageWrapper = () => {
   );
 };
 
-const IngresoPageWrapper = () => {
-  return (
-    <div className="min-h-screen bg-[#f3f4f0] font-sans">
-      <React.Suspense fallback={<PageLoader />}>
-        <AdminRegisterPage />
-      </React.Suspense>
-    </div>
-  );
-};
-
 const AdminRegisterPageWrapper = () => {
   return (
     <div className="min-h-screen bg-[#f3f4f0] font-sans">
@@ -329,6 +337,7 @@ export default function App() {
         <Route path="/inicio" element={<MainApp />} />
         <Route path="/agenda" element={<MainApp />} />
         <Route path="/agenda/:id" element={<MainApp />} />
+        <Route path="/e/:id" element={<MainApp />} />
         <Route path="/boletines" element={<MainApp />} />
         <Route path="/gacetas" element={<MainApp />} />
         <Route path="/investigacion" element={<MainApp />} />
@@ -337,7 +346,7 @@ export default function App() {
         <Route path="/links" element={<LinktreePageWrapper />} />
         <Route path="/email-generator" element={<EmailGeneratorPageWrapper />} />
         <Route path="/aviso-de-privacidad" element={<PrivacyPageWrapper />} />
-        <Route path="/ingreso" element={<IngresoPageWrapper />} />
+        <Route path="/ingreso" element={<AdminRegisterPageWrapper />} />
         <Route path="/admin/registro" element={<AdminRegisterPageWrapper />} />
         <Route path="/admin/usuarios" element={<AdminModerationUsersPageWrapper />} />
         <Route path="/admin/cuenta" element={<AdminAccountPageWrapper />} />

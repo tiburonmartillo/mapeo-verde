@@ -1,26 +1,25 @@
-import { GoogleCalendarEvent } from '../../services/googleCalendar';
-import { getGoogleCalendarUrl } from './calendarHelpers';
-
 /**
  * Genera la URL para compartir un evento en WhatsApp
  */
-export function shareToWhatsApp(event: GoogleCalendarEvent, _baseUrl?: string): string {
-  const calendarUrl = getGoogleCalendarUrl(event);
-  const [y, m, d] = event.date.split('-').map(Number);
-  const eventDate = new Date(y, m - 1, d);
-  
+export function shareToWhatsApp(event: any, baseUrl?: string): string {
+  const eventUrl = baseUrl
+    ? `${baseUrl}/e/${event.id}`
+    : `${window.location.origin}/e/${event.id}`;
+  const [y, m, d] = (event.date || '').split('-').map(Number);
+  const eventDate = !isNaN(y) ? new Date(y, m - 1, d) : new Date();
+
   const message = `*${event.title}*
 
-Fecha: ${eventDate.toLocaleDateString('es-MX', { 
-    weekday: 'long', 
-    day: 'numeric', 
+Fecha: ${eventDate.toLocaleDateString('es-MX', {
+    weekday: 'long',
+    day: 'numeric',
     month: 'long',
-    year: 'numeric'
+    year: 'numeric',
   })}
 Hora: ${event.time}
 Ubicación: ${event.location || 'Por confirmar'}
 
-${event.description ? `${event.description}\n\n` : ''}Más detalles: ${calendarUrl}`;
+${event.description ? `${event.description}\n\n` : ''}MÃ¡s detalles: ${eventUrl}`;
 
   const encodedMessage = encodeURIComponent(message);
   return `https://wa.me/?text=${encodedMessage}`;
@@ -29,20 +28,20 @@ ${event.description ? `${event.description}\n\n` : ''}Más detalles: ${calendarU
 /**
  * Copia el texto del evento al portapapeles para compartir en Instagram
  */
-export async function shareToInstagram(event: GoogleCalendarEvent, baseUrl?: string): Promise<boolean> {
-  const eventUrl = baseUrl 
-    ? `${baseUrl}/agenda/${event.id}` 
-    : window.location.origin + `/agenda/${event.id}`;
-  const [y, m, d] = event.date.split('-').map(Number);
-  const eventDate = new Date(y, m - 1, d);
-  
+export async function shareToInstagram(event: any, baseUrl?: string): Promise<boolean> {
+  const eventUrl = baseUrl
+    ? `${baseUrl}/e/${event.id}`
+    : window.location.origin + `/e/${event.id}`;
+  const [y, m, d] = (event.date || '').split('-').map(Number);
+  const eventDate = !isNaN(y) ? new Date(y, m - 1, d) : new Date();
+
   const text = `🌱 ${event.title}
 
-📅 ${eventDate.toLocaleDateString('es-MX', { 
-    weekday: 'long', 
-    day: 'numeric', 
+📅 ${eventDate.toLocaleDateString('es-MX', {
+    weekday: 'long',
+    day: 'numeric',
     month: 'long',
-    year: 'numeric'
+    year: 'numeric',
   })}
 🕐 ${event.time}
 📍 ${event.location || 'Por confirmar'}
@@ -50,12 +49,10 @@ export async function shareToInstagram(event: GoogleCalendarEvent, baseUrl?: str
 ${event.description ? `${event.description}\n\n` : ''}${eventUrl}`;
 
   try {
-    // Intentar usar la API moderna del portapapeles
     if (navigator.clipboard && navigator.clipboard.writeText) {
       await navigator.clipboard.writeText(text);
       return true;
     } else {
-      // Fallback para navegadores más antiguos
       const textArea = document.createElement('textarea');
       textArea.value = text;
       textArea.style.position = 'fixed';
@@ -64,7 +61,7 @@ ${event.description ? `${event.description}\n\n` : ''}${eventUrl}`;
       document.body.appendChild(textArea);
       textArea.focus();
       textArea.select();
-      
+
       try {
         const successful = document.execCommand('copy');
         document.body.removeChild(textArea);
@@ -82,24 +79,23 @@ ${event.description ? `${event.description}\n\n` : ''}${eventUrl}`;
 /**
  * Genera un mensaje formateado para compartir el evento
  */
-export function getShareMessage(event: GoogleCalendarEvent, baseUrl?: string): string {
-  const eventUrl = baseUrl 
-    ? `${baseUrl}/agenda/${event.id}` 
-    : window.location.origin + `/agenda/${event.id}`;
-  const [y, m, d] = event.date.split('-').map(Number);
-  const eventDate = new Date(y, m - 1, d);
-  
+export function getShareMessage(event: any, baseUrl?: string): string {
+  const eventUrl = baseUrl
+    ? `${baseUrl}/e/${event.id}`
+    : window.location.origin + `/e/${event.id}`;
+  const [y, m, d] = (event.date || '').split('-').map(Number);
+  const eventDate = !isNaN(y) ? new Date(y, m - 1, d) : new Date();
+
   return `🌱 ${event.title}
 
-📅 ${eventDate.toLocaleDateString('es-MX', { 
-    weekday: 'long', 
-    day: 'numeric', 
+📅 ${eventDate.toLocaleDateString('es-MX', {
+    weekday: 'long',
+    day: 'numeric',
     month: 'long',
-    year: 'numeric'
+    year: 'numeric',
   })}
 🕐 ${event.time}
 📍 ${event.location || 'Por confirmar'}
 
 ${event.description ? `${event.description}\n\n` : ''}${eventUrl}`;
 }
-

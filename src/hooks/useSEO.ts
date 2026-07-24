@@ -70,7 +70,7 @@ export const useSEO = (customSEO?: Partial<SEOData>) => {
 
   // Detect if we are on a detail page
   const pathParts = normalizedPath.split('/').filter(Boolean);
-  const isDetailPage = pathParts.length === 2 && pathParts[0] === 'agenda';
+  const isDetailPage = (pathParts.length === 2 && pathParts[0] === 'agenda') || (pathParts.length === 2 && pathParts[0] === 'e');
   const detailType = isDetailPage ? pathParts[0] : null;
 
   const siteUrl = typeof window !== 'undefined'

@@ -74,7 +74,9 @@ function toGoogleCalendarDate(isoOrCompact: string | null | undefined): string {
 }
 
 export const getGoogleCalendarUrl = (event: any): string => {
-  const details = encodeURIComponent(`${event.description || ''}\n\nOrganizado por Mapeo Verde`);
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://www.mapeoverde.org';
+  const eventUrl = `${baseUrl}/e/${event.id}`;
+  const details = encodeURIComponent(`${event.description || ''}\n\nMÃ¡s info: ${eventUrl}\nOrganizado por Mapeo Verde`);
   const location = encodeURIComponent(event.location || '');
   const title = encodeURIComponent(event.title || '');
   const start = toGoogleCalendarDate(event.isoStart);

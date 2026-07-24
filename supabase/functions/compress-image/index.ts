@@ -1,6 +1,16 @@
 import { Hono } from "hono"
 import { cors } from "hono/cors"
 import { logger } from "hono/logger"
+import {
+  ImageMagick,
+  initializeImageMagick,
+  MagickFormat,
+} from "npm:@imagemagick/magick-wasm@0.0.30"
+
+const wasmBytes = await Deno.readFile(
+  new URL("magick.wasm", import.meta.resolve("npm:@imagemagick/magick-wasm@0.0.30"))
+)
+await initializeImageMagick(wasmBytes)
 
 const app = new Hono()
 
@@ -12,7 +22,7 @@ const DEFAULT_QUALITY = 80
 app.use("*", logger(console.log))
 app.use("*", cors({ origin: "*", allowHeaders: ["Content-Type", "Authorization", "X-Quality"], allowMethods: ["POST", "OPTIONS"] }))
 
-app.post("/", async (c) => {
+app.post("/*", async (c) => {
   try {
     let file: File | null = null
     const ct = c.req.header("content-type") || ""
@@ -51,32 +61,45 @@ app.post("/", async (c) => {
     if (isNaN(quality) || quality < 10) quality = 10
     if (quality > 100) quality = 100
 
-    const { default: Jimp } = await import("npm:jimp@0.22.12")
-    const image = await Jimp.read(originalBuffer)
+    let resizedWidth = 0
+    let resizedHeight = 0
 
-    const originalWidth = image.bitmap.width
-    const originalHeight = image.bitmap.height
+    const compressedBuffer = ImageMagick.read(originalBuffer, (img) => {
+      resizedWidth = img.width
+      resizedHeight = img.height
 
-    if (image.bitmap.width > MAX_WIDTH) {
-      image.resize(MAX_WIDTH, Jimp.AUTO)
-    }
+      if (img.width > MAX_WIDTH) {
+        img.resize(MAX_WIDTH, 0)
+        resizedWidth = img.width
+        resizedHeight = img.height
+      }
 
-    const mime = file.type === "image/png" ? "image/png" : "image/jpeg"
-    const compressedBuffer = await image.quality(quality).getBufferAsync(mime)
+      img.quality = quality
+
+      const format = file.type === "image/png" ? MagickFormat.Png
+        : file.type === "image/webp" ? MagickFormat.WebP
+        : MagickFormat.Jpeg
+      img.format = format
+
+      return img.write((data) => data)
+    }) as Uint8Array
 
     const compressionRatio = originalBuffer.length > 0
       ? ((1 - compressedBuffer.length / originalBuffer.length) * 100).toFixed(1)
       : "0"
 
-    // Return the compressed image as a downloadable blob
+    const mime = file.type === "image/png" ? "image/png"
+      : file.type === "image/webp" ? "image/webp"
+      : "image/jpeg"
+
     return new Response(compressedBuffer, {
       headers: {
         "Content-Type": mime,
         "X-Original-Size": String(originalBuffer.length),
         "X-Compressed-Size": String(compressedBuffer.length),
         "X-Compression-Ratio": compressionRatio,
-        "X-Width": String(image.bitmap.width),
-        "X-Height": String(image.bitmap.height),
+        "X-Width": String(resizedWidth),
+        "X-Height": String(resizedHeight),
         "Cache-Control": "no-store",
       },
     })

@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Box, Typography, Link, Alert } from '@mui/material'
 import { generarMapaEstaticoOSM, generarURLMapaCompleto, validarCoordenadasParaMapa } from '../lib/map-static-generator'
 import { FrogLoading } from './frog-loading'
 
@@ -66,71 +65,43 @@ export function BoletinSummaryMap({
       }
     }
 
-    // Usar setTimeout para asegurar que se ejecute después del render
     const timeoutId = setTimeout(loadMap, 100)
     return () => clearTimeout(timeoutId)
   }, [coordenadas_x, coordenadas_y, width, height])
 
   if (loading) {
     return (
-      <Box
-        sx={{
-          width,
-          height,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: '#f5f5f5',
-          border: '1px solid #e0e0e0',
-          borderRadius: 1
-        }}
+      <div
+        style={{ width, height }}
+        className="flex items-center justify-center rounded border border-gray-200 bg-gray-100"
       >
         <FrogLoading fullScreen={false} size={140} message="Cargando mapa..." className="min-h-0" />
-      </Box>
+      </div>
     )
   }
 
   if (error || !mapData?.success) {
     return (
-      <Box
-        sx={{
-          width,
-          height,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: '#f5f5f5',
-          border: '1px solid #e0e0e0',
-          borderRadius: 1,
-          p: 2
-        }}
+      <div
+        style={{ width, height }}
+        className="flex flex-col items-center justify-center rounded border border-gray-200 bg-gray-100 p-2"
       >
-        <Typography variant="body2" color="error" textAlign="center">
+        <p className="text-center text-sm text-red-600">
           {error || 'No se pudo cargar el mapa'}
-        </Typography>
-        <Typography variant="caption" color="text.secondary" textAlign="center" sx={{ mt: 1 }}>
+        </p>
+        <p className="mt-1 text-center text-xs text-gray-500">
           Municipio: {municipio}
-        </Typography>
-      </Box>
+        </p>
+      </div>
     )
   }
 
   return (
-    <Box sx={{ width, height }}>
-      {/* Mapa estático */}
-      <Box
-        component="img"
+    <div style={{ width, height }}>
+      <img
         src={mapData.url}
         alt={`Mapa de ubicación en ${municipio}`}
-        sx={{
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-          border: '1px solid #e0e0e0',
-          borderRadius: 1,
-          cursor: 'pointer'
-        }}
+        className="h-full w-full cursor-pointer rounded border border-gray-200 object-cover"
         onClick={() => {
           if (showLink && mapData.success) {
             const url = generarURLMapaCompleto(coordenadas_x!, coordenadas_y!)
@@ -139,25 +110,23 @@ export function BoletinSummaryMap({
         }}
       />
       
-      {/* Información del mapa */}
-      <Box sx={{ mt: 1, textAlign: 'center' }}>
-        <Typography variant="caption" color="text.secondary">
+      <div className="mt-1 text-center">
+        <p className="text-xs text-gray-500">
           Ubicación en {municipio}
-        </Typography>
+        </p>
         {showLink && mapData.success && (
-          <Box sx={{ mt: 0.5 }}>
-            <Link
+          <div className="mt-0.5">
+            <a
               href={generarURLMapaCompleto(coordenadas_x!, coordenadas_y!)}
               target="_blank"
               rel="noopener noreferrer"
-              variant="caption"
-              sx={{ fontSize: '0.75rem' }}
+              className="text-xs text-blue-700 underline hover:text-blue-900"
             >
               Ver en OpenStreetMap
-            </Link>
-          </Box>
+            </a>
+          </div>
         )}
-      </Box>
-    </Box>
+      </div>
+    </div>
   )
 }

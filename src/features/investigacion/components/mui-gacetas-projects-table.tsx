@@ -1,38 +1,9 @@
 
 import { useState, useMemo, useEffect } from "react"
-import { 
-  Card, 
-  CardContent, 
-  Typography, 
-  Box, 
-  Tabs, 
-  Tab, 
-  TextField, 
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Chip,
-  TablePagination,
-  Button,
-  Tooltip
-} from "@mui/material"
-import { Clear, OpenInNew } from "@mui/icons-material"
-import { styled } from "@mui/material"
+import { X, ExternalLink } from "lucide-react"
 import type { ProyectoGacetaProcessed, ResolutivoGacetaProcessed } from "../hooks/useGacetasData"
 import { useGacetaModal } from "../hooks/useGacetaModal"
 import { GacetaModal } from "./gaceta-modal"
-
-const StyledCard = styled(Card)(({ theme }) => ({
-  borderRadius: '12px',
-  border: '1px solid rgba(30, 58, 138, 0.1)',
-  transition: 'box-shadow 0.2s ease-in-out',
-  '&:hover': {
-    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-  },
-}))
 
 interface MuiGacetasProjectsTableProps {
   proyectos: ProyectoGacetaProcessed[]
@@ -46,18 +17,14 @@ export function MuiGacetasProjectsTable({ proyectos, resolutivos }: MuiGacetasPr
   const [rowsPerPage, setRowsPerPage] = useState(10)
   const [mounted, setMounted] = useState(false)
 
-  // Hook para modal de gaceta con routing
   const { isOpen: isGacetaModalOpen, selectedGaceta, selectedRegistro, openModal: openGacetaModal, openModalByUrl, openModalWithRegistro, closeModal: closeGacetaModal } = useGacetaModal()
 
-  // Evitar hidratación: solo renderizar contenido dependiente de datos asíncronos después de montar
   useEffect(() => {
     setMounted(true)
   }, [])
 
-
   const currentData = activeTab === "proyectos" ? proyectos : resolutivos
 
-  // Crear mapa de resolutivos por proyecto_ingresado_id y por clave para búsqueda rápida
   const resolutivosPorProyectoId = useMemo(() => {
     const mapa = new Map<number, ResolutivoGacetaProcessed[]>()
     resolutivos.forEach(resolutivo => {
@@ -83,11 +50,8 @@ export function MuiGacetasProjectsTable({ proyectos, resolutivos }: MuiGacetasPr
     return mapa
   }, [resolutivos])
 
-  // Filtrar datos
   const filteredData = useMemo(() => {
     let result = currentData
-
-    // Filtro de búsqueda
     if (search.trim()) {
       const query = search.toLowerCase()
       result = result.filter(item => 
@@ -98,21 +62,15 @@ export function MuiGacetasProjectsTable({ proyectos, resolutivos }: MuiGacetasPr
         item.modalidad?.toLowerCase().includes(query)
       )
     }
-
     return result.sort((a, b) => {
-      // Para proyectos ingresados, ordenar por fecha_publicacion (gaceta) o fecha_ingreso
-      // Para resolutivos, ordenar por fecha_resolucion o fecha_publicacion
       let dateA: number
       let dateB: number
-      
       if (activeTab === "proyectos") {
-        // Para proyectos: usar fecha_publicacion (gaceta) como principal, fecha_ingreso como fallback
         const fechaA = a.fecha_publicacion || a.fecha_ingreso || ''
         const fechaB = b.fecha_publicacion || b.fecha_ingreso || ''
         dateA = new Date(fechaA).getTime()
         dateB = new Date(fechaB).getTime()
       } else {
-        // Para resolutivos: usar fecha_resolucion como principal, fecha_publicacion como fallback
         const resolutivoA = a as ResolutivoGacetaProcessed
         const resolutivoB = b as ResolutivoGacetaProcessed
         const fechaA = resolutivoA.fecha_resolucion || resolutivoA.fecha_publicacion || resolutivoA.fecha_ingreso || ''
@@ -120,362 +78,266 @@ export function MuiGacetasProjectsTable({ proyectos, resolutivos }: MuiGacetasPr
         dateA = new Date(fechaA).getTime()
         dateB = new Date(fechaB).getTime()
       }
-      
-      // Ordenar de más reciente a más antigua (descendente)
       return dateB - dateA
     })
   }, [currentData, search, activeTab])
 
-  // Paginación
   const paginatedData = useMemo(() => {
     const start = page * rowsPerPage
     return filteredData.slice(start, start + rowsPerPage)
   }, [filteredData, page, rowsPerPage])
 
-  const handleChangePage = (_event: unknown, newPage: number) => {
+  const handleChangePage = (newPage: number) => {
     setPage(newPage)
   }
 
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setRowsPerPage(parseInt(event.target.value, 10))
     setPage(0)
   }
 
   return (
-    <StyledCard elevation={0}>
-      <CardContent sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
-        <Box sx={{ mb: 3 }}>
-          <Typography 
-            variant="h6" 
-            component="h3" 
-            fontWeight="semibold" 
-            color="text.primary"
-            className="text-base sm:text-lg mb-1"
-          >
+    <div className="rounded-xl border border-blue-900/10 bg-white shadow-sm transition-shadow hover:shadow-md">
+      <div className="px-4 py-4 sm:px-6 md:px-8">
+        <div className="mb-4">
+          <h3 className="mb-1 text-base font-semibold text-gray-900 sm:text-lg">
             Ingresados y Resolutivos
-          </Typography>
-          <Typography 
-            variant="body2" 
-            color="text.secondary"
-            className="text-xs"
-          >
+          </h3>
+          <p className="text-xs text-gray-500">
             Proyectos ingresados y resolutivos emitidos en las gacetas
-          </Typography>
-        </Box>
+          </p>
+        </div>
 
         {/* Tabs */}
-        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-          <Tabs 
-            value={activeTab} 
-            onChange={(_, newValue) => {
-              setActiveTab(newValue)
-              setPage(0)
-              setSearch("")
-            }}
-            sx={{ minHeight: 'auto' }}
-          >
-            <Tab 
-              label={`Ingresados (${proyectos.length})`} 
-              value="proyectos"
-              className="text-xs"
-              sx={{ minHeight: 'auto', py: 1.5 }}
-            />
-            <Tab 
-              label={`Resolutivos (${resolutivos.length})`} 
-              value="resolutivos"
-              className="text-xs"
-              sx={{ minHeight: 'auto', py: 1.5 }}
-            />
-          </Tabs>
-        </Box>
+        <div className="mb-4 border-b border-gray-200">
+          <div className="flex gap-0">
+            <button
+              onClick={() => { setActiveTab("proyectos"); setPage(0); setSearch("") }}
+              className={`px-4 py-1.5 text-xs transition-colors ${
+                activeTab === "proyectos"
+                  ? "border-b-2 border-black text-black"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              Ingresados ({proyectos.length})
+            </button>
+            <button
+              onClick={() => { setActiveTab("resolutivos"); setPage(0); setSearch("") }}
+              className={`px-4 py-1.5 text-xs transition-colors ${
+                activeTab === "resolutivos"
+                  ? "border-b-2 border-black text-black"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              Resolutivos ({resolutivos.length})
+            </button>
+          </div>
+        </div>
 
         {/* Filters */}
-        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, mb: 3 }}>
-          <TextField
-            fullWidth
-            placeholder={`Buscar por clave, promovente, proyecto...`}
+        <div className="mb-4 flex flex-col gap-2 md:flex-row">
+          <input
             value={search}
-            onChange={(e) => {
-              setSearch(e.target.value)
-              setPage(0)
-            }}
-            size="small"
-            sx={{ flex: 1 }}
+            onChange={(e) => { setSearch(e.target.value); setPage(0) }}
+            placeholder="Buscar por clave, promovente, proyecto..."
+            className="min-w-0 flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none"
           />
-
           {search !== "" && (
-            <Button
-              startIcon={<Clear />}
-              onClick={() => {
-                setSearch("")
-                setPage(0)
-              }}
-              size="small"
-              variant="outlined"
+            <button
+              onClick={() => { setSearch(""); setPage(0) }}
+              className="inline-flex items-center gap-1 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50"
             >
+              <X className="h-4 w-4" />
               Limpiar
-            </Button>
+            </button>
           )}
-        </Box>
+        </div>
 
         {/* Table */}
-        <TableContainer sx={{ maxHeight: '600px', overflowX: 'auto' }}>
-          <Table stickyHeader>
-            <TableHead>
-              <TableRow>
-                <TableCell className="text-xs sm:text-sm font-bold">
-                  Clave
-                </TableCell>
-                <TableCell className="text-xs sm:text-sm font-bold">
-                  Promovente
-                </TableCell>
-                <TableCell className="text-xs sm:text-sm font-bold" sx={{ minWidth: 200 }}>
-                  Proyecto
-                </TableCell>
-                <TableCell className="text-xs sm:text-sm font-bold">
-                  Modalidad
-                </TableCell>
-                <TableCell className="text-xs sm:text-sm font-bold">
-                  Municipio
-                </TableCell>
+        <div className="max-h-[600px] overflow-auto border border-gray-200" style={{ WebkitOverflowScrolling: 'touch' }}>
+          <table className="w-full">
+            <thead>
+              <tr className="bg-blue-900/5">
+                <th className="px-3 py-2 text-left text-xs font-bold sm:text-sm">Clave</th>
+                <th className="px-3 py-2 text-left text-xs font-bold sm:text-sm">Promovente</th>
+                <th className="min-w-[200px] px-3 py-2 text-left text-xs font-bold sm:text-sm">Proyecto</th>
+                <th className="px-3 py-2 text-left text-xs font-bold sm:text-sm">Modalidad</th>
+                <th className="px-3 py-2 text-left text-xs font-bold sm:text-sm">Municipio</th>
                 {activeTab === "proyectos" ? (
                   <>
-                    <TableCell className="text-xs sm:text-sm font-bold">
-                      Fecha Ingreso
-                    </TableCell>
-                    <TableCell className="text-xs sm:text-sm font-bold">
-                      Fecha Gaceta
-                    </TableCell>
-                    <TableCell className="text-xs sm:text-sm font-bold">
-                      Resolutivos
-                    </TableCell>
+                    <th className="px-3 py-2 text-left text-xs font-bold sm:text-sm">Fecha Ingreso</th>
+                    <th className="px-3 py-2 text-left text-xs font-bold sm:text-sm">Fecha Gaceta</th>
+                    <th className="px-3 py-2 text-left text-xs font-bold sm:text-sm">Resolutivos</th>
                   </>
                 ) : (
                   <>
-                    <TableCell className="text-xs sm:text-sm font-bold">
-                      Fecha Ingreso
-                    </TableCell>
-                    <TableCell className="text-xs sm:text-sm font-bold">
-                      Fecha Resolución
-                    </TableCell>
-                    <TableCell className="text-xs sm:text-sm font-bold">
-                      Vínculo
-                    </TableCell>
+                    <th className="px-3 py-2 text-left text-xs font-bold sm:text-sm">Fecha Ingreso</th>
+                    <th className="px-3 py-2 text-left text-xs font-bold sm:text-sm">Fecha Resolución</th>
+                    <th className="px-3 py-2 text-left text-xs font-bold sm:text-sm">Vínculo</th>
                   </>
                 )}
-                <TableCell className="text-xs sm:text-sm font-bold">
-                  Gaceta
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
+                <th className="px-3 py-2 text-left text-xs font-bold sm:text-sm">Gaceta</th>
+              </tr>
+            </thead>
+            <tbody>
               {paginatedData.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={activeTab === "proyectos" ? 8 : 7} align="center" sx={{ py: 4 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      No se encontraron {activeTab === "proyectos" ? "ingresados" : "resolutivos"} que coincidan con los filtros
-                    </Typography>
-                  </TableCell>
-                </TableRow>
+                <tr>
+                  <td colSpan={activeTab === "proyectos" ? 8 : 7} className="px-3 py-8 text-center text-sm text-gray-500">
+                    No se encontraron {activeTab === "proyectos" ? "ingresados" : "resolutivos"} que coincidan con los filtros
+                  </td>
+                </tr>
               ) : (
                 paginatedData.map((item, index) => (
-                  <TableRow 
-                    key={`${item.clave}-${index}`} 
-                    hover
+                  <tr
+                    key={`${item.clave}-${index}`}
                     onClick={() => {
                       if (item.id_db) {
                         openModalWithRegistro(item.gaceta_url, item.id_db)
                       }
                     }}
-                    sx={{
-                      cursor: 'pointer',
-                      '&:hover': {
-                        backgroundColor: 'rgba(0, 0, 0, 0.04)'
-                      }
-                    }}
+                    className="cursor-pointer border-b border-gray-100 text-xs transition-colors hover:bg-black/[0.04] sm:text-sm"
                   >
-                    <TableCell className="text-xs sm:text-sm">
-                      {item.clave || 'N/A'}
-                    </TableCell>
-                    <TableCell className="text-xs sm:text-sm" sx={{ maxWidth: 150 }}>
-                      <Typography
-                        sx={{
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap'
-                        }}
-                      >
-                        {item.promovente || 'N/A'}
-                      </Typography>
-                    </TableCell>
-                    <TableCell className="text-xs sm:text-sm" sx={{ maxWidth: 300 }}>
-                      <Typography
-                        sx={{
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap'
-                        }}
-                      >
-                        {item.proyecto || 'N/A'}
-                      </Typography>
-                    </TableCell>
-                    <TableCell className="text-xs sm:text-sm">
-                      <Chip label={item.modalidad || 'N/A'} size="small" />
-                    </TableCell>
-                    <TableCell className="text-xs sm:text-sm">
-                      {item.municipio || 'N/A'}
-                    </TableCell>
+                    <td className="px-3 py-2">{item.clave || 'N/A'}</td>
+                    <td className="max-w-[150px] overflow-hidden text-ellipsis whitespace-nowrap px-3 py-2" title={item.promovente || ''}>{item.promovente || 'N/A'}</td>
+                    <td className="max-w-[300px] overflow-hidden text-ellipsis whitespace-nowrap px-3 py-2" title={item.proyecto || ''}>{item.proyecto || 'N/A'}</td>
+                    <td className="px-3 py-2">
+                      <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-blue-800">
+                        {item.modalidad || 'N/A'}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2">{item.municipio || 'N/A'}</td>
                     {activeTab === "proyectos" ? (
                       <>
-                        <TableCell className="text-xs sm:text-sm whitespace-nowrap">
-                          {item.fecha_ingreso || 'N/A'}
-                        </TableCell>
-                        <TableCell className="text-xs sm:text-sm whitespace-nowrap">
+                        <td className="whitespace-nowrap px-3 py-2">{item.fecha_ingreso || 'N/A'}</td>
+                        <td className="whitespace-nowrap px-3 py-2">
                           {new Date(item.fecha_publicacion).toLocaleDateString('es-MX', {
                             year: 'numeric',
                             month: 'short',
                             day: 'numeric'
                           })}
-                        </TableCell>
-                        <TableCell className="text-xs sm:text-sm">
+                        </td>
+                        <td className="px-3 py-2">
                           {(() => {
                             const proyectoItem = item as ProyectoGacetaProcessed
                             const resolutivosRelacionados = 
                               resolutivosPorProyectoId.get(proyectoItem.id_db) || 
                               resolutivosPorClave.get(proyectoItem.clave) || 
                               []
-                            
                             if (resolutivosRelacionados.length === 0) {
                               return (
-                                <Chip label="Sin resolutivos" size="small" variant="outlined" className="text-xs" />
+                                <span className="inline-flex items-center rounded-full border border-gray-300 px-2 py-0.5 text-xs text-gray-500">
+                                  Sin resolutivos
+                                </span>
                               )
                             }
-                            
+                            const tooltipContent = `Resolutivos relacionados (${resolutivosRelacionados.length}):\n${resolutivosRelacionados.map(r => {
+                              const fecha = r.fecha_resolucion 
+                                ? new Date(r.fecha_resolucion).toLocaleDateString('es-MX', {
+                                    year: 'numeric',
+                                    month: 'short',
+                                    day: 'numeric'
+                                  })
+                                : 'N/A'
+                              return `• ${fecha}`
+                            }).join('\n')}`
                             return (
-                              <Tooltip 
-                                title={
-                                  <Box>
-                                    <Typography variant="caption" sx={{ display: 'block', mb: 0.5, fontWeight: 'bold' }}>
-                                      Resolutivos relacionados ({resolutivosRelacionados.length}):
-                                    </Typography>
-                                    {resolutivosRelacionados.map((res, idx) => {
-                                      const fechaResolucion = res.fecha_resolucion 
-                                        ? new Date(res.fecha_resolucion).toLocaleDateString('es-MX', {
-                                            year: 'numeric',
-                                            month: 'short',
-                                            day: 'numeric'
-                                          })
-                                        : 'N/A'
-                                      return (
-                                        <Typography key={idx} variant="caption" sx={{ display: 'block' }}>
-                                          • {fechaResolucion}
-                                        </Typography>
-                                      )
-                                    })}
-                                  </Box>
-                                }
+                              <span
+                                title={tooltipContent}
+                                className="inline-flex cursor-help items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-800"
                               >
-                                <Chip 
-                                  label={`${resolutivosRelacionados.length} resolutivo${resolutivosRelacionados.length > 1 ? 's' : ''}`}
-                                  size="small" 
-                                  color="success"
-                                  className="text-xs sm:text-sm cursor-help"
-                                />
-                              </Tooltip>
+                                {resolutivosRelacionados.length} resolutivo{resolutivosRelacionados.length > 1 ? 's' : ''}
+                              </span>
                             )
                           })()}
-                        </TableCell>
+                        </td>
                       </>
                     ) : (
                       <>
-                        <TableCell className="text-xs sm:text-sm whitespace-nowrap">
-                          {item.fecha_ingreso || 'N/A'}
-                        </TableCell>
-                        <TableCell className="text-xs sm:text-sm whitespace-nowrap">
-                          {(item as ResolutivoGacetaProcessed).fecha_resolucion || 'N/A'}
-                        </TableCell>
-                        <TableCell className="text-xs sm:text-sm">
+                        <td className="whitespace-nowrap px-3 py-2">{item.fecha_ingreso || 'N/A'}</td>
+                        <td className="whitespace-nowrap px-3 py-2">{(item as ResolutivoGacetaProcessed).fecha_resolucion || 'N/A'}</td>
+                        <td className="px-3 py-2">
                           {(() => {
                             const resolutivoItem = item as ResolutivoGacetaProcessed
                             if (resolutivoItem.gaceta_ingreso_url) {
                               return (
-                                <Tooltip 
-                                  title={
-                                    <Box>
-                                      <Typography variant="caption" sx={{ display: 'block', fontWeight: 'bold' }}>
-                                        Proyecto relacionado encontrado
-                                      </Typography>
-                                      <Typography variant="caption" sx={{ display: 'block' }}>
-                                        Clave: {resolutivoItem.clave}
-                                      </Typography>
-                                      <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
-                                        Consultar gaceta de ingreso
-                                      </Typography>
-                                    </Box>
-                                  }
+                                <button
+                                  title="Proyecto relacionado encontrado"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    window.open(resolutivoItem.gaceta_ingreso_url!, '_blank', 'noopener,noreferrer')
+                                  }}
+                                  className="inline-flex items-center gap-1 rounded-lg border border-green-600 px-2 py-1 text-xs text-green-700 hover:bg-green-50"
                                 >
-                                  <Button
-                                    size="small"
-                                    variant="outlined"
-                                    color="success"
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      window.open(resolutivoItem.gaceta_ingreso_url!, '_blank', 'noopener,noreferrer')
-                                    }}
-                                    className="text-xs"
-                  sx={{ minWidth: 'auto', px: 1 }}
-                                  >
-                                    📄 Ingreso
-                                  </Button>
-                                </Tooltip>
+                                  📄 Ingreso
+                                </button>
                               )
                             } else {
                               return (
-                                <Tooltip title="No se encontró el proyecto ingresado relacionado para este resolutivo">
-                                  <Chip label="Sin vínculo" size="small" variant="outlined" className="text-xs" />
-                                </Tooltip>
+                                <span
+                                  title="No se encontró el proyecto ingresado relacionado para este resolutivo"
+                                  className="inline-flex items-center rounded-full border border-gray-300 px-2 py-0.5 text-xs text-gray-500"
+                                >
+                                  Sin vínculo
+                                </span>
                               )
                             }
                           })()}
-                        </TableCell>
+                        </td>
                       </>
                     )}
-                    <TableCell className="text-xs sm:text-sm">
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        startIcon={<OpenInNew />}
+                    <td className="px-3 py-2">
+                      <button
                         onClick={(e) => {
                           e.stopPropagation()
                           window.open(item.gaceta_url, '_blank', 'noopener,noreferrer')
                         }}
-                        className="text-xs"
+                        className="inline-flex items-center gap-1 rounded-lg border border-gray-300 px-2 py-1 text-xs text-gray-700 hover:bg-gray-50"
                       >
+                        <ExternalLink className="h-3 w-3" />
                         Consultar Gaceta
-                      </Button>
-                    </TableCell>
-                  </TableRow>
+                      </button>
+                    </td>
+                  </tr>
                 ))
               )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+            </tbody>
+          </table>
+        </div>
 
         {/* Pagination */}
-        <TablePagination
-          component="div"
-          count={filteredData.length}
-          page={page}
-          onPageChange={handleChangePage}
-          rowsPerPage={rowsPerPage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-          rowsPerPageOptions={[5, 10, 25, 50]}
-          labelRowsPerPage="Filas por página:"
-          labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
-        />
-      </CardContent>
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <span>Filas por página:</span>
+            <select
+              value={rowsPerPage}
+              onChange={handleChangeRowsPerPage}
+              className="rounded border border-gray-300 px-2 py-1 text-sm"
+            >
+              {[5, 10, 25, 50].map(n => <option key={n} value={n}>{n}</option>)}
+            </select>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <span>
+              {page * rowsPerPage + 1} - {Math.min((page + 1) * rowsPerPage, filteredData.length)} de {filteredData.length}
+            </span>
+            <button
+              onClick={() => handleChangePage(page - 1)}
+              disabled={page === 0}
+              className="rounded px-2 py-1 text-sm hover:bg-gray-100 disabled:opacity-30"
+            >
+              Anterior
+            </button>
+            <button
+              onClick={() => handleChangePage(page + 1)}
+              disabled={(page + 1) * rowsPerPage >= filteredData.length}
+              className="rounded px-2 py-1 text-sm hover:bg-gray-100 disabled:opacity-30"
+            >
+              Siguiente
+            </button>
+          </div>
+        </div>
+      </div>
 
-      {/* Modal de resumen de gaceta */}
       {mounted && (
         <GacetaModal 
           gaceta={selectedGaceta}
@@ -484,7 +346,6 @@ export function MuiGacetasProjectsTable({ proyectos, resolutivos }: MuiGacetasPr
           onClose={closeGacetaModal} 
         />
       )}
-    </StyledCard>
+    </div>
   )
 }
-
