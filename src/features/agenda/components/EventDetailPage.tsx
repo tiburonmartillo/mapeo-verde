@@ -1,4 +1,5 @@
 import { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { ArrowLeft, Calendar, MapPin, ExternalLink, MessageCircle, Share2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { DataContext } from '../../../context/DataContext';
 import { SafeImage } from '../../../components/common/SafeImage';
@@ -119,7 +120,21 @@ const EventDetailPage = ({ eventId, onBack }: EventDetailPageProps) => {
 
   return (
     <div className="min-h-screen bg-[#f3f4f0]">
-      <div ref={heroRef} className="sticky top-16 z-0 w-full h-56 md:h-72 bg-black overflow-hidden border-b-4 border-black">
+      {createPortal(
+        <div className="fixed top-4 left-4 z-[60]">
+          <button
+            onClick={handleBack}
+            className="flex items-center gap-2 bg-white/90 text-black px-3 py-2 font-mono uppercase text-xs font-bold border-2 border-black hover:bg-[#ff7e67] hover:text-white transition-colors cursor-pointer"
+          >
+            <ArrowLeft size={16} />
+            Volver
+          </button>
+        </div>,
+        document.body
+      )}
+
+      <div className="h-16 md:hidden" />
+      <div ref={heroRef} className="sticky top-0 z-0 w-full h-56 md:h-72 bg-black overflow-hidden border-b-4 border-black">
         <div className="absolute left-0 right-0 opacity-70" style={{ top: '-15%', bottom: '-15%', transform: `translateY(${heroOffset}px)`, willChange: 'transform' }}>
           <SafeImage
             src={event.image || ''}
@@ -128,18 +143,9 @@ const EventDetailPage = ({ eventId, onBack }: EventDetailPageProps) => {
           />
         </div>
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-        <div className="absolute top-4 left-4 z-10">
-          <button
-            onClick={handleBack}
-            className="flex items-center gap-2 bg-white/90 text-black px-3 py-2 font-mono uppercase text-xs font-bold border-2 border-black hover:bg-[#ff7e67] hover:text-white transition-colors cursor-pointer"
-          >
-            <ArrowLeft size={16} />
-            Volver
-          </button>
-        </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 relative z-20">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 -mt-24 relative z-20">
         <div className="bg-white border-2 border-black p-6 md:p-8">
           <div className="flex items-center gap-2 mb-4 flex-wrap">
             {event.category && (
