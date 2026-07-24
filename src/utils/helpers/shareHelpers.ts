@@ -19,7 +19,7 @@ Fecha: ${eventDate.toLocaleDateString('es-MX', {
 Hora: ${event.time}
 Ubicación: ${event.location || 'Por confirmar'}
 
-${event.description ? `${event.description}\n\n` : ''}MÃ¡s detalles: ${eventUrl}`;
+${event.description ? `${event.description}\n\n` : ''}Más detalles: ${eventUrl}`;
 
   const encodedMessage = encodeURIComponent(message);
   return `https://wa.me/?text=${encodedMessage}`;
