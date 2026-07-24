@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 export const pathToTab = (pathname: string) => {
   // Remove ID parameter for tab detection
   const pathWithoutId = pathname.split('/').slice(0, 2).join('/');
-  if (pathWithoutId === '/agenda' || pathname.startsWith('/agenda/')) return 'AGENDA';
+  if (pathWithoutId === '/agenda' || pathname.startsWith('/agenda/') || pathname.startsWith('/e/')) return 'AGENDA';
   if (pathname.startsWith('/participacion')) return 'PARTICIPATION';
   if (pathname.startsWith('/investigacion')) return 'INVESTIGACION';
   if (pathname.startsWith('/boletines')) return 'NEWSLETTERS';

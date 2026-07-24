@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo, useContext, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { Calendar, ChevronLeft, ChevronRight, MapPin, ExternalLink, ArrowRight, MessageCircle, X, PlusCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { SafeImage } from '../../../components/common/SafeImage';
@@ -13,7 +13,10 @@ import { shareToWhatsApp } from '../../../utils/helpers/shareHelpers';
 // Subcomponent: EventImage
 const EventImage = ({ event }: any) => {
   return (
-    <div className="w-full md:w-64 h-48 md:h-auto border-t-2 md:border-t-0 md:border-l-2 border-black relative overflow-hidden bg-gray-100">
+    <Link
+      to={`/e/${event.id}`}
+      className="block w-full md:w-64 h-48 md:h-auto border-t-2 md:border-t-0 md:border-l-2 border-black relative overflow-hidden bg-gray-100 cursor-pointer"
+    >
       <SafeImage
         src={event.image || ''}
         alt={event.title}
@@ -24,7 +27,7 @@ const EventImage = ({ event }: any) => {
       {event.image && (
         <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors pointer-events-none" />
       )}
-    </div>
+    </Link>
   );
 };
 
@@ -107,6 +110,7 @@ const EventsPage = () => {
   );
   // const accentColor = useAccentColor();
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
 
   // Obtener la fecha de hoy en zona horaria de CDMX en formato YYYY-MM-DD
@@ -172,7 +176,7 @@ const EventsPage = () => {
   const [selectedDate, setSelectedDate] = useState(getInitialSelectedDate);
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const [eventDetailClosing, setEventDetailClosing] = useState(false);
-  const [expandedEventId, setExpandedEventId] = useState<string | null>(null);
+
   const [currentMonth, setCurrentMonth] = useState(getInitialCurrentMonth);
 
   // Abrir side/bottom sheet con un evento cuando se llega desde home con ?event=ID
@@ -938,13 +942,13 @@ const EventsPage = () => {
                                 tabIndex={0}
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setSelectedEvent(ev);
+                                  navigate(`/e/${ev.id}`);
                                 }}
                                 onKeyDown={(e) => {
                                   if (e.key === 'Enter' || e.key === ' ') {
                                     e.preventDefault();
                                     e.stopPropagation();
-                                    setSelectedEvent(ev);
+                                    navigate(`/e/${ev.id}`);
                                   }
                                 }}
                                 className="block w-full truncate text-[8px] md:text-[10px] bg-black text-white px-0.5 md:px-1 py-0.5 rounded-none font-medium cursor-pointer hover:bg-[#ff7e67] transition-colors"
@@ -971,7 +975,6 @@ const EventsPage = () => {
 
                       <div className="space-y-3 w-full" style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box', overflow: 'hidden' }}>
                         {filteredEvents.map((event: any) => {
-                          const isExpanded = expandedEventId === event.id;
                           return (
                             <motion.div
                               key={event.id}
@@ -992,7 +995,7 @@ const EventsPage = () => {
                                 boxSizing: 'border-box',
                                 overflow: 'hidden'
                               }}
-                              onClick={() => setExpandedEventId(isExpanded ? null : event.id)}
+                              onClick={() => navigate(`/e/${event.id}`)}
                             >
                               <div className="p-4">
                                 <div className="flex items-start justify-between gap-4 w-full min-w-0" style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box', minWidth: 0 }}>
@@ -1004,19 +1007,19 @@ const EventsPage = () => {
                                       <span className="inline-block px-2 py-0.5 border border-black text-[10px] uppercase font-bold bg-gray-100 flex-shrink-0">
                                         {event.category}
                                       </span>
-                                      {(event.source === 'participation' || event.category === 'Propuesta ciudadana') && (
+                                      {(event.category === 'Propuesta ciudadana') && (
                                         <span className="inline-block px-2 py-0.5 border border-amber-600 text-[10px] uppercase font-bold bg-amber-50 text-amber-800 flex-shrink-0">
                                           Propuesta ciudadana
                                         </span>
                                       )}
                                     </div>
-                                    <h3 className="text-base md:text-lg font-bold leading-tight group-hover:text-[#ff7e67] transition-colors break-words" style={{ wordBreak: 'break-word', overflow: 'hidden', textOverflow: isExpanded ? 'clip' : 'ellipsis', display: isExpanded ? 'block' : '-webkit-box', WebkitLineClamp: isExpanded ? 'none' : 2, WebkitBoxOrient: isExpanded ? 'initial' : 'vertical' }}>
+                                    <h3 className="text-base md:text-lg font-bold leading-tight group-hover:text-[#ff7e67] transition-colors break-words line-clamp-2">
                                       {event.title}
                                     </h3>
                                       {event.location && (
                                       <div className="flex items-center gap-1.5 mt-2 text-xs font-mono uppercase text-gray-600 min-w-0" style={{ minWidth: 0, maxWidth: '100%' }}>
                                         <MapPin size={12} className="text-[#ff7e67] flex-shrink-0" />
-                                        <span className={isExpanded ? "block break-words" : "truncate block min-w-0"} style={{ minWidth: 0, maxWidth: '100%', overflow: isExpanded ? 'visible' : 'hidden', textOverflow: isExpanded ? 'clip' : 'ellipsis', whiteSpace: isExpanded ? 'normal' : 'nowrap' }}>{event.location}</span>
+                                        <span className="truncate block min-w-0" style={{ minWidth: 0, maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{event.location}</span>
                                       </div>
                                     )}
                                     {event.placeName && (
@@ -1027,75 +1030,10 @@ const EventsPage = () => {
                                     )}
                                   </div>
                                   <div className="flex-shrink-0" style={{ flexShrink: 0 }}>
-                                    <ArrowRight size={20} className={`text-gray-400 group-hover:text-[#ff7e67] transition-all ${isExpanded ? 'rotate-90' : ''}`} />
+                                    <ArrowRight size={20} className="text-gray-400 group-hover:text-[#ff7e67] transition-all" />
                                   </div>
                                 </div>
                               </div>
-
-                              <AnimatePresence>
-                                {isExpanded && (
-                                  <motion.div
-                                    initial={{ height: 0, opacity: 0 }}
-                                    animate={{ height: 'auto', opacity: 1 }}
-                                    exit={{ height: 0, opacity: 0 }}
-                                    transition={{ duration: 0.3 }}
-                                    style={{ overflow: 'hidden' }}
-                                  >
-                                    <div className="px-4 pb-4 border-t border-dashed border-gray-300 pt-4 space-y-4">
-                                      {event.image && typeof event.image === 'string' && event.image.trim() !== '' && event.image !== 'undefined' && (
-                                        <div className="w-full h-48 border-2 border-black relative overflow-hidden bg-gray-100">
-                                          <SafeImage
-                                            src={event.image}
-                                            alt={event.title}
-                                            className="w-full h-full object-cover"
-                                            loading="lazy"
-                                            iconSize={48}
-                                          />
-                                        </div>
-                                      )}
-                                      <div className="overflow-y-auto max-h-40">
-                                        <EventDescription description={event.description} />
-                                        {event.eventUrl && (
-                                          <a
-                                            href={event.eventUrl}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="inline-flex items-center gap-1 mt-2 text-xs font-mono text-[#ff7e67] underline hover:text-black"
-                                            onClick={(e) => e.stopPropagation()}
-                                          >
-                                            <ExternalLink size={12} />
-                                            Más información
-                                          </a>
-                                        )}
-                                      </div>
-                                      <div className="flex flex-wrap gap-2 pt-2 w-full" style={{ width: '100%' }}>
-                                        <a
-                                          href={getGoogleCalendarUrl(event)}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-black text-white text-xs font-bold uppercase hover:bg-[#ff7e67] transition-colors border-2 border-black"
-                                          onClick={(e) => e.stopPropagation()}
-                                          style={{ width: '100%' }}
-                                        >
-                                          <ExternalLink size={12} />
-                                          Añadir a calendario
-                                        </a>
-                                        <a
-                                          href={shareToWhatsApp(event, baseUrl)}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-[#25D366] text-white text-xs font-bold uppercase hover:bg-[#20BA5A] transition-colors border-2 border-black"
-                                          onClick={(e) => e.stopPropagation()}
-                                          style={{ width: '100%' }}
-                                        >
-                                          <MessageCircle size={12} />
-                                          Compartir
-                                        </a>
-                                      </div>
-                                    </div>
-                                  </motion.div>
-                                )}
-                              </AnimatePresence>
                             </motion.div>
                           );
                         })}
@@ -1145,7 +1083,7 @@ const EventsPage = () => {
                           <span className="inline-block px-2 py-0.5 border border-black text-[10px] uppercase font-bold bg-gray-100">
                             {event.category}
                           </span>
-                          {(event.source === 'participation' || event.category === 'Propuesta ciudadana') && (
+                           {(event.category === 'Propuesta ciudadana') && (
                             <span className="inline-block px-2 py-0.5 border border-amber-600 text-[10px] uppercase font-bold bg-amber-50 text-amber-800">
                               Propuesta ciudadana
                             </span>
@@ -1356,6 +1294,9 @@ const EventsPage = () => {
                           </a>
                         )}
                         <div className="flex flex-wrap gap-2">
+                          <Link to={`/e/${selectedEvent.id}`} className="flex-1 flex items-center justify-center gap-2 px-3 py-2 border-2 border-black text-xs font-bold uppercase hover:bg-gray-100 transition-colors">
+                            <ExternalLink size={12} /> Ver más
+                          </Link>
                           <a href={getGoogleCalendarUrl(selectedEvent)} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-black text-white text-xs font-bold uppercase hover:bg-[#ff7e67] transition-colors border-2 border-black">
                             <ExternalLink size={12} /> Google
                           </a>
@@ -1444,6 +1385,9 @@ const EventsPage = () => {
                           </a>
                         )}
                         <div className="flex flex-wrap gap-2">
+                          <Link to={`/e/${selectedEvent.id}`} className="flex-1 flex items-center justify-center gap-2 px-3 py-2 border-2 border-black text-xs font-bold uppercase hover:bg-gray-100 transition-colors">
+                            <ExternalLink size={12} /> Ver más
+                          </Link>
                           <a href={getGoogleCalendarUrl(selectedEvent)} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-black text-white text-xs font-bold uppercase hover:bg-[#ff7e67] transition-colors border-2 border-black">
                             <ExternalLink size={12} /> Google
                           </a>

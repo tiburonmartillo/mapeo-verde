@@ -35,7 +35,7 @@ export type DataSlice = 'events' | 'greenAreas';
 export function getRequiredDataSlices(pathname: string): Set<DataSlice> {
   const p = pathname.replace(/\/+$/, '') || '/';
 
-  if (p === '/agenda' || p.startsWith('/agenda/')) return new Set(['events']);
+  if (p === '/agenda' || p.startsWith('/agenda/') || p.startsWith('/e/')) return new Set(['events']);
   if (p === '/' || p === '/inicio') return new Set(['events', 'greenAreas']);
 
   return new Set();
