@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo } from 'react';
+import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, Calendar, MapPin, ExternalLink, MessageCircle, Share2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { DataContext } from '../../../context/DataContext';
 import { SafeImage } from '../../../components/common/SafeImage';
@@ -39,6 +39,21 @@ const EventDetailPage = ({ eventId, onBack }: EventDetailPageProps) => {
         }
       : undefined,
   );
+
+  const heroRef = useRef<HTMLDivElement>(null);
+  const [heroOffset, setHeroOffset] = useState(0);
+
+  useEffect(() => {
+    const el = heroRef.current;
+    if (!el) return;
+    const onScroll = () => {
+      const rect = el.getBoundingClientRect();
+      const offset = rect.top < 0 ? rect.top * -0.3 : 0;
+      setHeroOffset(offset);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   const handleBack = () => {
     if (onBack) {
@@ -104,30 +119,41 @@ const EventDetailPage = ({ eventId, onBack }: EventDetailPageProps) => {
 
   return (
     <div className="min-h-screen bg-[#f3f4f0]">
-      <div className="sticky top-0 z-30 bg-white border-b-2 border-black px-4 py-3">
-        <div className="max-w-4xl mx-auto flex items-center gap-4">
+      <div ref={heroRef} className="sticky top-16 z-0 w-full h-56 md:h-72 bg-black overflow-hidden border-b-4 border-black">
+        <div className="absolute left-0 right-0 opacity-70" style={{ top: '-15%', bottom: '-15%', transform: `translateY(${heroOffset}px)`, willChange: 'transform' }}>
+          <SafeImage
+            src={event.image || ''}
+            alt={event.title}
+            className="w-full h-full object-cover"
+          />
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+        <div className="absolute top-4 left-4 z-10">
           <button
             onClick={handleBack}
-            className="flex items-center gap-2 text-xs font-mono font-bold uppercase hover:text-[#ff7e67] transition-colors cursor-pointer"
+            className="flex items-center gap-2 bg-white/90 text-black px-3 py-2 font-mono uppercase text-xs font-bold border-2 border-black hover:bg-[#ff7e67] hover:text-white transition-colors cursor-pointer"
           >
             <ArrowLeft size={16} />
             Volver
           </button>
-          {event.category && (
-            <span className="inline-block px-2 py-0.5 border border-black text-[10px] uppercase font-bold bg-gray-100">
-              {event.category}
-            </span>
-          )}
-          {event.category === 'Propuesta ciudadana' && (
-            <span className="inline-block px-2 py-0.5 border border-amber-600 text-[10px] uppercase font-bold bg-amber-50 text-amber-800">
-              Propuesta ciudadana
-            </span>
-          )}
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 relative z-20">
         <div className="bg-white border-2 border-black p-6 md:p-8">
+          <div className="flex items-center gap-2 mb-4 flex-wrap">
+            {event.category && (
+              <span className="inline-block px-3 py-1 border border-black text-[10px] uppercase font-bold bg-gray-100">
+                {event.category}
+              </span>
+            )}
+            {event.category === 'Propuesta ciudadana' && (
+              <span className="inline-block px-3 py-1 border border-amber-600 text-[10px] uppercase font-bold bg-amber-50 text-amber-800">
+                Propuesta ciudadana
+              </span>
+            )}
+          </div>
+
           <h1 className="text-3xl md:text-5xl font-black leading-tight tracking-tighter mb-8">
             {event.title}
           </h1>
