@@ -43,7 +43,7 @@ const EventDetailPage = ({ eventId, onBack }: EventDetailPageProps) => {
 
   const heroRef = useRef<HTMLDivElement>(null);
   const [heroOffset, setHeroOffset] = useState(0);
-  const [backBtnTop, setBackBtnTop] = useState(64);
+  const [backBtnTop, setBackBtnTop] = useState(76);
   const lastScrollYRef = useRef(0);
 
   useEffect(() => {
@@ -57,9 +57,9 @@ const EventDetailPage = ({ eventId, onBack }: EventDetailPageProps) => {
       if (isMobile) {
         const currentY = window.scrollY;
         const navbarHidden = document.querySelector('[data-navbar-mobile]')?.classList.contains('-translate-y-full');
-        setBackBtnTop(navbarHidden ? 8 : 64);
+        setBackBtnTop(navbarHidden ? 12 : 76);
       } else {
-        setBackBtnTop(64);
+        setBackBtnTop(76);
       }
     };
     onScroll();
