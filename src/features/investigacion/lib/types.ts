@@ -46,6 +46,8 @@ export interface Boletin {
   mes: string
   procesado: boolean
   fecha_limite_consulta?: string | null
+  created_at?: string | null
+  updated_at?: string | null
 }
 
 export interface BoletinesData {

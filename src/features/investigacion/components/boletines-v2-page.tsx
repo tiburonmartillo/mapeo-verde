@@ -4,6 +4,7 @@ import { MapPin, X, Search } from "lucide-react"
 import { MuiProjectsTable } from "./mui-projects-table"
 import { ClientOnly } from "./client-only"
 import { useDashboardData } from "../hooks/useDashboardData"
+import { formatFechaHoraLarga } from "../lib/date-utils"
 import {
   filterProyectos,
   filterResolutivos,
@@ -289,6 +290,15 @@ export function BoletinesV2Page() {
               </div>
             </div>
           </section>
+
+          {/* Última revisión de la base de datos */}
+          <div className="max-w-7xl mx-auto px-6 py-3">
+            <div className="flex items-center justify-center rounded-xl border border-[var(--color-section-accent)]/10 bg-white px-4 py-3">
+              <p className="text-center text-xs text-gray-500 sm:text-sm">
+                Última revisión de la base de datos: {formatFechaHoraLarga(processedData.metadata.lastSync, 'No registrada')}
+              </p>
+            </div>
+          </div>
 
           {/* Mobile: header bar with badge + search trigger */}
           <section className="bg-white lg:hidden">

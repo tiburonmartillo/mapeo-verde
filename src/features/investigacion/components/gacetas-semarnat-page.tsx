@@ -3,6 +3,7 @@ import { MuiGacetasStats } from "./mui-gacetas-stats"
 import { MuiGacetasProjectsTable } from "./mui-gacetas-projects-table"
 import { useGacetasData } from "../hooks/useGacetasData"
 import { getGacetasDataUrl } from "../lib/supabase-data"
+import { formatFechaHoraLarga } from "../lib/date-utils"
 
 export function GacetasSEMARNATPage() {
   const [mounted, setMounted] = useState(false)
@@ -91,14 +92,7 @@ export function GacetasSEMARNATPage() {
             <div className="flex flex-col gap-6 sm:gap-8">
               <div className="flex items-center justify-center rounded-xl border border-[var(--color-section-accent)]/10 bg-white px-4 py-3">
                 <p className="text-center text-xs text-gray-500 sm:text-sm">
-                  Última actualización: {(() => {
-                    try {
-                      if (!metadata?.lastUpdated) return 'Fecha no disponible'
-                      const date = new Date(metadata.lastUpdated)
-                      const monthNames = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
-                      return `${date.getDate()} de ${monthNames[date.getMonth()]} de ${date.getFullYear()}`
-                    } catch { return 'Fecha no disponible' }
-                  })()}
+                  Última revisión de la base de datos: {formatFechaHoraLarga(metadata?.lastUpdated)}
                 </p>
               </div>
 

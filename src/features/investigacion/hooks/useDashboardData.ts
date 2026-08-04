@@ -22,6 +22,15 @@ function getLatestBoletinDate(boletines: Boletin[]): string {
   return latestBoletin.fecha_publicacion
 }
 
+function getLastSyncDate(boletines: Boletin[]): string | null {
+  let last: string | null = null
+  for (const boletin of boletines) {
+    const ts = boletin.updated_at ?? boletin.created_at
+    if (ts && (!last || new Date(ts) > new Date(last))) last = ts
+  }
+  return last
+}
+
 interface ProcessedData {
   stats: any
   timeSeriesData: any
@@ -34,6 +43,7 @@ interface ProcessedData {
     totalProyectos: number
     totalResolutivos: number
     lastUpdated: string
+    lastSync: string | null
   }
 }
 
@@ -84,6 +94,8 @@ function mapBoletin(row: any): Boletin {
     mes: row.mes,
     procesado: row.procesado,
     fecha_limite_consulta: row.fecha_limite_consulta || null,
+    created_at: row.created_at ?? null,
+    updated_at: row.updated_at ?? null,
   }
 }
 
@@ -139,6 +151,7 @@ export function useDashboardData() {
             totalProyectos: proyectos.length,
             totalResolutivos: resolutivos.length,
             lastUpdated: getLatestBoletinDate(jsonData.boletines),
+            lastSync: getLastSyncDate(jsonData.boletines),
           },
         }
 
