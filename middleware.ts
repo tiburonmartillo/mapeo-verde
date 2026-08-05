@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from '@vercel/edge';
+import { next } from '@vercel/edge';
 
 // Inline to avoid importing tsx files in Edge Runtime
 const projectId = 'dejczezthzpeuxfxgvpx';
@@ -10,14 +10,14 @@ export const config = {
   matcher: ['/e/:path*'],
 };
 
-export default async function middleware(request: NextRequest) {
+export default async function middleware(request: Request) {
   const ua = request.headers.get('user-agent') || '';
   if (!BOT_PATTERN.test(ua)) {
-    return NextResponse.next();
+    return next();
   }
 
-  const eventId = request.nextUrl.pathname.match(/^\/e\/(\d+)/)?.[1];
-  if (!eventId) return NextResponse.next();
+  const eventId = new URL(request.url).pathname.match(/^\/e\/(\d+)/)?.[1];
+  if (!eventId) return next();
 
   const supabaseUrl = `https://${projectId}.supabase.co`;
 
@@ -31,7 +31,7 @@ export default async function middleware(request: NextRequest) {
 
     const events = await res.json();
     const event = events?.[0];
-    if (!event) return NextResponse.next();
+    if (!event) return next();
 
     const title = event.title || 'Evento - Mapeo Verde';
     const description = event.description || 'Evento ambiental en Aguascalientes';
@@ -39,7 +39,7 @@ export default async function middleware(request: NextRequest) {
     const imageUrl = imagePath.startsWith('http')
       ? imagePath
       : `${supabaseUrl}/storage/v1/object/public/event_banners/${imagePath}`;
-    const fullUrl = `${request.nextUrl.origin}/e/${eventId}`;
+    const fullUrl = `${new URL(request.url).origin}/e/${eventId}`;
 
     const html = `<!DOCTYPE html>
 <html lang="es-MX">
@@ -65,12 +65,12 @@ export default async function middleware(request: NextRequest) {
 <body></body>
 </html>`;
 
-    return new NextResponse(html, {
+    return new Response(html, {
       status: 200,
       headers: { 'content-type': 'text/html; charset=utf-8' },
     });
   } catch {
-    return NextResponse.next();
+    return next();
   }
 }
 
