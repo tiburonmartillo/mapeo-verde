@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getInvestigacionClient } from '../lib/supabase-data'
+import { loadGacetasFromDb } from '../lib/gacetas-data'
 
 export interface RegistroGaceta {
   id: string
@@ -98,14 +98,14 @@ export interface GacetaAnalysis {
   resumen: string | null
 }
 
-interface GacetasData {
+interface GacetasDataInput {
+  analyses: GacetaAnalysis[]
   metadata: {
     created: string
     last_updated: string
     total_analyzed: number
     year_range: string
   }
-  analyses: GacetaAnalysis[]
 }
 
 export interface ProcessedGacetaAnalysis extends Omit<GacetaAnalysis, 'fecha_publicacion'> {
@@ -155,7 +155,7 @@ function normalizeDate(fecha: string | null, año: number): string {
 }
 
 export function useGacetasData() {
-  const [data, setData] = useState<GacetasData | null>(null)
+  const [data, setData] = useState<GacetasDataInput | null>(null)
   const [processedData, setProcessedData] = useState<ProcessedGacetasData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -167,26 +167,12 @@ export function useGacetasData() {
         setLoading(true)
         setError(null)
 
-        const supabase = getInvestigacionClient()
-
-        const { data: jsonRow, error: jsonError } = await supabase
-          .from('gacetas_json')
-          .select('data')
-          .eq('id', 1)
-          .single()
-
-        if (jsonError) throw new Error(jsonError.message)
-
-        if (!jsonRow?.data) {
-          throw new Error('No se encontraron datos de gacetas en la base de datos')
-        }
-
-        const rawData = jsonRow.data as GacetasData
+        const rawData = await loadGacetasFromDb()
         const analyses = rawData.analyses
         const meta = rawData.metadata
 
         if (!analyses || analyses.length === 0) {
-          throw new Error('El archivo de gacetas no contiene análisis')
+          throw new Error('No se encontraron gacetas en la base de datos')
         }
 
         if (!isMounted) return

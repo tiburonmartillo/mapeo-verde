@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { getInvestigacionClient } from '../lib/supabase-data'
+import { loadGacetasFromDb } from '../lib/gacetas-data'
 import type { ProcessedGacetaAnalysis } from './useGacetasData'
 import type { RegistroGaceta } from './useGacetasData'
 
@@ -13,19 +13,11 @@ async function fetchGacetas(): Promise<any[]> {
   if (gacetasCache) return gacetasCache
   if (gacetasPromise) return gacetasPromise
 
-  gacetasPromise = (async () => {
-    const supabase = getInvestigacionClient()
-    const { data: jsonRow, error } = await supabase
-      .from('gacetas_json')
-      .select('data')
-      .eq('id', 1)
-      .single()
-    if (error) throw new Error(error.message)
-    const rawData = jsonRow?.data as any
-    const analyses = rawData?.analyses || []
-    gacetasCache = analyses
-    return gacetasCache
-  })()
+  gacetasPromise = loadGacetasFromDb()
+    .then((data) => {
+      gacetasCache = data.analyses
+      return data.analyses
+    })
 
   return gacetasPromise
 }
