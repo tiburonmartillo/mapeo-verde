@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import type { BoletinesData, Boletin, Proyecto, Resolutivo } from '../lib/types'
 import { getInvestigacionClient } from '../lib/supabase-data'
+import { correctProjectCoordinates } from '../lib/coordinate-corrections'
 import {
   getStats,
   getTimeSeriesData,
@@ -48,21 +49,29 @@ interface ProcessedData {
 }
 
 function mapBoletin(row: any): Boletin {
-  const proyectos: Proyecto[] = (row.proyectos_ingresados || []).map((p: any) => ({
-    numero: p.numero,
-    tipo_estudio: p.tipo_estudio,
-    promovente: p.promovente,
-    nombre_proyecto: p.nombre_proyecto,
-    giro: p.giro,
-    municipio: p.municipio,
-    coordenadas_x: p.coordenadas_x,
-    coordenadas_y: p.coordenadas_y,
-    expediente: p.expediente,
-    fecha_ingreso: p.fecha_ingreso,
-    boletin_id: p.boletin_id,
-    coord_valida: null,
-    naturaleza_proyecto: p.naturaleza_proyecto,
-  }))
+  const proyectos: Proyecto[] = (row.proyectos_ingresados || []).map((p: any) => {
+    const coordinates = correctProjectCoordinates(
+      p.expediente,
+      p.coordenadas_x,
+      p.coordenadas_y,
+    )
+
+    return {
+      numero: p.numero,
+      tipo_estudio: p.tipo_estudio,
+      promovente: p.promovente,
+      nombre_proyecto: p.nombre_proyecto,
+      giro: p.giro,
+      municipio: p.municipio,
+      coordenadas_x: coordinates.x,
+      coordenadas_y: coordinates.y,
+      expediente: p.expediente,
+      fecha_ingreso: p.fecha_ingreso,
+      boletin_id: p.boletin_id,
+      coord_valida: null,
+      naturaleza_proyecto: p.naturaleza_proyecto,
+    }
+  })
   const resolutivos: Resolutivo[] = (row.boletines_resolutivos || []).map((r: any) => ({
     numero: r.numero,
     tipo_estudio: r.tipo_estudio,

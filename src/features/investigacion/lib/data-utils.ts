@@ -127,12 +127,41 @@ export function getAllProyectos(
   
 
 
-  return proyectos.sort((a, b) => {
+  const sortedProjects = proyectos.sort((a, b) => {
     const pubDiff =
       new Date(b.fecha_publicacion).getTime() - new Date(a.fecha_publicacion).getTime()
     if (pubDiff !== 0) return pubDiff
     return new Date(b.fecha_ingreso).getTime() - new Date(a.fecha_ingreso).getTime()
   })
+
+  // Agrupar por expediente y mantener el mejor (con coordenadas válidas, luego más reciente)
+  const projectsByExpediente = new Map<string, typeof sortedProjects[0]>()
+  
+  for (const project of sortedProjects) {
+    if (!project.expediente) {
+      // Proyectos sin expediente: mantener todos (no se pueden deduplicar)
+      continue
+    }
+    
+    const existing = projectsByExpediente.get(project.expediente)
+    const hasValidCoords = (p: typeof project) => 
+      p.coordenadas_x != null && p.coordenadas_y != null && 
+      Number.isFinite(p.coordenadas_x) && Number.isFinite(p.coordenadas_y)
+    
+    if (!existing) {
+      projectsByExpediente.set(project.expediente, project)
+    } else if (hasValidCoords(project) && !hasValidCoords(existing)) {
+      // Preferir el que tiene coordenadas válidas
+      projectsByExpediente.set(project.expediente, project)
+    }
+    // Si ambos tienen o no tienen coordenadas, mantener el existente (más reciente por sort)
+  }
+
+  // Incluir proyectos sin expediente + deduplicados
+  const withoutExpediente = sortedProjects.filter(p => !p.expediente)
+  const deduplicated = Array.from(projectsByExpediente.values())
+  
+  return [...withoutExpediente, ...deduplicated]
 }
 
 export function getAllResolutivos(
