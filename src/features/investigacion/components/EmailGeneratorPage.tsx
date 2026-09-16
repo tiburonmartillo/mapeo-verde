@@ -7,11 +7,15 @@ import { Textarea } from '@/features/investigacion/components/ui/textarea';
 import { Label } from '@/features/investigacion/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/features/investigacion/components/ui/card';
 import { Toaster } from '@/features/investigacion/components/ui/toaster';
-import { Download, Eye, EyeOff } from 'lucide-react';
+import { Download, Eye, EyeOff, Mail } from 'lucide-react';
 import { useToast } from '@/features/investigacion/hooks/use-toast';
 import { FrogLoading } from '@/features/investigacion/components/frog-loading';
 import { coordinateValidator } from '@/features/investigacion/lib/coordinate-validator';
 import { getInvestigacionClient } from '@/features/investigacion/lib/supabase-data';
+import mapeoLogo from '@/assets/mapeov.jpg?inline';
+import { useNavigate } from 'react-router-dom';
+import NavBar from '@/components/layout/NavBar';
+import { TAB_ROUTES } from '@/constants/routes';
 
 interface Project {
   name: string;
@@ -177,6 +181,7 @@ function convertToLatLong(x: number | null, y: number | null): { lat: number; ln
 
 export default function EmailGeneratorPage() {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [bulletinData, setBulletinData] = useState<BulletinData>({
     date: '',
     deadlineDate: '',
@@ -193,7 +198,13 @@ export default function EmailGeneratorPage() {
   const [previewHeight, setPreviewHeight] = useState<number>(1200);
 
   const previewHtml = useMemo(() => generateHTML(), [bulletinData, bulletinUrl]);
+  const [debouncedPreviewHtml, setDebouncedPreviewHtml] = useState(previewHtml);
   const [hasAttemptedLoad, setHasAttemptedLoad] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedPreviewHtml(previewHtml), 2000);
+    return () => clearTimeout(timer);
+  }, [previewHtml]);
 
   useEffect(() => {
     fetchLatestBulletin();
@@ -540,89 +551,66 @@ export default function EmailGeneratorPage() {
 
   function generateHTML() {
     const normalizedBulletinUrl = bulletinUrl || '';
-    const platformBoletinesUrl = 'https://adn-a.vercel.app/boletines-ssmaa';
+    const siteUrl = 'https://mapeoverde.org';
+    const platformBoletinesUrl = `${siteUrl}/boletines`;
+    const fontSans = "system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif";
+    const colorPrimary = '#ffffff';
+    const colorSecondary = '#f5f5f5';
+    const colorAccent = '#ff6b35';
+    const colorText = '#333333';
+    const colorTextSecondary = '#666666';
+    const colorBorder = '#e0e0e0';
+
+    const labelStyle = `margin:0 0 4px 0;font-family:${fontSans};font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:${colorTextSecondary};`;
+    const bodyTextStyle = `margin:0;font-family:${fontSans};font-size:15px;font-weight:600;line-height:1.5;color:${colorText};`;
+    const chipStyle = `display:inline-block;background-color:${colorPrimary};border:1px solid ${colorBorder};padding:4px 10px;border-radius:999px;font-family:${fontSans};font-size:12px;font-weight:600;color:${colorText};margin:0 8px 8px 0;`;
+
+    const sectionTitle = (text: string) =>
+      `<h2 style="margin:0 0 16px 0;font-family:${fontSans};font-size:22px;font-weight:800;line-height:1.2;color:${colorText};">${text}</h2>`;
+
+    const emailButton = (href: string, label: string, variant: 'primary' | 'secondary' = 'primary') => `
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:16px;">
+        <tr>
+          <td align="center">
+            <a href="${href}" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:14px 32px;border-radius:6px;text-decoration:none;font-family:${fontSans};font-size:15px;font-weight:700;color:${variant === 'primary' ? '#ffffff' : colorText};background-color:${variant === 'primary' ? colorAccent : colorPrimary};border:${variant === 'primary' ? 'none' : `1px solid ${colorBorder}`};">${label}</a>
+          </td>
+        </tr>
+      </table>
+    `;
 
     const projectsHTML = bulletinData.projects.map(project => `
       <tr>
-        <td style="padding: 10px 5px;">
-          <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background: #ffffff; border: 1px solid #9ca3af;">
+        <td style="padding:0 0 20px 0;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${colorPrimary};border:1px solid ${colorBorder};border-radius:8px;">
             <tr>
-              <td style="padding: 16px 12px;">
-                <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                  <tr>
-                    <td>
-                      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin: 0 0 8px 0;">
-                        <tr>
-                          <td style="padding: 0 5px 8px 5px;">
-                            <span style="display: inline-block; background-color: #ff7e67; border: 2px solid #000000; padding: 8px 12px; font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; color: #000000; margin-right: 10px; margin-bottom: 10px;">Fecha: ${project.entryDate}</span>
-                            <span style="display: inline-block; background-color: #ff7e67; border: 2px solid #000000; padding: 8px 12px; font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; color: #000000; margin-right: 10px; margin-bottom: 10px;">Tipo: ${project.type}</span>
-                            <span style="display: inline-block; background-color: #ff7e67; border: 2px solid #000000; padding: 8px 12px; font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; color: #000000; margin-bottom: 10px;">Municipio: ${project.municipality}</span>
-                          </td>
-                        </tr>
-                      </table>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 0 5px 16px 5px;">
-                      <p style="margin: 0 0 6px 0; font-family: Arial, sans-serif; font-size: 14px; line-height: 1.2; color: #111827; font-weight: bold;">Promovente</p>
-                      <p style="margin: 0; font-family: Arial, sans-serif; font-size: 15px; font-weight: bold; line-height: 1.3; color: #111827;">${project.promoter}</p>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 0 5px 12px 5px;">
-                      <p style="margin: 0; font-family: Arial, sans-serif; font-size: 14px; font-weight: bold; line-height: 1.3; color: #111827; background-color: #f3f4f6; border: 1px solid #9ca3af; padding: 8px 10px;">Proyecto: ${project.name}</p>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                        <tr>
-                          <td style="padding: 0 5px; vertical-align: top;">
-                            <p style="margin: 0 0 6px 0; font-family: Arial, sans-serif; font-size: 12px; line-height: 1.2; color: #111827; font-weight: bold;">Expediente</p>
-                            <p style="margin: 0; font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; line-height: 1.3; color: #111827;">${project.expedient}</p>
-                          </td>
-                        </tr>
-                      </table>
-                    </td>
-                  </tr>
-                  ${project.imageUrl ? `
-                  <tr>
-                    <td style="padding: 14px 5px 0 5px;">
-                      <img src="${project.imageUrl}" alt="Proyecto" style="width: 100%; max-width: 100%; height: auto; border-radius: 4px; display: block;" />
-                    </td>
-                  </tr>
-                  ` : ''}
-                </table>
-
-                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top: 10px;">
-                  <tr>
-                    <td style="padding: 12px 12px; background: #ffffff; border: 1px solid #9ca3af;">
-                      <p style="margin: 0 0 6px 0; font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; line-height: 1.4; color: #111827;">Naturaleza del proyecto:</p>
-                      <p style="margin: 0; font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; line-height: 1.4; color: #111827;">${project.nature}</p>
-                    </td>
-                  </tr>
-                </table>
-
-                ${project.latitude && project.longitude ? `
-                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top: 10px;">
-                  <tr>
-                    <td style="padding: 0 5px; text-align: center;">
-                      <a href="https://www.google.com/maps/search/?api=1&query=${project.latitude},${project.longitude}" target="_blank" style="display: block; width: 100%; max-width: 100%; box-sizing: border-box; margin: 0 auto; padding: 10px 12px; background-color: #fccb4e; color: #111827; text-decoration: none; font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; text-align: center; cursor: pointer; border: 1px solid #9ca3af; border-radius: 9999px; box-shadow: 0 4px 0 #000000;">Ver ubicación en Google Maps</a>
-                    </td>
-                  </tr>
-                </table>
+              <td style="padding:20px;">
+                <p style="margin:0 0 12px 0;">
+                  ${project.entryDate ? `<span style="${chipStyle}">Fecha: ${project.entryDate}</span>` : ''}
+                  ${project.type ? `<span style="${chipStyle}">Tipo: ${project.type}</span>` : ''}
+                  ${project.municipality ? `<span style="${chipStyle}">Municipio: ${project.municipality}</span>` : ''}
+                </p>
+                <p style="${labelStyle}">Proyecto</p>
+                <p style="margin:0 0 12px 0;font-family:${fontSans};font-size:16px;font-weight:800;line-height:1.35;color:${colorText};">${project.name}</p>
+                <p style="${labelStyle}">Promovente</p>
+                <p style="${bodyTextStyle}margin-bottom:12px;">${project.promoter}</p>
+                <p style="${labelStyle}">Expediente</p>
+                <p style="${bodyTextStyle}">${project.expedient}</p>
+                ${project.imageUrl ? `
+                <img src="${project.imageUrl}" alt="Proyecto" style="width:100%;max-width:100%;height:auto;display:block;margin-top:16px;border-radius:6px;" />
                 ` : ''}
-
+                ${project.nature ? `
+                <div style="margin-top:16px;background-color:${colorSecondary};border-radius:6px;padding:14px 16px;">
+                  <p style="${labelStyle}">Naturaleza del proyecto</p>
+                  <p style="margin:0;font-family:${fontSans};font-size:14px;line-height:1.55;color:${colorTextSecondary};">${project.nature}</p>
+                </div>
+                ` : ''}
                 ${project.publicConsultationDeadline ? `
-                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top: 10px;">
-                  <tr>
-                    <td style="padding: 12px 12px; background: #ffffff; border: 1px solid #9ca3af;">
-                      <p style="margin: 0 0 6px 0; font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; line-height: 1.4; color: #111827;">📅 Fecha límite para consulta pública</p>
-                      <p style="margin: 0; font-family: Arial, sans-serif; font-size: 13px; line-height: 1.4; color: #111827;">${project.publicConsultationDeadline}</p>
-                    </td>
-                  </tr>
-                </table>
+                <div style="margin-top:16px;border-left:4px solid ${colorAccent};background-color:${colorSecondary};border-radius:0 6px 6px 0;padding:14px 16px;">
+                  <p style="${labelStyle}">Fecha límite para consulta pública</p>
+                  <p style="margin:0;font-family:${fontSans};font-size:15px;font-weight:700;color:${colorText};">${project.publicConsultationDeadline}</p>
+                </div>
                 ` : ''}
+                ${project.latitude && project.longitude ? emailButton(`https://www.google.com/maps/search/?api=1&query=${project.latitude},${project.longitude}`, 'Ver ubicación en Google Maps') : ''}
               </td>
             </tr>
           </table>
@@ -633,66 +621,34 @@ export default function EmailGeneratorPage() {
     const resolutionsHTML = bulletinData.resolutions.length > 0
       ? bulletinData.resolutions.map(resolution => `
         <tr>
-          <td style="padding: 10px 5px;">
-            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background: #ffffff; border: 1px solid #9ca3af;">
+          <td style="padding:0 0 20px 0;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${colorPrimary};border:1px solid ${colorBorder};border-radius:8px;">
               <tr>
-                <td style="padding: 16px 12px;">
-                  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin: 0 0 8px 0;">
-                    <tr>
-                      <td style="padding: 0 5px 8px 5px;">
-                        <span style="display: inline-block; background-color: #ff7e67; border: 2px solid #000000; padding: 8px 12px; font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; color: #000000; margin-right: 10px; margin-bottom: 10px;">Fecha: ${resolution.date}</span>
-                        <span style="display: inline-block; background-color: #ff7e67; border: 2px solid #000000; padding: 8px 12px; font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; color: #000000; margin-right: 10px; margin-bottom: 10px;">Tipo: ${resolution.tipo}</span>
-                        <span style="display: inline-block; background-color: #ff7e67; border: 2px solid #000000; padding: 8px 12px; font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; color: #000000; margin-right: 10px; margin-bottom: 10px;">Municipio: ${resolution.municipality}</span>
-                        <span style="display: inline-block; background-color: #ff7e67; border: 2px solid #000000; padding: 8px 12px; font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; color: #000000; margin-bottom: 10px;">Giro: ${resolution.giro}</span>
-                      </td>
-                    </tr>
-                  </table>
-                  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                    <tr>
-                      <td style="padding: 0 5px 12px 5px;">
-                        <p style="margin: 0 0 6px 0; font-family: Arial, sans-serif; font-size: 14px; line-height: 1.2; color: #111827; font-weight: bold;">Promovente</p>
-                        <p style="margin: 0; font-family: Arial, sans-serif; font-size: 15px; font-weight: bold; line-height: 1.3; color: #111827;">${resolution.promoter}</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td style="padding: 0 5px 12px 5px;">
-                        <p style="margin: 0; font-family: Arial, sans-serif; font-size: 14px; font-weight: bold; line-height: 1.3; color: #111827; background-color: #f3f4f6; border: 1px solid #9ca3af; padding: 8px 10px;">Resolutivo: ${resolution.name}</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td style="padding: 0 5px 12px 5px;">
-                        <p style="margin: 0 0 6px 0; font-family: Arial, sans-serif; font-size: 12px; line-height: 1.2; color: #111827; font-weight: bold;">Expediente</p>
-                        <p style="margin: 0; font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; line-height: 1.3; color: #111827;">${resolution.expedient}</p>
-                      </td>
-                    </tr>
-                    ${resolution.noOficioResolutivo ? `
-                    <tr>
-                      <td style="padding: 0 5px 12px 5px;">
-                        <p style="margin: 0 0 6px 0; font-family: Arial, sans-serif; font-size: 12px; line-height: 1.2; color: #111827; font-weight: bold;">No. de Oficio Resolutivo</p>
-                        <p style="margin: 0; font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; line-height: 1.3; color: #111827;">${resolution.noOficioResolutivo}</p>
-                      </td>
-                    </tr>
-                    ` : ''}
-                  </table>
-
+                <td style="padding:20px;">
+                  <p style="margin:0 0 12px 0;">
+                    ${resolution.date ? `<span style="${chipStyle}">Fecha: ${resolution.date}</span>` : ''}
+                    ${resolution.tipo ? `<span style="${chipStyle}">Tipo: ${resolution.tipo}</span>` : ''}
+                    ${resolution.municipality ? `<span style="${chipStyle}">Municipio: ${resolution.municipality}</span>` : ''}
+                    ${resolution.giro ? `<span style="${chipStyle}">Giro: ${resolution.giro}</span>` : ''}
+                  </p>
+                  <p style="${labelStyle}">Resolutivo</p>
+                  <p style="margin:0 0 12px 0;font-family:${fontSans};font-size:16px;font-weight:800;line-height:1.35;color:${colorText};">${resolution.name}</p>
+                  <p style="${labelStyle}">Promovente</p>
+                  <p style="${bodyTextStyle}margin-bottom:12px;">${resolution.promoter}</p>
+                  <p style="${labelStyle}">Expediente</p>
+                  <p style="${bodyTextStyle}">${resolution.expedient}</p>
+                  ${resolution.noOficioResolutivo ? `
+                  <p style="${labelStyle}margin-top:12px;">No. de oficio resolutivo</p>
+                  <p style="${bodyTextStyle}">${resolution.noOficioResolutivo}</p>
+                  ` : ''}
                   ${resolution.nature ? `
-                  <div style="margin-top: 12px; padding: 12px 12px; background: #ffffff; border: 1px solid #9ca3af;">
-                    <p style="margin: 0 0 6px 0; font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; line-height: 1.4; color: #111827;">Naturaleza del proyecto:</p>
-                    <p style="margin: 0; font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; line-height: 1.4; color: #111827;">${resolution.nature}</p>
+                  <div style="margin-top:16px;background-color:${colorSecondary};border-radius:6px;padding:14px 16px;">
+                    <p style="${labelStyle}">Naturaleza del proyecto</p>
+                    <p style="margin:0;font-family:${fontSans};font-size:14px;line-height:1.55;color:${colorTextSecondary};">${resolution.nature}</p>
                   </div>
                   ` : ''}
-
-                  ${resolution.entryBulletinUrl ? `
-                  <div style="text-align: center; margin-top: 10px;">
-                    <a href="${resolution.entryBulletinUrl}" target="_blank" rel="noopener noreferrer" style="display: block; width: 100%; max-width: 100%; box-sizing: border-box; padding: 10px 12px; background-color: #b4ff6f; color: #000000; text-decoration: none; font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; text-align: center; cursor: pointer; border: 2px solid #000000; border-radius: 9999px; box-shadow: 0 4px 0 #000000;">Ver boletín donde se ingresó el proyecto</a>
-                  </div>
-                  ` : ''}
-
-                  ${resolution.latitude && resolution.longitude ? `
-                  <div style="text-align: center; margin-top: 10px;">
-                    <a href="https://www.google.com/maps/search/?api=1&query=${resolution.latitude},${resolution.longitude}" target="_blank" style="display: block; width: 100%; max-width: 100%; box-sizing: border-box; padding: 10px 12px; background-color: #fccb4e; color: #111827; text-decoration: none; font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; text-align: center; cursor: pointer; border: 1px solid #9ca3af; border-radius: 9999px; box-shadow: 0 4px 0 #000000;">Ver ubicación en Google Maps</a>
-                  </div>
-                  ` : ''}
+                  ${resolution.entryBulletinUrl ? emailButton(resolution.entryBulletinUrl, 'Ver boletín de ingreso', 'secondary') : ''}
+                  ${resolution.latitude && resolution.longitude ? emailButton(`https://www.google.com/maps/search/?api=1&query=${resolution.latitude},${resolution.longitude}`, 'Ver ubicación en Google Maps') : ''}
                 </td>
               </tr>
             </table>
@@ -701,11 +657,11 @@ export default function EmailGeneratorPage() {
       `).join('')
       : `
         <tr>
-          <td style="padding: 10px;">
-            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+          <td style="padding:0 0 8px 0;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${colorPrimary};border:1px solid ${colorBorder};border-radius:8px;">
               <tr>
-                <td align="center" style="padding: 12px; background: #ffffff; border: 1px solid #9ca3af;">
-                  <p style="margin: 0; font-family: Arial, sans-serif; font-size: 14px; font-weight: 700; color: #111827; text-align: center;">No se emitieron resolutivos</p>
+                <td align="center" style="padding:16px;">
+                  <p style="margin:0;font-family:${fontSans};font-size:14px;font-weight:600;color:${colorTextSecondary};text-align:center;">No se emitieron resolutivos</p>
                 </td>
               </tr>
             </table>
@@ -713,124 +669,129 @@ export default function EmailGeneratorPage() {
         </tr>
       `;
 
+const statsHTML = `
+      <tr>
+        <td style="padding:0 0 4px 0;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr>
+              <td width="50%" valign="top" style="padding:0 6px 0 0;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${colorSecondary};border:1px solid ${colorBorder};border-radius:8px;">
+                  <tr>
+                    <td align="center" valign="middle" height="140" style="padding:20px;height:140px;">
+                      <p style="margin:0;font-family:${fontSans};font-size:36px;font-weight:800;color:${colorAccent};">${bulletinData.projects.length}</p>
+                      <p style="margin:8px 0 0 0;font-family:${fontSans};font-size:15px;font-weight:600;color:${colorTextSecondary};">Proyectos ingresados</p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+              <td width="50%" valign="top" style="padding:0 0 0 6px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${colorSecondary};border:1px solid ${colorBorder};border-radius:8px;">
+                  <tr>
+                    <td align="center" valign="middle" height="140" style="padding:20px;height:140px;">
+                      <p style="margin:0;font-family:${fontSans};font-size:36px;font-weight:800;color:${colorAccent};">${bulletinData.resolutions.length}</p>
+                      <p style="margin:8px 0 0 0;font-family:${fontSans};font-size:15px;font-weight:600;color:${colorTextSecondary};">Resolutivos emitidos</p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    `;
+
     return `<!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Boletín Ambiental de SSMAA</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Boletín Ambiental de SSMAA</title>
 </head>
-<body style="margin: 0; padding: 0; background-color: #f5f3ed; font-family: Arial, sans-serif;">
-    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5f3ed;">
-        <tr>
-            <td align="center" style="padding: 0 20px;">
-                <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; max-width: 600px; margin: 0 auto; border: 2px solid #000000;">
+<body style="margin:0;padding:0;background-color:${colorSecondary};font-family:${fontSans};line-height:1.55;color:${colorText};">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${colorSecondary};padding:24px 16px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:640px;background-color:${colorPrimary};border:1px solid ${colorBorder};border-radius:12px;overflow:hidden;">
 
-                    <tr>
-                        <td style="background-color: #ff9d9d; padding: 16px 20px; text-align: center; border-bottom: 2px solid #000000;">
-                            <h1 style="margin: 0 0 8px 0; font-family: Arial, sans-serif; font-size: 26px; font-weight: bold; color: #000000; line-height: 1.1;">Resumen del Boletín<br>Ambiental de SSMAA</h1>
-                            <p style="margin: 0; font-family: Arial, sans-serif; font-size: 14px; font-weight: normal; color: #000000; line-height: 1;">${bulletinData.date}</p>
-                        </td>
-                    </tr>
-
-                    ${bulletinData.comments ? `
-                    <tr>
-                        <td style="padding: 10px 12px;">
-                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background: #ffffff; border: 1px solid #9ca3af;">
-                                <tr>
-                                    <td style="padding: 12px 12px;">
-                                        <p style="margin: 0 0 6px 0; font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; color: #111827;">Comentarios del boletín</p>
-                                        <p style="margin: 0; font-family: Arial, sans-serif; font-size: 13px; line-height: 1.5; color: #111827; white-space: pre-line;">${bulletinData.comments}</p>
-                                    </td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-                    ` : ''}
-
-                    <tr>
-                        <td style="padding: 20px 12px; background: #ffffff;">
-                            <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                                <tr>
-                                    <td style="padding-bottom: 8px;">
-                                        <p style="margin: 0; font-family: Arial, sans-serif; font-size: 18px; font-weight: bold; color: #000000; text-align: center; line-height: 1.2; background-color: #9dcdff; border: 2px solid #000000; padding: 8px 10px; display: block; width: 100%; box-sizing: border-box;">${bulletinData.projects.length > 0 ? `Proyectos ingresados a impacto ambiental (${bulletinData.projects.length})` : 'No se publicaron proyectos ingresados'}</p>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td style="padding-bottom: 20px;">
-                                        <p style="margin: 0 0 6px 0; font-family: Arial, sans-serif; font-size: 11px; color: #6b7280; text-align: center; line-height: 1.2;">Fecha límite para solicitud de consulta pública</p>
-                                        <p style="margin: 0; font-family: Arial, sans-serif; font-size: 14px; font-weight: bold; color: #000000; text-align: center; line-height: 1.2;">${bulletinData.deadlineDate}</p>
-                                    </td>
-                                </tr>
-                                ${projectsHTML}
-                            </table>
-                        </td>
-                    </tr>
-
-                    <tr>
-                        <td style="padding: 20px 12px; background: #d89dff;">
-                            <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                                <tr>
-                                    <td style="padding-bottom: 12px;">
-                                        <p style="margin: 0; font-family: Arial, sans-serif; font-size: 18px; font-weight: bold; color: #000000; text-align: center; line-height: 1.2; background-color: #fccb4e; border: 2px solid #000000; padding: 8px 10px; display: block; width: 100%; box-sizing: border-box;">${bulletinData.resolutions.length > 0 ? `Resolutivos emitidos (${bulletinData.resolutions.length})` : 'No se publicaron resolutivos'}</p>
-                                    </td>
-                                </tr>
-                                ${resolutionsHTML}
-                            </table>
-                        </td>
-                    </tr>
-
-                    <tr>
-                        <td style="padding: 10px 15px 0 15px;">
-                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background: #ffffff; border: 2px solid #000000;">
-                                <tr>
-                                    <td style="padding: 16px 16px 8px 16px;">
-                                        <p style="margin: 0 0 10px 0; font-family: Arial, sans-serif; font-size: 12px; color: #4b5563; text-align: center; line-height: 1.4;">
-                                            Puedes consultar más boletines, proyectos ingresados y resolutivos en nuestro sitio.
-                                        </p>
-                                        <p style="margin: 0; font-family: Arial, sans-serif; font-size: 12px; color: #111827; text-align: center; line-height: 1.5; word-break: break-word;">
-                                            <a href="${platformBoletinesUrl}" target="_blank" rel="noopener noreferrer" style="color: #111827; text-decoration: underline;">${platformBoletinesUrl}</a>
-                                        </p>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 0 16px 16px 16px; text-align: center;">
-                                        <a href="${platformBoletinesUrl}" target="_blank" rel="noopener noreferrer" style="display: block; width: 100%; max-width: 100%; box-sizing: border-box; margin: 0 auto; padding: 12px 16px; background-color:#9dcdff; color: #000000; text-decoration: none; font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; text-align: center; cursor: pointer; border: 2px solid #000000; border-radius: 9999px; box-shadow: 0 4px 0 #000000;">
-                                            Ver boletines en la plataforma
-                                        </a>
-                                    </td>
-                                </tr>
-                                ${bulletinUrl ? `
-                                <tr>
-                                    <td style="padding: 0 16px 16px 16px; text-align: center;">
-                                        <a href="${normalizedBulletinUrl}" target="_blank" rel="noopener noreferrer" style="display: block; width: 100%; max-width: 100%; box-sizing: border-box; margin: 0 auto; padding: 12px 16px; background-color:#b4ff6f; color: #000000; text-decoration: none; font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; text-align: center; cursor: pointer; border: 2px solid #000000; border-radius: 9999px; box-shadow: 0 4px 0 #000000;">
-                                            Ver boletín original
-                                        </a>
-                                    </td>
-                                </tr>
-                                ` : ''}
-                            </table>
-                        </td>
-                    </tr>
-
-                    <tr>
-                        <td style="padding: 20px 15px;">
-                            <p style="margin: 0 0 20px 0; font-family: Arial, sans-serif; font-size: 11px; line-height: 1.4; color: #6b7280; text-align: left;">
-                                La información presentada es obtenida de <span style="text-decoration: underline;">https://www.aguascalientes.gob.mx/SSMAA/BoletinesSMA/usuario_webexplorer.asp</span><br><br>
-                                La precisión de las ubicaciones y la calidad de la información son responsabilidad de la Secretaría de Sustentabilidad, Medio Ambiente y Agua.<br><br>
-                                Mapeo Verde se limita a compartir información pública de interés para la sociedad.
-                            </p>
-                        </td>
-                    </tr>
-
-                    <tr>
-                        <td style="background-color: #f3f4f6; height: 12px; border-top: 2px solid #000000;"></td>
-                    </tr>
-
-                </table>
+          <tr>
+            <td align="center" style="padding:32px 24px 28px 24px;border-bottom:1px solid ${colorBorder};">
+              <a href="${siteUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block;text-decoration:none;">
+                <img src="${mapeoLogo}" width="200" alt="Mapeo Verde" style="display:block;width:200px;height:auto;border:0;outline:none;" />
+              </a>
+              <h1 style="margin:20px 0 0 0;font-family:${fontSans};font-size:26px;font-weight:800;letter-spacing:-0.02em;line-height:1.2;color:${colorText};text-align:center;">Resumen del boletín ambiental de SSMAA</h1>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:16px;">
+                <tr>
+                  <td align="center" valign="middle" width="50%" style="padding:12px;border:1px solid ${colorBorder};background-color:${colorSecondary};border-radius:8px 0 0 8px;">
+                    <p style="margin:0;font-family:${fontSans};font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:${colorTextSecondary};">Fecha del boletín</p>
+                    <p style="margin:4px 0 0 0;font-family:${fontSans};font-size:14px;font-weight:700;color:${colorText};">${bulletinData.date || 'Plataforma ciudadana de Aguascalientes'}</p>
+                  </td>
+                  <td align="center" valign="middle" width="50%" style="padding:12px;border:1px solid ${colorBorder};border-left:none;background-color:${colorSecondary};border-radius:0 8px 8px 0;">
+                    <p style="margin:0;font-family:${fontSans};font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:${colorAccent};">Fecha límite consulta pública</p>
+                    <p style="margin:4px 0 0 0;font-family:${fontSans};font-size:14px;font-weight:700;color:${colorText};">${bulletinData.deadlineDate}</p>
+                  </td>
+                </tr>
+              </table>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:16px;">
+                ${statsHTML}
+              </table>
             </td>
-        </tr>
-    </table>
+          </tr>
+
+          ${bulletinData.comments ? `
+          <tr>
+            <td style="padding:24px 24px 0 24px;">
+              <div style="border-left:4px solid ${colorAccent};background-color:${colorSecondary};border-radius:0 6px 6px 0;padding:16px 20px;">
+                <p style="${labelStyle}">Comentarios del boletín</p>
+                <p style="margin:0;font-family:${fontSans};font-size:14px;line-height:1.55;color:${colorTextSecondary};white-space:pre-line;">${bulletinData.comments}</p>
+              </div>
+            </td>
+          </tr>
+          ` : ''}
+
+          <tr>
+            <td style="padding:24px 24px 0 24px;">
+              ${sectionTitle(bulletinData.projects.length > 0 ? `Proyectos ingresados a impacto ambiental (${bulletinData.projects.length})` : 'No se publicaron proyectos ingresados')}
+
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                ${projectsHTML}
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:24px;">
+              ${sectionTitle(bulletinData.resolutions.length > 0 ? `Resolutivos emitidos (${bulletinData.resolutions.length})` : 'No se publicaron resolutivos')}
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                ${resolutionsHTML}
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:0 24px 24px 24px;">
+              <div style="border:1px solid ${colorBorder};border-radius:8px;background-color:${colorSecondary};padding:20px 24px;text-align:center;">
+                <p style="margin:0 0 4px 0;font-family:${fontSans};font-size:16px;font-weight:800;color:${colorText};">Más información</p>
+                <p style="margin:0;font-family:${fontSans};font-size:14px;color:${colorTextSecondary};">Consulta más boletines, proyectos ingresados y resolutivos en mapeoverde.org</p>
+                ${emailButton(platformBoletinesUrl, 'Ir al monitor ambiental')}
+                ${bulletinUrl ? emailButton(normalizedBulletinUrl, 'Ver boletín original', 'secondary') : ''}
+              </div>
+            </td>
+          </tr>
+
+          <tr>
+            <td align="center" style="padding:20px 24px;border-top:1px solid ${colorBorder};background-color:${colorPrimary};">
+              <p style="margin:0 0 6px 0;font-family:${fontSans};font-size:12px;color:${colorTextSecondary};">
+                Datos de <a href="https://www.aguascalientes.gob.mx/SSMAA/BoletinesSMA/usuario_webexplorer.asp" style="color:${colorTextSecondary};text-decoration:underline;">SSMAA Aguascalientes</a> ·
+                <a href="${siteUrl}" style="color:${colorAccent};text-decoration:none;font-weight:700;">Mapeo Verde</a>
+              </p>
+              <p style="margin:0;font-family:${fontSans};font-size:11px;line-height:1.5;color:${colorTextSecondary};">La precisión de las ubicaciones y la calidad de la información son responsabilidad de la Secretaría. Mapeo Verde se limita a compartir información pública.</p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>`;
   }
@@ -892,7 +853,12 @@ export default function EmailGeneratorPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8 font-sans" style={{ fontFamily: 'var(--font-sans), system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif' }}>
+    <>
+      <NavBar
+        activeTab="NEWSLETTERS"
+        onNavigate={(tab) => navigate(TAB_ROUTES[tab as keyof typeof TAB_ROUTES] || '/')}
+      />
+      <div className="min-h-screen bg-gray-50 p-8 font-sans" style={{ fontFamily: 'var(--font-sans), system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif' }}>
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="mb-2 text-[32px]">Generador de Boletín Ambiental</h1>
@@ -1068,7 +1034,7 @@ export default function EmailGeneratorPage() {
             </Card>
 
           </div>
-            <div className="space-y-3 my-4">
+            <div className="my-4">
               <Button
                 onClick={async () => {
                   const html = generateHTML();
@@ -1087,14 +1053,13 @@ export default function EmailGeneratorPage() {
                     });
                   }
                 }}
-                variant="default"
-                className="w-full"
+                className="h-auto w-full cursor-pointer rounded-none border-2 border-foreground bg-[#b4ff6f] px-6 py-4 text-sm font-bold uppercase tracking-widest text-black shadow-[4px_4px_0_0_#000] transition-[transform,box-shadow,background-color,opacity] duration-300 ease-[cubic-bezier(0.25,0.8,0.25,1)] motion-reduce:transition-none hover:bg-[#9adf55] hover:shadow-[6px_6px_0_0_#000] motion-safe:hover:-translate-y-1 motion-safe:hover:scale-[1.01] motion-safe:active:translate-y-0.5 motion-safe:active:scale-[0.99] motion-reduce:hover:translate-y-0 motion-reduce:hover:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-70 disabled:shadow-[4px_4px_0_0_#000] disabled:hover:translate-y-0 disabled:hover:scale-100"
                 size="lg"
                 disabled={!apiKey}
               >
+                <Mail className="h-4 w-4" aria-hidden="true" />
                 Enviar correo
               </Button>
-
             </div>
 
           <div>
@@ -1106,7 +1071,7 @@ export default function EmailGeneratorPage() {
                 <div className="bg-white border rounded-lg overflow-hidden">
                   <iframe
                     ref={previewIframeRef}
-                    srcDoc={previewHtml}
+                    srcDoc={debouncedPreviewHtml}
                     sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-forms"
                     style={{ width: '100%', border: 0, height: previewHeight }}
                     onLoad={() => {
@@ -1145,5 +1110,6 @@ export default function EmailGeneratorPage() {
       </div>
       <Toaster />
     </div>
+    </>
   );
 }

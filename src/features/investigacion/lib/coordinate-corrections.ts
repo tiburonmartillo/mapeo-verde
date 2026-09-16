@@ -1,27 +1,3 @@
-interface RawCoordinateCorrection {
-  x: string
-  y: string
-}
-
-const COORDINATE_CORRECTIONS: Record<string, RawCoordinateCorrection> = {
-  'SSMAA-DIRA-2911/2026': {
-    x: '102\u00b017\'01.38"O',
-    y: '22\u00b001\'27.53"N',
-  },
-  'SSMAA-DIRA-2925-2026': {
-    x: '102\u00b022\'16.11\u00b4\u00b4O',
-    y: '21\u00b053\'57.26\u00b4\u00b4N',
-  },
-  'SSMAA-DIRA-2893-2026': {
-    x: '102\u00b012\'01.9\u00b4\u00b4O',
-    y: '22\u00b015\'41.2\u00b4\u00b4N',
-  },
-  'SSMAA-DIRA-2894-2026': {
-    x: '102\u00b014\'43"O',
-    y: '22\u00b010\'18"N',
-  },
-}
-
 export function dmsToDecimal(value: string): number | null {
   const match = value.trim().toUpperCase().match(
     /^(\d{1,3})\s*(?:\u00b0|\u00ba)\s*(\d{1,2})\s*'\s*(\d{1,2}(?:\.\d+)?)\s*(?:"|\u00b4\u00b4|'')\s*([NSEO])$/,
@@ -42,6 +18,18 @@ export function dmsToDecimal(value: string): number | null {
   return direction === 'S' || direction === 'O' ? -decimal : decimal
 }
 
+export function parseRawDecimal(x: number, y: number): { x: number; y: number } {
+  return { x: -x / 1_000_000, y: y / 1_000_000 }
+}
+
+export function parseUtmThousand(x: number, y: number): { x: number; y: number } {
+  return { x: x / 1000, y: y / 1000 }
+}
+
+export function parseUtmMixed(x: number, y: number): { x: number; y: number } {
+  return { x: x / 10000, y: y }
+}
+
 export function correctProjectCoordinates(
   expediente: string | null | undefined,
   x: number | null,
@@ -50,12 +38,5 @@ export function correctProjectCoordinates(
   if (x != null && y != null && Number.isFinite(x) && Number.isFinite(y)) {
     return { x, y }
   }
-
-  const correction = COORDINATE_CORRECTIONS[expediente?.trim().toUpperCase() ?? '']
-  if (!correction) return { x, y }
-
-  return {
-    x: dmsToDecimal(correction.x),
-    y: dmsToDecimal(correction.y),
-  }
+  return { x, y }
 }
