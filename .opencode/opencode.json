@@ -4,7 +4,7 @@
     "vercel": {
       "type": "local",
       "command": ["npx", "-y", "@vercel/mcp-adapter"],
-      "enabled": true,
+      "enabled": false,
       "env": {
         "VERCEL_TOKEN": "{env:VERCEL_TOKEN}"
       }

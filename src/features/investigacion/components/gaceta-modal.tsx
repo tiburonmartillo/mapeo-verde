@@ -179,6 +179,12 @@ export function GacetaModal({ gaceta, registro, isOpen, onClose }: GacetaModalPr
     (registro as any)?.semarnat_bitacora?.tramite?.numBitacora ||
     (registro as any)?.semarnat_proyecto_bitacora?.tramite?.numBitacora
 
+  /** numBitacora resuelto por SEMARNAT al pedir los datos del proyecto (clave → bitácora). */
+  const apiNumBitacora =
+    semarnatDataSource === 'api' && typeof semarnatData?._bitacora === 'string'
+      ? (semarnatData._bitacora as string)
+      : null
+
   useEffect(() => {
     if (!isOpen || !registro) {
       setHistorialData(null)
@@ -187,14 +193,30 @@ export function GacetaModal({ gaceta, registro, isOpen, onClose }: GacetaModalPr
       setLoadingHistorial(false)
       return
     }
-    const bitacoraParam = historialNumBitacora || historialRegistroId || historialRegistroClave
-    if (!bitacoraParam) {
-      setHistorialData(null)
-      setErrorHistorial(null)
-      setHistorialDataSource(null)
+    // La clave de proyecto no sirve como número de bitácora; solo intentamos
+    // con un formato real de bitácora (contiene '/'). Sin candidato, no hay error.
+    const bitacoraCandidate =
+      historialNumBitacora || apiNumBitacora || historialRegistroId || historialRegistroClave
+    if (!bitacoraCandidate || !String(bitacoraCandidate).includes('/')) {
+      if (historialFromRegistro) {
+        if (historialFromRegistro.error) {
+          setHistorialData(null)
+          setErrorHistorial(historialFromRegistro.error)
+          setHistorialDataSource(null)
+        } else {
+          setHistorialData(historialFromRegistro.data)
+          setErrorHistorial(null)
+          setHistorialDataSource('json')
+        }
+      } else {
+        setHistorialData(null)
+        setErrorHistorial(null)
+        setHistorialDataSource(null)
+      }
       setLoadingHistorial(false)
       return
     }
+    const bitacoraParam = String(bitacoraCandidate)
     const controller = new AbortController()
     const historialTimeoutId = setTimeout(() => controller.abort(), 6000)
     const fetchHistorialData = async () => {
@@ -209,7 +231,12 @@ export function GacetaModal({ gaceta, registro, isOpen, onClose }: GacetaModalPr
           signal: controller.signal
         })
         if (controller.signal.aborted) return
-        const data = await response.json()
+        let data: any
+        try {
+          data = await response.json()
+        } catch {
+          throw new Error(`Respuesta inesperada del servicio (HTTP ${response.status})`)
+        }
         if (controller.signal.aborted) return
         const tieneHistorial = (data.historial && Array.isArray(data.historial) && data.historial.length > 0) ||
                               (Array.isArray(data) && data.length > 0)
@@ -220,7 +247,20 @@ export function GacetaModal({ gaceta, registro, isOpen, onClose }: GacetaModalPr
           setLoadingHistorial(false)
           return
         }
-        throw new Error(data.error || data.mensaje || 'Petición rechazada')
+        if (response.ok) {
+          // El servicio respondió: simplemente no hay historial para este trámite.
+          const historial = data.historial && data.historial.length ? data.historial : null
+          setHistorialData({
+            mensaje: data.mensaje || 'error',
+            detalle: data.detalle || null,
+            historial: historial ?? (Array.isArray(data) && data.length ? data : null),
+          })
+          setErrorHistorial(null)
+          setHistorialDataSource(null)
+          setLoadingHistorial(false)
+          return
+        }
+        throw new Error(data.error || data.mensaje || `HTTP ${response.status}`)
       } catch (error: any) {
         if (error.name === 'AbortError') return
         if (historialFromRegistro) {
@@ -236,7 +276,8 @@ export function GacetaModal({ gaceta, registro, isOpen, onClose }: GacetaModalPr
           setLoadingHistorial(false)
           return
         }
-        setErrorHistorial('Error al conectar con el servicio de historial')
+        const msg = error instanceof Error ? error.message : 'Error al conectar con el servicio de historial'
+        setErrorHistorial(msg && msg !== 'Petición rechazada' ? `Error al conectar con el servicio de historial (${msg})` : 'Error al conectar con el servicio de historial')
         setHistorialData(null)
       } finally {
         if (!controller.signal.aborted) {
@@ -249,7 +290,7 @@ export function GacetaModal({ gaceta, registro, isOpen, onClose }: GacetaModalPr
       clearTimeout(historialTimeoutId)
       controller.abort()
     }
-  }, [isOpen, registro, historialRegistroId, historialRegistroClave, historialNumBitacora, historialFromRegistro])
+  }, [isOpen, registro, historialRegistroId, historialRegistroClave, historialNumBitacora, historialFromRegistro, semarnatData, semarnatDataSource, apiNumBitacora])
 
   const handlePdfDownload = useCallback(async (tipo: string, dataPath: string) => {
     setLoadingPdf(prev => ({ ...prev, [tipo]: true }))
@@ -321,10 +362,32 @@ export function GacetaModal({ gaceta, registro, isOpen, onClose }: GacetaModalPr
     }
   })()
 
+  const handleShareWhatsApp = () => {
+    const base = typeof window !== 'undefined' ? window.location.origin : ''
+    const params = new URLSearchParams()
+    if (gaceta.gaceta_id) params.set('gaceta', String(gaceta.gaceta_id))
+    if (registro?.id_db != null) params.set('registro', String(registro.id_db))
+    const url = `${base}/gacetas${params.toString() ? `?${params.toString()}` : ''}`
+
+    const lineas = [
+      `Gaceta Ecológica SEMARNAT ${gaceta.gaceta_id ? `#${gaceta.gaceta_id}` : ''}`,
+      fechaFormateada,
+    ]
+    if (registro) {
+      if (registro.clave_proyecto) lineas.push('', `Clave: ${registro.clave_proyecto}`)
+      if (registro.proyecto_nombre) lineas.push(`Proyecto: ${registro.proyecto_nombre}`)
+      if (registro.promovente) lineas.push(`Promovente: ${registro.promovente}`)
+      if (registro.municipio) lineas.push(`Municipio: ${registro.municipio}`)
+    }
+    lineas.push('', url)
+
+    window.open(`https://wa.me/?text=${encodeURIComponent(lineas.join('\n'))}`, '_blank', 'noopener,noreferrer')
+  }
+
   return (
     <div className="fixed inset-0 z-[1300] flex items-center justify-center p-4 sm:p-8">
       <div className="fixed inset-0 -z-10 bg-black/75" onClick={onClose} />
-      <div className="relative flex max-h-[95vh] w-full max-w-[900px] flex-col overflow-hidden rounded-xl bg-white shadow-2xl sm:max-h-[90vh]">
+      <div className="relative flex max-h-[calc(100dvh-9rem)] w-full max-w-[900px] flex-col overflow-hidden rounded-xl bg-white shadow-2xl">
         {/* Header */}
         <div className="flex shrink-0 items-center justify-between border-b border-gray-200 bg-white px-4 py-3 sm:px-6">
           <div className="min-w-0 flex-1 pr-2">
@@ -333,13 +396,15 @@ export function GacetaModal({ gaceta, registro, isOpen, onClose }: GacetaModalPr
             </h2>
             <p className="mt-1 text-sm text-gray-500 sm:text-base">{fechaFormateada}</p>
           </div>
-          <button
-            onClick={onClose}
-            className="flex shrink-0 items-center justify-center rounded-full p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-            aria-label="Cerrar"
-          >
-            <X className="h-5 w-5" />
-          </button>
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              onClick={onClose}
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+              aria-label="Cerrar"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
         </div>
 
         {/* Content */}
@@ -674,13 +739,23 @@ export function GacetaModal({ gaceta, registro, isOpen, onClose }: GacetaModalPr
           </div>
 
           {/* Floating Button */}
-          <div className="sticky bottom-0 left-0 right-0 z-20 flex justify-center border-t border-gray-200 bg-white px-4 py-3 shadow-lg">
+          <div className="sticky bottom-0 left-0 right-0 z-20 flex flex-col gap-2 border-t border-gray-200 bg-white px-4 py-3 shadow-lg sm:flex-row sm:items-center sm:justify-center">
             <button
               onClick={() => window.open(gaceta.url, '_blank', 'noopener,noreferrer')}
-              className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-2 text-sm font-medium text-white shadow-md transition-all hover:bg-blue-700 hover:shadow-lg sm:px-8 sm:py-3"
+              className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-md transition-all hover:bg-blue-700 hover:shadow-lg sm:flex-none sm:px-6 sm:py-3"
             >
               <ExternalLink className="h-4 w-4" />
               Consultar Gaceta Original
+            </button>
+            <button
+              type="button"
+              onClick={handleShareWhatsApp}
+              className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-[var(--color-whatsapp)] px-4 py-2 text-sm font-medium text-white shadow-md transition-all hover:bg-[var(--color-whatsapp-hover)] sm:flex-none sm:px-6 sm:py-3"
+            >
+              <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+              </svg>
+              Compartir por WhatsApp
             </button>
           </div>
         </div>

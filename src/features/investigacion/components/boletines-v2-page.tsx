@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom"
 import { MapPin, X, Search } from "lucide-react"
 import { MuiProjectsTable } from "./mui-projects-table"
 import { ClientOnly } from "./client-only"
+import { BoletinesSubscribeForm } from "./boletin-subscribe-form"
 import { useDashboardData } from "../hooks/useDashboardData"
 import { formatFechaHoraLarga } from "../lib/date-utils"
 import {
@@ -366,6 +367,14 @@ export function BoletinesV2Page() {
                 </div>
               </>
             )}
+
+            {/* Suscripción al boletín */}
+            <div className="mx-auto max-w-7xl px-6 py-6 sm:py-8">
+              <BoletinesSubscribeForm
+                fuente="boletines-ssmaa"
+                description="Recibe los boletines ambientales de SSMAA directamente en tu correo."
+              />
+            </div>
         </div>
       </div>
   )
