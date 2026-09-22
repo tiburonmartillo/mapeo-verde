@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   dmsToDecimal,
+  normalizeRawCoordinate,
   parseRawDecimal,
   parseUtmThousand,
   parseUtmMixed,
@@ -15,6 +16,32 @@ describe('frontend coordinate parsers', () => {
     expect(dmsToDecimal('22\u00b001\'27.53"N')).toBeCloseTo(22.0243139, 7)
     expect(dmsToDecimal('102\u00b022\'16.11\u00b4\u00b4O')).toBeCloseTo(-102.3711417, 7)
     expect(dmsToDecimal('21\u00b053\'57.26\u00b4\u00b4N')).toBeCloseTo(21.8992389, 7)
+  })
+
+  it('converts DMS without direction letter (infers sign by magnitude)', () => {
+    expect(dmsToDecimal('21°48´26.13´´')).toBeCloseTo(21.8072583, 7)
+    expect(dmsToDecimal('102°17´14.88´´')).toBeCloseTo(-102.2874667, 7)
+    expect(dmsToDecimal('102º16\'17.8"')).toBeCloseTo(-102.2716111, 7)
+  })
+
+  it('normalizes raw DB values (number, UTM string, DMS string)', () => {
+    expect(normalizeRawCoordinate(783213.79)).toBe(783213.79)
+    expect(normalizeRawCoordinate('775576.9')).toBe(775576.9)
+    expect(normalizeRawCoordinate('2,428,006.96')).toBe(2428006.96)
+    expect(normalizeRawCoordinate('-102.2916')).toBe(-102.2916)
+    expect(normalizeRawCoordinate('21°48´26.13´´')).toBeCloseTo(21.8072583, 7)
+    expect(normalizeRawCoordinate(null)).toBeNull()
+    expect(normalizeRawCoordinate('')).toBeNull()
+  })
+
+  it('corrects DMS string coordinates from the DB to decimal numbers', () => {
+    const result = correctProjectCoordinates(
+      'SSMAA-DIRA-2929-2026',
+      '21°48´26.13´´',
+      '102°17´14.88´´',
+    )
+    expect(result.x).toBeCloseTo(21.8072583, 7)
+    expect(result.y).toBeCloseTo(-102.2874667, 7)
   })
 
   it('parses raw-decimal (integer * 1M)', () => {

@@ -1,4 +1,5 @@
 import { CoordinateValidator } from './coordinate-validator'
+import { normalizeRawCoordinate } from './coordinate-corrections'
 
 const coordinateValidator = new CoordinateValidator()
 
@@ -18,14 +19,27 @@ export interface MapStaticResult {
 }
 
 /**
- * Convierte coordenadas UTM a Lat/Lng usando el validador existente
+ * Convierte coordenadas UTM a Lat/Lng usando el validador existente.
+ * Acepta números o strings crudos de la BD (DMS "21°48´26.13´´" o UTM).
  */
 export function convertirCoordenadasUTM(
-  coordenadas_x: number,
-  coordenadas_y: number
+  coordenadas_x: number | string | null,
+  coordenadas_y: number | string | null
 ): { lat: number; lng: number; success: boolean; error?: string } {
+  const nx = normalizeRawCoordinate(coordenadas_x)
+  const ny = normalizeRawCoordinate(coordenadas_y)
+
+  if (nx === null || ny === null) {
+    return {
+      lat: 0,
+      lng: 0,
+      success: false,
+      error: 'No se pudieron normalizar las coordenadas'
+    }
+  }
+
   try {
-    const result = coordinateValidator.processCoordinates(coordenadas_x, coordenadas_y)
+    const result = coordinateValidator.processCoordinates(nx, ny)
     
     if (result.success && result.corrected) {
       return {
@@ -55,8 +69,8 @@ export function convertirCoordenadasUTM(
  * Genera URL para mapa estático de OpenStreetMap
  */
 export function generarMapaEstaticoOSM(
-  coordenadas_x: number,
-  coordenadas_y: number,
+  coordenadas_x: number | string | null,
+  coordenadas_y: number | string | null,
   config: MapStaticConfig = {}
 ): MapStaticResult {
   const {
@@ -66,15 +80,28 @@ export function generarMapaEstaticoOSM(
     markerColor = 'red'
   } = config
 
+  const nx = normalizeRawCoordinate(coordenadas_x)
+  const ny = normalizeRawCoordinate(coordenadas_y)
+
+  if (nx === null || ny === null) {
+    return {
+      url: '',
+      lat: 0,
+      lng: 0,
+      success: false,
+      error: 'No se pudieron normalizar las coordenadas'
+    }
+  }
+
   let lat: number, lng: number
 
   // Si las coordenadas parecen ser lat/lng (valores pequeños), usarlas directamente
-  if (Math.abs(coordenadas_x) < 90 && Math.abs(coordenadas_y) < 180) {
-    lat = coordenadas_x
-    lng = coordenadas_y
+  if (Math.abs(nx) < 90 && Math.abs(ny) < 180) {
+    lat = nx
+    lng = ny
   } else {
     // Intentar conversión UTM
-    const conversion = convertirCoordenadasUTM(coordenadas_x, coordenadas_y)
+    const conversion = convertirCoordenadasUTM(nx, ny)
     
     if (!conversion.success) {
       return {
@@ -113,8 +140,8 @@ export function generarMapaEstaticoOSM(
  * Solo usar si OpenStreetMap falla
  */
 export function generarMapaEstaticoMapbox(
-  coordenadas_x: number,
-  coordenadas_y: number,
+  coordenadas_x: number | string | null,
+  coordenadas_y: number | string | null,
   apiKey: string,
   config: MapStaticConfig = {}
 ): MapStaticResult {
@@ -124,7 +151,14 @@ export function generarMapaEstaticoMapbox(
     zoom = 15
   } = config
 
-  const conversion = convertirCoordenadasUTM(coordenadas_x, coordenadas_y)
+  const nx = normalizeRawCoordinate(coordenadas_x)
+  const ny = normalizeRawCoordinate(coordenadas_y)
+
+  if (nx === null || ny === null) {
+    return { url: '', lat: 0, lng: 0, success: false, error: 'No se pudieron normalizar las coordenadas' }
+  }
+
+  const conversion = convertirCoordenadasUTM(nx, ny)
   
   if (!conversion.success) {
     return {
@@ -156,18 +190,23 @@ export function generarMapaEstaticoMapbox(
  * Genera URL para ver el mapa completo en OpenStreetMap
  */
 export function generarURLMapaCompleto(
-  coordenadas_x: number,
-  coordenadas_y: number
+  coordenadas_x: number | string | null,
+  coordenadas_y: number | string | null
 ): string {
+  const nx = normalizeRawCoordinate(coordenadas_x)
+  const ny = normalizeRawCoordinate(coordenadas_y)
+
+  if (nx === null || ny === null) return ''
+
   let lat: number, lng: number
 
   // Si las coordenadas parecen ser lat/lng (valores pequeños), usarlas directamente
-  if (Math.abs(coordenadas_x) < 90 && Math.abs(coordenadas_y) < 180) {
-    lat = coordenadas_x
-    lng = coordenadas_y
+  if (Math.abs(nx) < 90 && Math.abs(ny) < 180) {
+    lat = nx
+    lng = ny
   } else {
     // Intentar conversión UTM
-    const conversion = convertirCoordenadasUTM(coordenadas_x, coordenadas_y)
+    const conversion = convertirCoordenadasUTM(nx, ny)
     
     if (!conversion.success) {
       return ''
@@ -184,18 +223,21 @@ export function generarURLMapaCompleto(
  * Valida si las coordenadas son válidas para generar mapas
  */
 export function validarCoordenadasParaMapa(
-  coordenadas_x: number | null,
-  coordenadas_y: number | null
+  coordenadas_x: number | string | null,
+  coordenadas_y: number | string | null
 ): boolean {
-  if (!coordenadas_x || !coordenadas_y) {
+  const nx = normalizeRawCoordinate(coordenadas_x)
+  const ny = normalizeRawCoordinate(coordenadas_y)
+
+  if (nx === null || ny === null) {
     return false
   }
 
   // Si las coordenadas parecen ser lat/lng (valores pequeños), aceptarlas directamente
-  if (Math.abs(coordenadas_x) < 90 && Math.abs(coordenadas_y) < 180) {
+  if (Math.abs(nx) < 90 && Math.abs(ny) < 180) {
     return true
   }
 
-  const conversion = convertirCoordenadasUTM(coordenadas_x, coordenadas_y)
+  const conversion = convertirCoordenadasUTM(nx, ny)
   return conversion.success
 }

@@ -1,6 +1,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react"
 import { coordinateValidator } from "../lib/coordinate-validator"
+import { normalizeRawCoordinate } from "../lib/coordinate-corrections"
 
 type Proyecto = {
   numero: number
@@ -9,8 +10,8 @@ type Proyecto = {
   nombre_proyecto: string
   giro: string
   municipio: string
-  coordenadas_x: number | null
-  coordenadas_y: number | null
+  coordenadas_x: number | string | null
+  coordenadas_y: number | string | null
   expediente: string
   fecha_ingreso: string
   boletin_id: number
@@ -96,11 +97,13 @@ function fixCoordinateDigits(x: number, y: number): { x: number; y: number } {
 }
 
 // Exportada para usar en la página (botones Ver en maps, etc.) con la misma conversión que el mapa
-export function convertToLatLong(x: number | null, y: number | null): { lat: number; lng: number } | null {
-  if (!x || !y) return null
+export function convertToLatLong(x: number | string | null, y: number | string | null): { lat: number; lng: number } | null {
+  const nx = normalizeRawCoordinate(x)
+  const ny = normalizeRawCoordinate(y)
+  if (nx === null || ny === null || !nx || !ny) return null
 
   // Aplicar correcciones de dígitos antes de validar
-  const { x: correctedX, y: correctedY } = fixCoordinateDigits(x, y);
+  const { x: correctedX, y: correctedY } = fixCoordinateDigits(nx, ny);
 
   // Validar y corregir coordenadas
   const validationResult = coordinateValidator.processCoordinates(correctedX, correctedY);
