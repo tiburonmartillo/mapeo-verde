@@ -7,7 +7,7 @@
  * Opcional: GOOGLE_CALENDAR_ICAL_URL=https://... node scripts/fetch-calendar-events.mjs
  */
 
-import { writeFileSync, mkdirSync } from 'fs';
+import { writeFileSync, mkdirSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { createRequire } from 'module';
@@ -18,6 +18,9 @@ const ICAL = require('ical.js');
 
 const DEFAULT_URL =
   'https://calendar.google.com/calendar/ical/bce9da9cb33f280d49d3962f712747a07d9728d2954bac9d0c24db0c08f16470%40group.calendar.google.com/public/basic.ics';
+
+const FETCH_TIMEOUT_MS = 20_000;
+const OUT_PATH = join(__dirname, '..', 'public', 'calendar-events.json');
 
 function formatDate(d) {
   const y = d.getFullYear();
@@ -50,16 +53,20 @@ function run() {
   const url = process.env.GOOGLE_CALENDAR_ICAL_URL || DEFAULT_URL;
   console.log('Fetching calendar:', url);
 
-  fetch(url, { headers: { Accept: 'text/calendar' } })
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
+  fetch(url, {
+    headers: { Accept: 'text/calendar' },
+    signal: controller.signal,
+  })
     .then((r) => {
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       return r.text();
     })
     .then((icalData) => {
       if (!icalData || !icalData.trim()) {
-        console.warn('Empty ical response');
-        writeOut([]);
-        return;
+        throw new Error('Empty ical response');
       }
       const jcal = ICAL.parse(icalData);
       const comp = new ICAL.Component(jcal);
@@ -98,20 +105,27 @@ function run() {
         }
       }
       console.log('Parsed', events.length, 'events');
+      clearTimeout(timeout);
       writeOut(events);
     })
     .catch((err) => {
+      clearTimeout(timeout);
       console.error('Error fetching calendar:', err.message);
-      writeOut([]);
+      if (existsSync(OUT_PATH)) {
+        console.warn(
+          'Manteniendo calendar-events.json existente para no vaciar la agenda en producción.',
+        );
+      } else {
+        writeOut([]);
+      }
     });
 }
 
 function writeOut(events) {
   const publicDir = join(__dirname, '..', 'public');
   mkdirSync(publicDir, { recursive: true });
-  const outPath = join(publicDir, 'calendar-events.json');
-  writeFileSync(outPath, JSON.stringify(events), 'utf8');
-  console.log('Written', outPath);
+  writeFileSync(OUT_PATH, JSON.stringify(events), 'utf8');
+  console.log('Written', OUT_PATH);
 }
 
 run();
