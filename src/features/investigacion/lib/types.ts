@@ -48,6 +48,9 @@ export interface Boletin {
   fecha_limite_consulta?: string | null
   created_at?: string | null
   updated_at?: string | null
+  pdf_creation_date?: string | null
+  pdf_mod_date?: string | null
+  pdf_author?: string | null
 }
 
 export interface BoletinesData {

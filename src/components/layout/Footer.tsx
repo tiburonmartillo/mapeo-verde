@@ -54,6 +54,15 @@ const Footer = () => {
                 Gestionar eventos
               </Link>
             </li>
+            <li>
+              <Link
+                to="/boletines/dashboard"
+                className="hover:underline focus:outline-none focus:ring-1 focus:ring-black"
+                aria-label="Ver el análisis de boletines ambientales de la SSMAA"
+              >
+                Análisis de boletines
+              </Link>
+            </li>
           </ul>
         </div>
 

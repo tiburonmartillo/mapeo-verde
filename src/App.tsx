@@ -15,6 +15,9 @@ const EventsPage = React.lazy(() => import('./features/agenda/components/EventsP
 const ImpactDetailPage = React.lazy(() => import('./features/agenda/components/ImpactDetailPage'));
 const EventDetailPage = React.lazy(() => import('./features/agenda/components/EventDetailPage'));
 const NewslettersPage = React.lazy(() => import('./features/newsletters/components/NewslettersPage'));
+const BoletinesDashboardPage = React.lazy(
+  () => import('./features/investigacion/components/boletines-dashboard-page'),
+);
 const GazettesPage = React.lazy(() => import('./features/gazettes/components/GazettesPage'));
 const InvestigacionPage = React.lazy(() => import('./features/investigacion/components/InvestigacionPage'));
 const ParticipationPage = React.lazy(() => import('./features/participation/components/ParticipationPage'));
@@ -110,6 +113,15 @@ const MainApp = () => {
   };
 
   const renderContent = () => {
+    // Panel de análisis de boletines
+    if (location.pathname === '/boletines/dashboard') {
+      return (
+        <Suspense fallback={<PageLoader />}>
+          <BoletinesDashboardPage />
+        </Suspense>
+      );
+    }
+
     // Detail view overrides
     if ((detailType === 'agenda' || detailType === 'e') && detailId) {
       if (detailType === 'e') {
@@ -339,6 +351,7 @@ export default function App() {
         <Route path="/agenda/:id" element={<MainApp />} />
         <Route path="/e/:id" element={<MainApp />} />
         <Route path="/boletines" element={<MainApp />} />
+        <Route path="/boletines/dashboard" element={<MainApp />} />
         <Route path="/gacetas" element={<MainApp />} />
         <Route path="/investigacion" element={<MainApp />} />
         <Route path="/participacion" element={<MainApp />} />

@@ -36,6 +36,12 @@ const seoByRoute: Record<string, SEOData> = {
     keywords: 'boletines ambientales, MIA, impacto ambiental, proyectos construcción, aguascalientes, alertas ciudadanas',
     type: 'website'
   },
+  '/boletines/dashboard': {
+    title: 'Panel de Análisis de Boletines - Monitor Ambiental | Mapeo Verde',
+    description: 'Dashboard interactivo con KPIs, gráficas y tablas sobre los boletines ambientales de la SSMAA: proyectos, resolutivos, municipios y giros económicos.',
+    keywords: 'dashboard ambiental, análisis datos, boletines SSMAA, proyectos impacto ambiental, estadísticas, aguascalientes',
+    type: 'website'
+  },
   '/gacetas': {
     title: 'Gacetas Ecológicas - Monitor Federal SEMARNAT | Mapeo Verde',
     description: 'Seguimiento semanal de los proyectos federales que afectan nuestro territorio. Infraestructura carretera, energética e industrial bajo la lupa pública.',

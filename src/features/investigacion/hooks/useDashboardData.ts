@@ -105,6 +105,9 @@ function mapBoletin(row: any): Boletin {
     fecha_limite_consulta: row.fecha_limite_consulta || null,
     created_at: row.created_at ?? null,
     updated_at: row.updated_at ?? null,
+    pdf_creation_date: row.pdf_creation_date ?? null,
+    pdf_mod_date: row.pdf_mod_date ?? null,
+    pdf_author: row.pdf_author ?? null,
   }
 }
 
