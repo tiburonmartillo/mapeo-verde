@@ -10,8 +10,8 @@ import { Toaster } from '@/features/investigacion/components/ui/toaster';
 import { Download, Eye, EyeOff, Mail } from 'lucide-react';
 import { useToast } from '@/features/investigacion/hooks/use-toast';
 import { FrogLoading } from '@/features/investigacion/components/frog-loading';
-import { coordinateValidator } from '@/features/investigacion/lib/coordinate-validator';
 import { getInvestigacionClient } from '@/features/investigacion/lib/supabase-data';
+import { convertToLatLong } from '@/features/investigacion/components/projects-map';
 import mapeoLogo from '@/assets/mapeov.jpg?inline';
 import { useNavigate } from 'react-router-dom';
 import NavBar from '@/components/layout/NavBar';
@@ -53,130 +53,6 @@ interface BulletinData {
   resolutions: Resolution[];
   deadlineDate: string;
   comments: string;
-}
-
-function fixCoordinateDigits(x: number, y: number): { x: number; y: number } {
-  let correctedX = x;
-  let correctedY = y;
-
-  if (y > 10000000) {
-    const yStr = y.toString();
-    if (yStr.length === 8 && yStr.startsWith('24')) {
-      correctedY = parseInt(yStr.substring(0, 7));
-      console.log(`🔧 Coordenada Y corregida: ${y} -> ${correctedY}`);
-    }
-  }
-
-  if (x < 10000 && x > 100) {
-    correctedX = Math.round(x * 1000);
-    console.log(`🔧 Coordenada X corregida: ${x} -> ${correctedX}`);
-  }
-
-  return { x: correctedX, y: correctedY };
-}
-
-function convertToLatLong(x: number | null, y: number | null): { lat: number; lng: number } | null {
-  if (!x || !y) return null
-
-  const { x: correctedX, y: correctedY } = fixCoordinateDigits(x, y);
-  const validationResult = coordinateValidator.processCoordinates(correctedX, correctedY);
-
-  if (!validationResult.success) {
-    console.warn('Coordenadas inválidas después de corrección:', validationResult.error);
-    return null;
-  }
-
-  const finalX = validationResult.corrected.x;
-  const finalY = validationResult.corrected.y;
-
-  if (validationResult.type === 'latlng') {
-    return { lat: finalY, lng: finalX };
-  }
-
-  if (validationResult.type === 'utm' || validationResult.type === 'utm14') {
-    const zone = validationResult.type === 'utm14' ? 14 : 13;
-
-    const sm_a = 6378137;
-    const sm_b = 6356752.314;
-    const UTMScaleFactor = 0.9996;
-
-    const calculateFootpointLatitude = (y: number): number => {
-      const n = (sm_a - sm_b) / (sm_a + sm_b);
-      const alpha_ = ((sm_a + sm_b) / 2) * (1 + (n ** 2) / 4) + (n ** 4) / 64;
-      const y_ = y / alpha_;
-
-      const beta_ = (3 * n / 2) + (-27 * (n ** 3) / 32) + (269 * (n ** 5) / 512);
-      const gamma_ = (21 * (n ** 2) / 16) + (-55 * (n ** 4) / 32);
-      const delta_ = (151 * (n ** 3) / 96) + (-417 * (n ** 5) / 128);
-      const epsilon_ = (1097 * (n ** 4) / 512);
-
-      return y_ + (beta_ * Math.sin(2 * y_)) + (gamma_ * Math.sin(4 * y_)) +
-             (delta_ * Math.sin(6 * y_)) + (epsilon_ * Math.sin(8 * y_));
-    };
-
-    let x = finalX - 500000;
-    x = x / UTMScaleFactor;
-    const y = finalY / UTMScaleFactor;
-
-    const lambda0 = ((-183 + (zone * 6)) / 180) * Math.PI;
-
-    const phif = calculateFootpointLatitude(y);
-
-    const ep2 = (sm_a ** 2 - sm_b ** 2) / (sm_b ** 2);
-    const cf = Math.cos(phif);
-    const nuf2 = ep2 * (cf ** 2);
-    const Nf = (sm_a ** 2) / (sm_b * Math.sqrt(1 + nuf2));
-
-    const tf = Math.tan(phif);
-    const tf2 = tf * tf;
-    const tf4 = tf2 * tf2;
-
-    let Nfpow = Nf;
-    const x1frac = 1 / (Nfpow * cf);
-
-    Nfpow = Nfpow * Nf;
-    const x2frac = tf / (2 * Nfpow);
-
-    Nfpow = Nfpow * Nf;
-    const x3frac = 1 / (6 * Nfpow * cf);
-
-    Nfpow = Nfpow * Nf;
-    const x4frac = tf / (24 * Nfpow);
-
-    Nfpow = Nfpow * Nf;
-    const x5frac = 1 / (120 * Nfpow * cf);
-
-    Nfpow = Nfpow * Nf;
-    const x6frac = tf / (720 * Nfpow);
-
-    Nfpow = Nfpow * Nf;
-    const x7frac = 1 / (5040 * Nfpow * cf);
-
-    Nfpow = Nfpow * Nf;
-    const x8frac = tf / (40320 * Nfpow);
-
-    const x2poly = -1 - nuf2;
-    const x3poly = -1 - 2 * tf2 - nuf2;
-    const x4poly = 5 + 3 * tf2 + 6 * nuf2 - 6 * tf2 * nuf2 - 3 * (nuf2 * nuf2) - 9 * tf2 * (nuf2 * nuf2);
-    const x5poly = 5 + 28 * tf2 + 24 * tf4 + 6 * nuf2 + 8 * tf2 * nuf2;
-    const x6poly = -61 - 90 * tf2 - 45 * tf4 - 107 * nuf2 + 162 * tf2 * nuf2;
-    const x7poly = -61 - 662 * tf2 - 1320 * tf4 - 720 * (tf4 * tf2);
-    const x8poly = 1385 + 3633 * tf2 + 4095 * tf4 + 1575 * (tf4 * tf2);
-
-    const lat = phif + x2frac * x2poly * (x * x) + x4frac * x4poly * x ** 4 +
-                x6frac * x6poly * x ** 6 + x8frac * x8poly * x ** 8;
-    const lng = lambda0 + x1frac * x + x3frac * x3poly * x ** 3 +
-                x5frac * x5poly * x ** 5 + x7frac * x7poly * x ** 7;
-
-    const latDegrees = (lat / Math.PI) * 180;
-    const lngDegrees = (lng / Math.PI) * 180;
-
-    console.log(`🗺️ UTM convertido a Lat/Lng: ${finalX}, ${finalY} -> ${latDegrees.toFixed(6)}, ${lngDegrees.toFixed(6)}`);
-
-    return { lat: latDegrees, lng: lngDegrees };
-  }
-
-  return null;
 }
 
 export default function EmailGeneratorPage() {
@@ -268,18 +144,15 @@ export default function EmailGeneratorPage() {
       const originalX = p.coordenadas_x || p.latitude || p.lat;
       const originalY = p.coordenadas_y || p.longitude || p.lng;
 
-      let latitude = originalX;
-      let longitude = originalY;
+      let latitude: number | undefined;
+      let longitude: number | undefined;
 
-      if (originalX && originalY && !isNaN(originalX) && !isNaN(originalY)) {
+      if (originalX && originalY) {
         try {
           const convertedCoords = convertToLatLong(originalX, originalY);
           if (convertedCoords && convertedCoords.lat && convertedCoords.lng) {
-            if (convertedCoords.lat >= -90 && convertedCoords.lat <= 90 &&
-                convertedCoords.lng >= -180 && convertedCoords.lng <= 180) {
-              latitude = convertedCoords.lat;
-              longitude = convertedCoords.lng;
-            }
+            latitude = convertedCoords.lat;
+            longitude = convertedCoords.lng;
           }
         } catch (error) {
           console.warn(`⚠️ Conversión omitida para "${p.nombre_proyecto}":`, error);
@@ -306,18 +179,15 @@ export default function EmailGeneratorPage() {
       const originalX = r.coordenadas_x || r.latitude || r.lat;
       const originalY = r.coordenadas_y || r.longitude || r.lng;
 
-      let latitude = originalX;
-      let longitude = originalY;
+      let latitude: number | undefined;
+      let longitude: number | undefined;
 
-      if (originalX && originalY && !isNaN(originalX) && !isNaN(originalY)) {
+      if (originalX && originalY) {
         try {
           const convertedCoords = convertToLatLong(originalX, originalY);
           if (convertedCoords && convertedCoords.lat && convertedCoords.lng) {
-            if (convertedCoords.lat >= -90 && convertedCoords.lat <= 90 &&
-                convertedCoords.lng >= -180 && convertedCoords.lng <= 180) {
-              latitude = convertedCoords.lat;
-              longitude = convertedCoords.lng;
-            }
+            latitude = convertedCoords.lat;
+            longitude = convertedCoords.lng;
           }
         } catch (error) {
           console.warn(`⚠️ Conversión omitida para resolutivo "${r.nombre_proyecto}":`, error);
@@ -610,7 +480,7 @@ export default function EmailGeneratorPage() {
                   <p style="margin:0;font-family:${fontSans};font-size:15px;font-weight:700;color:${colorText};">${project.publicConsultationDeadline}</p>
                 </div>
                 ` : ''}
-                ${project.latitude && project.longitude ? emailButton(`https://www.google.com/maps/search/?api=1&query=${project.latitude},${project.longitude}`, 'Ver ubicación en Google Maps') : ''}
+                ${project.latitude && project.longitude ? emailButton(`https://www.google.com/maps?q=${project.latitude},${project.longitude}`, 'Ver ubicación en Google Maps') : ''}
               </td>
             </tr>
           </table>
@@ -648,7 +518,7 @@ export default function EmailGeneratorPage() {
                   </div>
                   ` : ''}
                   ${resolution.entryBulletinUrl ? emailButton(resolution.entryBulletinUrl, 'Ver boletín de ingreso', 'secondary') : ''}
-                  ${resolution.latitude && resolution.longitude ? emailButton(`https://www.google.com/maps/search/?api=1&query=${resolution.latitude},${resolution.longitude}`, 'Ver ubicación en Google Maps') : ''}
+                  ${resolution.latitude && resolution.longitude ? emailButton(`https://www.google.com/maps?q=${resolution.latitude},${resolution.longitude}`, 'Ver ubicación en Google Maps') : ''}
                 </td>
               </tr>
             </table>
