@@ -124,7 +124,7 @@ export function getTimeSeriesData(data: BoletinesData) {
 }
 
 // Función para normalizar expedientes (manejar inconsistencias como "20" vs "2025")
-function normalizeExpediente(expediente: string | null | undefined): string {
+export function normalizeExpediente(expediente: string | null | undefined): string {
   const normalized = typeof expediente === 'string' ? expediente.trim() : '';
 
   if (!normalized) {
@@ -190,14 +190,14 @@ export function getAllProyectos(
   return [...withoutExpediente, ...deduplicated];
 }
 
-export function getAllResolutivos(
-  data: BoletinesData,
-): (Resolutivo & {
+export function getAllResolutivos(data: BoletinesData): (Resolutivo & {
   fecha_publicacion: string;
   boletin_url: string;
   coordenadas_x: number | null;
   coordenadas_y: number | null;
   boletin_ingreso_url: string | null;
+  boletin_ingreso_id: number | null;
+  boletin_ingreso_fecha_publicacion: string | null;
 })[] {
   // Primero obtener todos los proyectos con sus coordenadas
   const proyectosConCoordenadas = getAllProyectos(data);
@@ -229,6 +229,8 @@ export function getAllResolutivos(
         coordenadas_x: proyectoRelacionado?.coordenadas_x || r.coordenadas_x || null,
         coordenadas_y: proyectoRelacionado?.coordenadas_y || r.coordenadas_y || null,
         boletin_ingreso_url: proyectoRelacionado?.boletin_url || null,
+        boletin_ingreso_id: proyectoRelacionado?.boletin_id ?? null,
+        boletin_ingreso_fecha_publicacion: proyectoRelacionado?.fecha_publicacion ?? null,
       };
 
       return resolutivoConCoordenadas;
@@ -667,6 +669,214 @@ export function diasEntreFechas(
   return Math.floor((tb - ta) / 86400000);
 }
 
+/**
+ * Diferencia en días calendario (b - a) usando solo el día AAAA-MM-DD, sin
+ * verse afectada por la hora o zona horaria de los valores (b > a = positivo).
+ */
+export function diferenciaDiasCalendario(
+  a: string | null | undefined,
+  b: string | null | undefined,
+): number | null {
+  const ka = diaKey(a);
+  const kb = diaKey(b);
+  if (!ka || !kb) return null;
+  const da = Date.UTC(Number(ka.slice(0, 4)), Number(ka.slice(5, 7)) - 1, Number(ka.slice(8, 10)));
+  const db = Date.UTC(Number(kb.slice(0, 4)), Number(kb.slice(5, 7)) - 1, Number(kb.slice(8, 10)));
+  return Math.round((db - da) / 86400000);
+}
+
+/** Clave calendario (AAAA-MM-DD) sin depender de la zona horaria del navegador. */
+function diaKey(fecha: string | null | undefined): string | null {
+  if (!fecha) return null;
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(fecha));
+  return match ? `${match[1]}-${match[2]}-${match[3]}` : null;
+}
+
+export interface BoletinConFechaInconsistente extends Boletin {
+  fecha_creacion: string;
+  fuente_creacion: 'pdf' | 'bd';
+  dif_dias: number;
+}
+
+/**
+ * Boletines donde la fecha de creación (metadatos del PDF, o created_at si
+ * faltan) es un día calendario distinto a su fecha de publicación. dif_dias
+ * positivo = el archivo se creó después de publicar (retraso); negativo =
+ * se creó antes de publicar.
+ */
+export function getBoletinesConFechaInconsistente(
+  data: BoletinesData,
+): BoletinConFechaInconsistente[] {
+  const resultado: BoletinConFechaInconsistente[] = [];
+  data.boletines.forEach((boletin) => {
+    const fechaCreacion = boletin.pdf_creation_date || boletin.created_at;
+    if (!fechaCreacion) return;
+    const publicada = diaKey(boletin.fecha_publicacion);
+    const creada = diaKey(fechaCreacion);
+    if (!publicada || !creada || publicada === creada) return;
+    const dif = diferenciaDiasCalendario(boletin.fecha_publicacion, fechaCreacion);
+    if (dif == null) return;
+    resultado.push({
+      ...boletin,
+      fecha_creacion: fechaCreacion,
+      fuente_creacion: boletin.pdf_creation_date ? 'pdf' : 'bd',
+      dif_dias: dif,
+    });
+  });
+  return resultado.sort((x, y) =>
+    String(y.fecha_publicacion).localeCompare(String(x.fecha_publicacion)),
+  );
+}
+
+export interface DesbalanceItem {
+  expediente: string;
+  nombre_proyecto: string;
+  promovente: string;
+  fecha_boletin: string;
+  boletin_url: string;
+  fecha_registro: string;
+}
+
+export interface Desbalances {
+  resolutivosSinIngreso: DesbalanceItem[];
+  ingresadosSinResolutivo: DesbalanceItem[];
+  sinExpediente: { proyectos: number; resolutivos: number };
+  total: number;
+}
+
+const claveExpediente = (expediente: string | null | undefined): string =>
+  normalizeExpediente(expediente).toLowerCase();
+
+/**
+ * Cruce global de expedientes contra todo el historial: resolutivos emitidos
+ * cuyo expediente no tiene proyecto ingresado (ni en este ni en otro boletín)
+ * y proyectos ingresados cuyo expediente nunca recibió un resolutivo.
+ */
+export function getDesbalances(data: BoletinesData): Desbalances {
+  const ingresados = new Set<string>();
+  const resueltos = new Set<string>();
+  let proyectosSinExp = 0;
+  let resolutivosSinExp = 0;
+
+  data.boletines.forEach((boletin) => {
+    (boletin.proyectos_ingresados || []).forEach((p) => {
+      const k = claveExpediente(p.expediente);
+      if (k) ingresados.add(k);
+      else proyectosSinExp += 1;
+    });
+    (boletin.resolutivos_emitidos || []).forEach((r) => {
+      const k = claveExpediente(r.expediente);
+      if (k) resueltos.add(k);
+      else resolutivosSinExp += 1;
+    });
+  });
+
+  const resolutivosSinIngreso: DesbalanceItem[] = [];
+  const ingresadosSinResolutivo: DesbalanceItem[] = [];
+  const vistosResolutivos = new Set<string>();
+  const vistosIngresados = new Set<string>();
+
+  data.boletines.forEach((boletin) => {
+    const fecha = boletin.fecha_publicacion ?? '';
+    const url = boletin.url || boletin.filename || '';
+    (boletin.resolutivos_emitidos || []).forEach((r) => {
+      const k = claveExpediente(r.expediente);
+      if (!k || ingresados.has(k) || vistosResolutivos.has(k)) return;
+      vistosResolutivos.add(k);
+      resolutivosSinIngreso.push({
+        expediente: normalizeExpediente(r.expediente),
+        nombre_proyecto: r.nombre_proyecto ?? '',
+        promovente: r.promovente ?? '',
+        fecha_boletin: fecha,
+        boletin_url: url,
+        fecha_registro: r.fecha_resolutivo ?? '',
+      });
+    });
+    (boletin.proyectos_ingresados || []).forEach((p) => {
+      const k = claveExpediente(p.expediente);
+      if (!k || resueltos.has(k) || vistosIngresados.has(k)) return;
+      vistosIngresados.add(k);
+      ingresadosSinResolutivo.push({
+        expediente: normalizeExpediente(p.expediente),
+        nombre_proyecto: p.nombre_proyecto ?? '',
+        promovente: p.promovente ?? '',
+        fecha_boletin: fecha,
+        boletin_url: url,
+        fecha_registro: p.fecha_ingreso ?? '',
+      });
+    });
+  });
+
+  resolutivosSinIngreso.sort((a, b) => b.fecha_registro.localeCompare(a.fecha_registro));
+  ingresadosSinResolutivo.sort((a, b) => b.fecha_registro.localeCompare(a.fecha_registro));
+
+  return {
+    resolutivosSinIngreso,
+    ingresadosSinResolutivo,
+    sinExpediente: { proyectos: proyectosSinExp, resolutivos: resolutivosSinExp },
+    total: resolutivosSinIngreso.length + ingresadosSinResolutivo.length,
+  };
+}
+
+/** Boletines sin proyectos ingresados ni resolutivos emitidos (ni en conteos ni en listas). */
+export function getBoletinesVacios(data: BoletinesData): Boletin[] {
+  return data.boletines
+    .filter((b) => {
+      const total =
+        (b.cantidad_ingresados || 0) +
+        (b.cantidad_resolutivos || 0) +
+        (b.proyectos_ingresados || []).length +
+        (b.resolutivos_emitidos || []).length;
+      return total === 0;
+    })
+    .sort((a, b) => String(b.fecha_publicacion).localeCompare(String(a.fecha_publicacion)));
+}
+
+export interface BoletinConAnomalias {
+  boletin: Boletin;
+  anomalias: string[];
+}
+
+/**
+ * Boletines con inconsistencias internas: conteos que no coinciden con las
+ * listas reales, sin secretario/director, sin metadatos del PDF o con
+ * expedientes duplicados entre proyectos del mismo boletín.
+ */
+export function getAnomaliasConteos(data: BoletinesData): BoletinConAnomalias[] {
+  const resultado: BoletinConAnomalias[] = [];
+  data.boletines.forEach((boletin) => {
+    const anomalias: string[] = [];
+    const nIngresados = (boletin.proyectos_ingresados || []).length;
+    const nResolutivos = (boletin.resolutivos_emitidos || []).length;
+    const cIngresados = boletin.cantidad_ingresados || 0;
+    const cResolutivos = boletin.cantidad_resolutivos || 0;
+    if (cIngresados !== nIngresados)
+      anomalias.push(
+        `Cantidad de ingresados (${cIngresados}) ≠ proyectos listados (${nIngresados})`,
+      );
+    if (cResolutivos !== nResolutivos)
+      anomalias.push(
+        `Cantidad de resolutivos (${cResolutivos}) ≠ resolutivos listados (${nResolutivos})`,
+      );
+    if (!boletin.pdf_creation_date && !boletin.pdf_mod_date && !boletin.pdf_author)
+      anomalias.push('Sin metadatos del PDF (creación/modificación/autor)');
+    const vistos = new Set<string>();
+    let duplicados = 0;
+    (boletin.proyectos_ingresados || []).forEach((p) => {
+      const k = claveExpediente(p.expediente);
+      if (!k) return;
+      if (vistos.has(k)) duplicados += 1;
+      vistos.add(k);
+    });
+    if (duplicados > 0) anomalias.push(`${duplicados} expediente(s) duplicado(s) en los proyectos`);
+    if (anomalias.length === 0) return;
+    resultado.push({ boletin, anomalias });
+  });
+  return resultado.sort((x, y) =>
+    String(y.boletin.fecha_publicacion).localeCompare(String(x.boletin.fecha_publicacion)),
+  );
+}
+
 const PROYECTO_CAMPOS_LABELS: { campo: keyof Proyecto; label: string }[] = [
   { campo: 'expediente', label: 'Expediente' },
   { campo: 'promovente', label: 'Promovente' },
@@ -694,7 +904,7 @@ export function getBoletinesFueraDeTiempo(
   const resultado: BoletinFueraDeTiempo[] = [];
   data.boletines.forEach((boletin) => {
     const fechaCreacionArchivo = boletin.pdf_creation_date || boletin.created_at;
-    const dias = diasEntreFechas(boletin.fecha_publicacion, fechaCreacionArchivo);
+    const dias = diferenciaDiasCalendario(boletin.fecha_publicacion, fechaCreacionArchivo);
     if (dias == null) return;
     if (dias <= umbralDias) return;
     resultado.push({
@@ -703,7 +913,9 @@ export function getBoletinesFueraDeTiempo(
       fecha_creacion_archivo: fechaCreacionArchivo,
     });
   });
-  return resultado.sort((x, y) => y.dias_retraso - x.dias_retraso);
+  return resultado.sort((x, y) =>
+    String(y.fecha_publicacion).localeCompare(String(x.fecha_publicacion)),
+  );
 }
 
 /**
@@ -726,7 +938,17 @@ export function getProyectosConCamposFaltantes(data: BoletinesData): ProyectoCon
       });
     });
   });
-  return resultado.sort((x, y) => y.faltantes.length - x.faltantes.length);
+  return resultado.sort((x, y) => String(y.boletin_fecha).localeCompare(String(x.boletin_fecha)));
+}
+
+/** Proyectos con coordenadas ausentes o inválidas (agrupados por expediente, más reciente). */
+export function getProyectosSinCoordenadas(data: BoletinesData) {
+  return getAllProyectos(data).filter((p) => {
+    const x = p.coordenadas_x;
+    const y = p.coordenadas_y;
+    const validas = x != null && y != null && Number.isFinite(x) && Number.isFinite(y);
+    return !validas || p.coord_valida === false;
+  });
 }
 
 /** Resolutivos emitidos para un expediente concreto (ignora mayúsculas/espacios). */
