@@ -204,26 +204,17 @@ export function getAllResolutivos(data: BoletinesData): (Resolutivo & {
 
   const resolutivosConCoordenadas = data.boletines.flatMap((boletin) =>
     (boletin.resolutivos_emitidos || []).map((r) => {
-      // Normalizar expediente
-      const expedienteNormalizado = normalizeExpediente(r.expediente);
+      const expedienteClave = claveExpediente(r.expediente);
 
-      // Buscar el proyecto correspondiente por expediente normalizado
-      let proyectoRelacionado = proyectosConCoordenadas.find(
-        (p) => p.expediente === expedienteNormalizado,
-      );
-
-      // Si no se encuentra, intentar buscar con años diferentes (ej: 2024 vs 2025)
-      if (!proyectoRelacionado) {
-        const expedienteBase = expedienteNormalizado.replace(/-202[0-9]$/, '');
-        proyectoRelacionado = proyectosConCoordenadas.find((p) => {
-          const pExpedienteBase = normalizeExpediente(p.expediente).replace(/-202[0-9]$/, '');
-          return pExpedienteBase === expedienteBase;
-        });
-      }
+      // Vincular por el número de expediente exacto y sin contradicción en
+      // nombre de proyecto o promovente
+      const proyectoRelacionado = expedienteClave
+        ? proyectosConCoordenadas.find((p) => mismaIdentidad(r, p))
+        : undefined;
 
       const resolutivoConCoordenadas = {
         ...r,
-        expediente: expedienteNormalizado, // Usar expediente normalizado
+        expediente: String(r.expediente ?? '').trim(),
         fecha_publicacion: boletin.fecha_publicacion,
         boletin_url: boletin.url || boletin.filename,
         coordenadas_x: proyectoRelacionado?.coordenadas_x || r.coordenadas_x || null,
@@ -744,32 +735,109 @@ export interface Desbalances {
   total: number;
 }
 
-const claveExpediente = (expediente: string | null | undefined): string =>
-  normalizeExpediente(expediente).toLowerCase();
+export const claveExpediente = (expediente: string | null | undefined): string =>
+  String(expediente || '')
+    .toLowerCase()
+    .replace(/[\s\-.\\/_,:;]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+export const textoClave = (valor: string | null | undefined): string =>
+  String(valor ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+
+export type RegistroIdentificacion = {
+  expediente?: string | null;
+  nombre_proyecto?: string | null;
+  promovente?: string | null;
+};
+
+const tokensDe = (valor: string | null | undefined): string[] => {
+  const normalizado = textoClave(valor);
+  if (!normalizado) return [];
+  return normalizado.split(/[^a-z0-9]+/).filter(Boolean);
+};
+
+const coincidenTextos = (
+  a: string | null | undefined,
+  b: string | null | undefined,
+): 'igual' | 'distinto' | 'incomparable' => {
+  const ta = tokensDe(a);
+  const tb = tokensDe(b);
+  if (ta.length === 0 || tb.length === 0) return 'incomparable';
+  const sa = textoClave(a);
+  const sb = textoClave(b);
+  if (sa === sb) return 'igual';
+  const [menor, mayor] = ta.length <= tb.length ? [ta, tb] : [tb, ta];
+  if (menor.length >= 2 && mayor.length >= 2 && menor.every((t) => mayor.includes(t)))
+    return 'igual';
+  const interseccion = ta.filter((t) => tb.includes(t)).length;
+  const union = ta.length + tb.length - interseccion;
+  if (interseccion / union >= 0.75) return 'igual';
+  return 'distinto';
+};
+
+export function mismaIdentidad(a: RegistroIdentificacion, b: RegistroIdentificacion): boolean {
+  const ka = claveExpediente(a.expediente);
+  if (!ka || ka !== claveExpediente(b.expediente)) return false;
+  const nombre = coincidenTextos(a.nombre_proyecto, b.nombre_proyecto);
+  const promovente = coincidenTextos(a.promovente, b.promovente);
+  if (nombre === 'igual' || promovente === 'igual') return true;
+  return nombre !== 'distinto' && promovente !== 'distinto';
+}
+
+export function indexarPorExpediente<T extends RegistroIdentificacion>(
+  registros: T[],
+): Map<string, T[]> {
+  const map = new Map<string, T[]>();
+  registros.forEach((r) => {
+    const k = claveExpediente(r.expediente);
+    if (!k) return;
+    const grupo = map.get(k) ?? [];
+    grupo.push(r);
+    map.set(k, grupo);
+  });
+  return map;
+}
+
+export function cruzaConIndice<T extends RegistroIdentificacion>(
+  index: Map<string, T[]>,
+  r: RegistroIdentificacion,
+): boolean {
+  return (index.get(claveExpediente(r.expediente)) ?? []).some((x) => mismaIdentidad(r, x));
+}
+
+export const claveRegistro = (r: RegistroIdentificacion): string =>
+  `${claveExpediente(r.expediente)}|${textoClave(r.nombre_proyecto)}|${textoClave(r.promovente)}`;
 
 /**
  * Cruce global de expedientes contra todo el historial: resolutivos emitidos
- * cuyo expediente no tiene proyecto ingresado (ni en este ni en otro boletín)
- * y proyectos ingresados cuyo expediente nunca recibió un resolutivo.
+ * cuyo expediente no tiene proyecto ingresado coincidente (mismo expediente y
+ * sin contradicción en nombre de proyecto o promovente) y proyectos ingresados
+ * cuyo expediente nunca recibió un resolutivo coincidente.
  */
 export function getDesbalances(data: BoletinesData): Desbalances {
-  const ingresados = new Set<string>();
-  const resueltos = new Set<string>();
+  const proyectos: Proyecto[] = [];
+  const resolutivos: Resolutivo[] = [];
   let proyectosSinExp = 0;
   let resolutivosSinExp = 0;
 
   data.boletines.forEach((boletin) => {
     (boletin.proyectos_ingresados || []).forEach((p) => {
-      const k = claveExpediente(p.expediente);
-      if (k) ingresados.add(k);
+      if (claveExpediente(p.expediente)) proyectos.push(p);
       else proyectosSinExp += 1;
     });
     (boletin.resolutivos_emitidos || []).forEach((r) => {
-      const k = claveExpediente(r.expediente);
-      if (k) resueltos.add(k);
+      if (claveExpediente(r.expediente)) resolutivos.push(r);
       else resolutivosSinExp += 1;
     });
   });
+
+  const ingresados = indexarPorExpediente(proyectos);
+  const resueltos = indexarPorExpediente(resolutivos);
 
   const resolutivosSinIngreso: DesbalanceItem[] = [];
   const ingresadosSinResolutivo: DesbalanceItem[] = [];
@@ -781,7 +849,7 @@ export function getDesbalances(data: BoletinesData): Desbalances {
     const url = boletin.url || boletin.filename || '';
     (boletin.resolutivos_emitidos || []).forEach((r) => {
       const k = claveExpediente(r.expediente);
-      if (!k || ingresados.has(k) || vistosResolutivos.has(k)) return;
+      if (!k || cruzaConIndice(ingresados, r) || vistosResolutivos.has(k)) return;
       vistosResolutivos.add(k);
       resolutivosSinIngreso.push({
         expediente: normalizeExpediente(r.expediente),
@@ -794,7 +862,7 @@ export function getDesbalances(data: BoletinesData): Desbalances {
     });
     (boletin.proyectos_ingresados || []).forEach((p) => {
       const k = claveExpediente(p.expediente);
-      if (!k || resueltos.has(k) || vistosIngresados.has(k)) return;
+      if (!k || cruzaConIndice(resueltos, p) || vistosIngresados.has(k)) return;
       vistosIngresados.add(k);
       ingresadosSinResolutivo.push({
         expediente: normalizeExpediente(p.expediente),
@@ -830,6 +898,37 @@ export function getBoletinesVacios(data: BoletinesData): Boletin[] {
       return total === 0;
     })
     .sort((a, b) => String(b.fecha_publicacion).localeCompare(String(a.fecha_publicacion)));
+}
+
+export interface BoletinAusente {
+  id: string;
+  year: number;
+  numero: number;
+}
+
+/** Boletines ausentes en la numeración por año (YYYY + número semanal). */
+export function getBoletinesAusentes(data: BoletinesData): BoletinAusente[] {
+  const porAnio = new Map<number, Set<number>>();
+  data.boletines.forEach((b) => {
+    const m = /^(\d{4})(\d+)$/.exec(String(b.id ?? ''));
+    if (!m) return;
+    const year = Number(m[1]);
+    const numero = Number(m[2]);
+    const set = porAnio.get(year) ?? new Set<number>();
+    set.add(numero);
+    porAnio.set(year, set);
+  });
+
+  const resultado: BoletinAusente[] = [];
+  porAnio.forEach((set, year) => {
+    const max = Math.max(...set);
+    for (let n = 1; n < max; n++) {
+      if (!set.has(n)) {
+        resultado.push({ id: `${year}${String(n).padStart(2, '0')}`, year, numero: n });
+      }
+    }
+  });
+  return resultado.sort((a, b) => a.year - b.year || a.numero - b.numero);
 }
 
 export interface BoletinConAnomalias {
@@ -953,20 +1052,13 @@ export function getProyectosSinCoordenadas(data: BoletinesData) {
 
 /** Resolutivos emitidos para un expediente concreto (ignora mayúsculas/espacios). */
 export function getResolutivosPorExpediente(data: BoletinesData, expediente: string): Resolutivo[] {
-  const clave = String(expediente || '')
-    .trim()
-    .toLowerCase();
+  const clave = claveExpediente(expediente);
   if (!clave) return [];
   const vistos = new Set<string>();
   const resultado: Resolutivo[] = [];
   data.boletines.forEach((boletin) => {
     (boletin.resolutivos_emitidos || []).forEach((resolutivo) => {
-      if (
-        String(resolutivo.expediente || '')
-          .trim()
-          .toLowerCase() !== clave
-      )
-        return;
+      if (claveExpediente(resolutivo.expediente) !== clave) return;
       const dedupe = `${resolutivo.no_oficio_resolutivo}-${resolutivo.expediente}`;
       if (vistos.has(dedupe)) return;
       vistos.add(dedupe);

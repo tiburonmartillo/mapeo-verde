@@ -578,7 +578,7 @@ const statsHTML = `
   <title>Boletín Ambiental de SSMAA</title>
 </head>
 <body style="margin:0;padding:0;background-color:${colorSecondary};font-family:${fontSans};line-height:1.55;color:${colorText};">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${colorSecondary};padding:24px 16px;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${colorSecondary};padding:0px 0px;">
     <tr>
       <td align="center">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:640px;background-color:${colorPrimary};border:1px solid ${colorBorder};border-radius:12px;overflow:hidden;">

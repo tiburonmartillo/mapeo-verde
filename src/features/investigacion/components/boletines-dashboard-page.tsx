@@ -25,9 +25,13 @@ import {
   getBoletinesConFechaInconsistente,
   getDesbalances,
   getBoletinesVacios,
+  getBoletinesAusentes,
   getProyectosSinCoordenadas,
   diferenciaDiasCalendario,
-  normalizeExpediente,
+  claveExpediente,
+  indexarPorExpediente,
+  cruzaConIndice,
+  claveRegistro,
 } from '../lib/data-utils';
 import { getCalendarParts, formatFechaHoraLarga } from '../lib/date-utils';
 import { formatearFecha } from '../lib/boletin-utils';
@@ -246,6 +250,16 @@ export default function BoletinesDashboardPage() {
   );
   const desbalancesGlobal = useMemo(() => getDesbalances(dataGlobal), [dataGlobal]);
   const vaciosGlobal = useMemo(() => getBoletinesVacios(dataGlobal), [dataGlobal]);
+  const ausentesGlobal = useMemo(() => getBoletinesAusentes(dataGlobal), [dataGlobal]);
+  const ausentesPorAnio = useMemo(() => {
+    const map = new Map<number, (typeof ausentesGlobal)[number][]>();
+    ausentesGlobal.forEach((x) => {
+      const arr = map.get(x.year) ?? [];
+      arr.push(x);
+      map.set(x.year, arr);
+    });
+    return [...map.entries()].sort((a, b) => a[0] - b[0]);
+  }, [ausentesGlobal]);
   const proyectosGlobal = useMemo(() => getAllProyectos(dataGlobal), [dataGlobal]);
   const resolutivosGlobal = useMemo(() => getAllResolutivos(dataGlobal), [dataGlobal]);
   const proyectosSinCoordsGlobal = useMemo(
@@ -254,6 +268,7 @@ export default function BoletinesDashboardPage() {
   );
 
   const hoyISO = new Date().toISOString().slice(0, 10);
+  const [diasSortDir, setDiasSortDir] = useState<'asc' | 'desc'>('desc');
   const ingresadosCriticosGlobal = useMemo(() => {
     return desbalancesGlobal.ingresadosSinResolutivo
       .map((item) => ({
@@ -261,8 +276,10 @@ export default function BoletinesDashboardPage() {
         dias: diferenciaDiasCalendario(item.fecha_registro, hoyISO),
       }))
       .filter((x) => x.dias != null && x.dias > 120)
-      .sort((a, b) => (b.dias || 0) - (a.dias || 0));
-  }, [desbalancesGlobal, hoyISO]);
+      .sort((a, b) =>
+        diasSortDir === 'desc' ? (b.dias || 0) - (a.dias || 0) : (a.dias || 0) - (b.dias || 0),
+      );
+  }, [desbalancesGlobal, hoyISO, diasSortDir]);
 
   const fechasInconsistentesPorId = useMemo(() => {
     const map = new Map<number, (typeof fechasInconsistentesGlobal)[number]>();
@@ -367,7 +384,10 @@ export default function BoletinesDashboardPage() {
   );
 
   const proyectoSeleccionado = useMemo(
-    () => proyectosGlobal.find((p) => (p.expediente ?? '') === selectedExpediente),
+    () =>
+      proyectosGlobal.find(
+        (p) => claveExpediente(p.expediente) === claveExpediente(selectedExpediente),
+      ),
     [proyectosGlobal, selectedExpediente],
   );
   const resolutivosDeProyecto = useMemo(
@@ -391,13 +411,10 @@ export default function BoletinesDashboardPage() {
   const pctCompletos =
     proyectosGlobal.length > 0 ? 1 - proyectosFaltantesGlobal.length / proyectosGlobal.length : 0;
 
-  const ingresoPorExpediente = useMemo(() => {
-    const set = new Set<string>();
-    proyectosGlobal.forEach((p) => {
-      if (p.expediente) set.add(normalizeExpediente(p.expediente).toLowerCase());
-    });
-    return set;
-  }, [proyectosGlobal]);
+  const ingresoPorExpediente = useMemo(
+    () => indexarPorExpediente(proyectosGlobal),
+    [proyectosGlobal],
+  );
 
   const boletinIngresoPorExpediente = useMemo(() => {
     const map = new Map<
@@ -405,8 +422,8 @@ export default function BoletinesDashboardPage() {
       { id: number | null; url: string | null; fecha_publicacion: string | null }
     >();
     resolutivosGlobal.forEach((r) => {
-      const k = normalizeExpediente(r.expediente).toLowerCase();
-      if (!k) return;
+      const k = claveRegistro(r);
+      if (!claveExpediente(r.expediente)) return;
       const existing = map.get(k);
       if (!existing || (!existing.id && r.boletin_ingreso_id)) {
         map.set(k, {
@@ -576,7 +593,7 @@ export default function BoletinesDashboardPage() {
       });
     }
     const resolutivosSinIngreso = (boletinSel.resolutivos_emitidos || []).filter(
-      (r) => !ingresoPorExpediente.has(normalizeExpediente(r.expediente).toLowerCase()),
+      (r) => !cruzaConIndice(ingresoPorExpediente, r),
     );
     if (resolutivosSinIngreso.length > 0) {
       lista.push({
@@ -1124,12 +1141,8 @@ export default function BoletinesDashboardPage() {
                   ) : (
                     <ul className="divide-y divide-black/10">
                       {resolutivos.map((r) => {
-                        const sinIngreso = !ingresoPorExpediente.has(
-                          normalizeExpediente(r.expediente).toLowerCase(),
-                        );
-                        const ingresoInfo = boletinIngresoPorExpediente.get(
-                          normalizeExpediente(r.expediente).toLowerCase(),
-                        );
+                        const sinIngreso = !cruzaConIndice(ingresoPorExpediente, r);
+                        const ingresoInfo = boletinIngresoPorExpediente.get(claveRegistro(r));
                         const boletinIngreso =
                           ingresoInfo?.id != null
                             ? boletinGlobalPorId.get(ingresoInfo.id)
@@ -1155,7 +1168,7 @@ export default function BoletinesDashboardPage() {
                                 className="min-w-0 text-left"
                               >
                                 <p className="text-sm font-bold text-[#0d0d0d]">
-                                  {r.no_oficio_resolutivo || r.expediente || 'Sin expediente'}
+                                  {r.expediente || 'Sin expediente'}
                                 </p>
                                 <p className="truncate text-sm text-[#0d0d0d]">
                                   {r.nombre_proyecto || '—'}
@@ -1296,7 +1309,7 @@ export default function BoletinesDashboardPage() {
                           <div className="flex items-start justify-between gap-3">
                             <div className="min-w-0">
                               <p className="font-sans text-sm font-bold text-[#0d0d0d]">
-                                {r.no_oficio_resolutivo ?? '—'}
+                                {r.expediente ?? '—'}
                               </p>
                               <p className="mt-0.5 truncate text-sm font-medium text-[#0d0d0d]">
                                 {r.nombre_proyecto ?? '—'}
@@ -1378,12 +1391,18 @@ export default function BoletinesDashboardPage() {
       </div>
 
       {/* KPIs Generales (filtrables) */}
-      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <KpiCard
           label="Boletines vacíos"
           value={numero.format(vaciosGlobal.length)}
           onClick={() => toggleKpi('vacios')}
           activo={kpiActivo === 'vacios'}
+        />
+        <KpiCard
+          label="Boletines ausentes"
+          value={numero.format(ausentesGlobal.length)}
+          onClick={() => toggleKpi('ausentes')}
+          activo={kpiActivo === 'ausentes'}
         />
         <KpiCard
           label="Sin coordenadas"
@@ -1431,20 +1450,59 @@ export default function BoletinesDashboardPage() {
                       <p className="font-sans text-sm font-bold text-[#0d0d0d]">ID {b.id}</p>
                       <p className="text-sm text-gray-600">{formatearFecha(b.fecha_publicacion)}</p>
                     </div>
-                    {b.url && (
+                    {(b.url || b.filename) && (
                       <a
-                        href={b.url}
+                        href={b.url || b.filename}
                         target="_blank"
                         rel="noopener noreferrer"
-                        aria-label={`Ver boletín ${b.id}`}
+                        aria-label={`Consultar boletín ${b.id}`}
                         className="shrink-0 inline-flex items-center gap-1 border border-[#f3f4f0] bg-white px-3 py-2 font-sans text-sm font-bold uppercase tracking-wider text-[#0d0d0d] transition-colors hover:bg-[#ff7e67] hover:text-[#0d0d0d]"
                       >
-                        <ExternalLink className="h-3 w-3" aria-hidden />
+                        Consultar <ExternalLink className="h-3 w-3" aria-hidden />
                       </a>
                     )}
                   </li>
                 ))}
               </ul>
+            )}
+          </ChartCard>
+        </div>
+      )}
+
+      {(kpiActivo === null || kpiActivo === 'ausentes') && (
+        <div className="mb-6">
+          <ChartCard
+            title="Boletines ausentes"
+            action={
+              <span className="bg-[#ff7e67] px-2 py-1 font-sans text-sm font-bold uppercase tracking-wider text-white">
+                {numero.format(ausentesGlobal.length)}
+              </span>
+            }
+          >
+            {ausentesPorAnio.length === 0 ? (
+              <p className="py-8 text-center text-sm text-gray-500">
+                Sin boletines ausentes en la numeración por año.
+              </p>
+            ) : (
+              <div className="max-h-[340px] overflow-auto">
+                {ausentesPorAnio.map(([year, ids]) => (
+                  <div key={year} className="mb-4 last:mb-0">
+                    <p className="mb-2 font-sans text-sm font-bold uppercase tracking-widest text-[#0d0d0d]">
+                      {year}
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {ids.map((b) => (
+                        <span
+                          key={b.id}
+                          className="border border-[#f3f4f0] bg-white px-2 py-1 font-sans text-sm font-bold text-[#0d0d0d]"
+                        >
+                          ID {b.id}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
           </ChartCard>
         </div>
@@ -1557,9 +1615,18 @@ export default function BoletinesDashboardPage() {
           <ChartCard
             title={`Ingresados sin resolutivo · más de 120 días`}
             action={
-              <span className="bg-[#fccb4e] px-2 py-1 font-sans text-sm font-bold text-[#0d0d0d]">
-                {numero.format(ingresadosCriticosGlobal.length)}
-              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDiasSortDir(diasSortDir === 'desc' ? 'asc' : 'desc')}
+                  className="inline-flex items-center gap-1 border border-[#f3f4f0] bg-white px-2 py-1 font-sans text-sm font-bold uppercase tracking-wider text-[#0d0d0d] transition-colors hover:bg-[#ff7e67] hover:text-white"
+                >
+                  Días {diasSortDir === 'desc' ? '↓' : '↑'}
+                </button>
+                <span className="bg-[#fccb4e] px-2 py-1 font-sans text-sm font-bold text-[#0d0d0d]">
+                  {numero.format(ingresadosCriticosGlobal.length)}
+                </span>
+              </div>
             }
           >
             <div className="max-h-[340px] overflow-auto">
