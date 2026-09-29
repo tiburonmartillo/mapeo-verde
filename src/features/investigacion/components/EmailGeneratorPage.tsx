@@ -15,6 +15,7 @@ import { convertToLatLong } from '@/features/investigacion/components/projects-m
 import mapeoLogo from '@/assets/mapeov.jpg?inline';
 import { useNavigate } from 'react-router-dom';
 import NavBar from '@/components/layout/NavBar';
+import Footer from '@/components/layout/Footer';
 import { TAB_ROUTES } from '@/constants/routes';
 
 interface Project {
@@ -728,7 +729,7 @@ const statsHTML = `
         activeTab="NEWSLETTERS"
         onNavigate={(tab) => navigate(TAB_ROUTES[tab as keyof typeof TAB_ROUTES] || '/')}
       />
-      <div className="min-h-screen bg-gray-50 p-8 font-sans" style={{ fontFamily: 'var(--font-sans), system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif' }}>
+      <div className="min-h-screen bg-[#f3f4f0] p-8 font-sans" style={{ fontFamily: 'var(--font-sans), system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif' }}>
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="mb-2 text-[32px]">Generador de Boletín Ambiental</h1>
@@ -978,8 +979,9 @@ const statsHTML = `
           </div>
         </div>
       </div>
-      <Toaster />
     </div>
+      <Footer />
+      <Toaster />
     </>
   );
 }

@@ -19,23 +19,25 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { email, fuente } = await req.json()
-    if (!email || typeof email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    const { email: rawEmail, fuente } = await req.json()
+    if (!rawEmail || typeof rawEmail !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawEmail.trim())) {
       return new Response(JSON.stringify({ error: "Email inválido" }), {
         status: 400,
         headers: CORS_HEADERS,
       })
     }
 
+    const email = rawEmail.trim().toLowerCase()
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL") || ""
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || ""
     const supabase = createClient(supabaseUrl, supabaseKey)
 
-    // Check if already subscribed
+    // Check if already subscribed (case-insensitive, matches the lower(email) unique index)
     const { data: existing } = await supabase
       .from("newsletter_subscriptions")
       .select("id")
-      .eq("email", email)
+      .ilike("email", email)
       .maybeSingle()
 
     if (existing) {
@@ -54,6 +56,13 @@ Deno.serve(async (req: Request) => {
       })
 
     if (insertError) {
+      // 23505 = unique violation: another request inserted the same email first
+      if (insertError.code === "23505") {
+        return new Response(JSON.stringify({ success: true, message: "Ya estás suscrito" }), {
+          status: 200,
+          headers: CORS_HEADERS,
+        })
+      }
       return new Response(JSON.stringify({ error: "Error al guardar la suscripción", details: insertError.message }), {
         status: 500,
         headers: CORS_HEADERS,

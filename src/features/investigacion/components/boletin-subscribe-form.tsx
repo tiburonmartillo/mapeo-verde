@@ -26,14 +26,14 @@ export function BoletinesSubscribeForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: subEmail, fuente }),
       })
-      const data = await res.json()
-      if (data.success) {
+      const data = await res.json().catch(() => ({}))
+      if (res.ok && data.success) {
         setSubStatus("success")
-        setSubMessage("¡Gracias por suscribirte!")
+        setSubMessage(data.message || "¡Gracias por suscribirte!")
         setSubEmail("")
       } else {
         setSubStatus("error")
-        setSubMessage(data.message || "Error al suscribir")
+        setSubMessage(data.error || data.message || "No se pudo completar la suscripción")
       }
     } catch {
       setSubStatus("error")
