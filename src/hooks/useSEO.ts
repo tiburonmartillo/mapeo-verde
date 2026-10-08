@@ -79,9 +79,8 @@ export const useSEO = (customSEO?: Partial<SEOData>) => {
   const isDetailPage = (pathParts.length === 2 && pathParts[0] === 'agenda') || (pathParts.length === 2 && pathParts[0] === 'e');
   const detailType = isDetailPage ? pathParts[0] : null;
 
-  const siteUrl = typeof window !== 'undefined'
-    ? `${window.location.protocol}//${window.location.host}${baseUrl === '/' ? '' : baseUrl}`
-    : 'https://www.mapeoverde.org';
+  // Always use the canonical domain to avoid duplicate content issues
+  const siteUrl = 'https://www.mapeoverde.org${baseUrl === '/' ? '' : baseUrl}';
 
   useEffect(() => {
     let routeSEO = seoByRoute[normalizedPath] || defaultSEO;

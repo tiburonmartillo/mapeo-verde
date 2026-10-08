@@ -364,7 +364,15 @@ export default function App() {
         <Route path="/admin/usuarios" element={<AdminModerationUsersPageWrapper />} />
         <Route path="/admin/cuenta" element={<AdminAccountPageWrapper />} />
         <Route path="/admin" element={<AdminEventsPageWrapper />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={(
+          <div className="min-h-screen flex flex-col items-center justify-center py-12">
+            <h1 className="text-4xl font-bold text-[#2d3748] mb-6">404 - Página no encontrada</h1>
+            <p className="text-lg text-gray-600 mb-8">Lo sentimos, la página que estás buscando no existe.</p>
+            <a href="/" className="bg-[#b4ff6f] hover:bg-[#a2e858] text-[#1a202c] font-semibold py-3 px-8 rounded-lg transition-colors">
+              Volver al inicio
+            </a>
+          </div>
+        )} />
       </Routes>
     </DataProvider>
   );
