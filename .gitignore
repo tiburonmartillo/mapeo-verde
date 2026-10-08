@@ -52,3 +52,6 @@ public/mapeov.jpg
 .vercel
 .env*
 !.env.example
+
+# Supabase temporary files
+supabase/.temp/

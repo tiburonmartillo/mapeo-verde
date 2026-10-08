@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import type { BoletinesData, Boletin, Proyecto, Resolutivo } from '../lib/types'
 import { getInvestigacionClient } from '../lib/supabase-data'
 import { correctProjectCoordinates } from '../lib/coordinate-corrections'
+import { sanitizeProyectos, sanitizeResolutivos } from '../lib/boletin-rows'
 import {
   getStats,
   getTimeSeriesData,
@@ -49,30 +50,34 @@ interface ProcessedData {
 }
 
 function mapBoletin(row: any): Boletin {
-  const proyectos: Proyecto[] = (row.proyectos_ingresados || []).map((p: any) => {
-    const coordinates = correctProjectCoordinates(
-      p.expediente,
-      p.coordenadas_x,
-      p.coordenadas_y,
-    )
+  const proyectos: Proyecto[] = sanitizeProyectos(row.proyectos_ingresados as any[] | null).map(
+    (p: any) => {
+      const coordinates = correctProjectCoordinates(
+        p.expediente,
+        p.coordenadas_x,
+        p.coordenadas_y,
+      )
 
-    return {
-      numero: p.numero,
-      tipo_estudio: p.tipo_estudio,
-      promovente: p.promovente,
-      nombre_proyecto: p.nombre_proyecto,
-      giro: p.giro,
-      municipio: p.municipio,
-      coordenadas_x: coordinates.x,
-      coordenadas_y: coordinates.y,
-      expediente: p.expediente,
-      fecha_ingreso: p.fecha_ingreso,
-      boletin_id: p.boletin_id,
-      coord_valida: null,
-      naturaleza_proyecto: p.naturaleza_proyecto,
-    }
-  })
-  const resolutivos: Resolutivo[] = (row.boletines_resolutivos || []).map((r: any) => ({
+      return {
+        numero: p.numero,
+        tipo_estudio: p.tipo_estudio,
+        promovente: p.promovente,
+        nombre_proyecto: p.nombre_proyecto,
+        giro: p.giro,
+        municipio: p.municipio,
+        coordenadas_x: coordinates.x,
+        coordenadas_y: coordinates.y,
+        expediente: p.expediente,
+        fecha_ingreso: p.fecha_ingreso,
+        boletin_id: p.boletin_id,
+        coord_valida: null,
+        naturaleza_proyecto: p.naturaleza_proyecto,
+      }
+    },
+  )
+  const resolutivos: Resolutivo[] = sanitizeResolutivos(
+    row.boletines_resolutivos as any[] | null,
+  ).map((r: any) => ({
     numero: r.numero,
     tipo_estudio: r.tipo_estudio,
     promovente: r.promovente,
@@ -129,7 +134,7 @@ export function useDashboardData() {
             proyectos_ingresados(*),
             boletines_resolutivos(*)
           `)
-          .order('fecha_publicacion', { ascending: false })
+          .order('fecha_publicacion', { ascending: false, nullsFirst: false })
 
         if (queryError) {
           throw new Error(queryError.message)

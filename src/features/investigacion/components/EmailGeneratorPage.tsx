@@ -11,6 +11,17 @@ import { Download, Eye, EyeOff, Mail } from 'lucide-react';
 import { useToast } from '@/features/investigacion/hooks/use-toast';
 import { FrogLoading } from '@/features/investigacion/components/frog-loading';
 import { getInvestigacionClient } from '@/features/investigacion/lib/supabase-data';
+import {
+  countDiscarded,
+  sanitizeProyectos,
+  sanitizeResolutivos,
+} from '@/features/investigacion/lib/boletin-rows';
+import {
+  claveExpediente,
+  indexarPorExpediente,
+  mismaIdentidad,
+} from '@/features/investigacion/lib/data-utils';
+import { normalizeExternalUrl } from '@/features/investigacion/lib/urls';
 import { convertToLatLong } from '@/features/investigacion/components/projects-map';
 import mapeoLogo from '@/assets/mapeov.jpg?inline';
 import { useNavigate } from 'react-router-dom';
@@ -56,6 +67,14 @@ interface BulletinData {
   comments: string;
 }
 
+/** Proyecto de ingreso encontrado en otro boletin, para enlazarlo desde un resolutivo. */
+type EntryProject = {
+  expediente?: string | null;
+  nombre_proyecto?: string | null;
+  promovente?: string | null;
+  url: string;
+};
+
 export default function EmailGeneratorPage() {
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -93,10 +112,14 @@ export default function EmailGeneratorPage() {
 
     try {
       const supabase = getInvestigacionClient();
+      // Mismo criterio que el dashboard (/boletines), para que "el último boletín"
+      // sea el mismo en los dos lados. nullsFirst: false porque Postgres pone los
+      // NULLS primero al ordenar DESC y hay boletines sin fecha_publicacion.
       const { data: bulletin, error } = await supabase
         .from('boletines')
         .select('*, proyectos_ingresados(*), boletines_resolutivos(*)')
-        .order('id', { ascending: false })
+        .order('fecha_publicacion', { ascending: false, nullsFirst: false })
+        .order('id', { ascending: false, nullsFirst: false })
         .limit(1)
         .single();
 
@@ -119,17 +142,50 @@ export default function EmailGeneratorPage() {
     }
   };
 
+  /**
+   * Localiza los proyectos de ingreso de los resolutivos del boletin. Un resolutivo
+   * suele aparecer en un boletin posterior al del ingreso, asi que el vinculo no se
+   * puede sacar del boletin que estamos cargando.
+   *
+   * Solo consulta los expedientes que el boletin necesita, no la tabla completa.
+   * Devuelve las filas indexadas por expediente; el emparejamiento fino se hace con
+   * mismaIdentidad porque un mismo expediente puede tener varios proyectos.
+   */
+  const fetchEntryProjects = async (expedientes: string[]) => {
+    if (expedientes.length === 0) return new Map<string, EntryProject[]>();
+
+    try {
+      const supabase = getInvestigacionClient();
+      const { data, error } = await supabase
+        .from('proyectos_ingresados')
+        .select(
+          'expediente, nombre_proyecto, promovente, boletin:boletines(id, url, filename)',
+        )
+        .in('expediente', expedientes);
+
+      if (error) {
+        console.warn('No se pudo indexar los boletines de ingreso:', error.message);
+        return new Map<string, EntryProject[]>();
+      }
+
+      return indexarPorExpediente(
+        (data ?? []).map((row: any) => {
+          const boletin = Array.isArray(row.boletin) ? row.boletin[0] : row.boletin;
+          return {
+            expediente: row.expediente,
+            nombre_proyecto: row.nombre_proyecto,
+            promovente: row.promovente,
+            url: boletin?.url || boletin?.filename || '',
+          };
+        }),
+      );
+    } catch (error) {
+      console.warn('Fallo indexando boletines de ingreso:', error);
+      return new Map<string, EntryProject[]>();
+    }
+  };
+
   const loadBoletinData = async (id: string, bulletin: any) => {
-    const normalizeExpedient = (value: string) =>
-      value
-        .toString()
-        .trim()
-        .toUpperCase()
-        .replace(/\s+/g, ' ');
-
-    const entryBulletinByExpedient = new Map<string, string>();
-    const promoterByExpedient = new Map<string, string>();
-
     console.log('Found bulletin:', bulletin);
 
     const transformedData: BulletinData = {
@@ -140,7 +196,17 @@ export default function EmailGeneratorPage() {
       comments: ''
     };
 
-    const projectsArray = bulletin.proyectos_ingresados || [];
+    const resolutionsArray = sanitizeResolutivos(bulletin.boletines_resolutivos as any[] | null);
+    const expedientesResueltos = [
+      ...new Set(
+        resolutionsArray
+          .map((r: any) => r.expediente || r.numero_expediente || '')
+          .filter((value: string) => value.trim() !== ''),
+      ),
+    ];
+    const entryIndex = await fetchEntryProjects(expedientesResueltos);
+
+    const projectsArray = sanitizeProyectos(bulletin.proyectos_ingresados as any[] | null);
     transformedData.projects = projectsArray.map((p: any) => {
       const originalX = p.coordenadas_x || p.latitude || p.lat;
       const originalY = p.coordenadas_y || p.longitude || p.lng;
@@ -175,7 +241,6 @@ export default function EmailGeneratorPage() {
       };
     });
 
-    const resolutionsArray = bulletin.boletines_resolutivos || [];
     transformedData.resolutions = resolutionsArray.map((r: any) => {
       const originalX = r.coordenadas_x || r.latitude || r.lat;
       const originalY = r.coordenadas_y || r.longitude || r.lng;
@@ -196,9 +261,14 @@ export default function EmailGeneratorPage() {
       }
 
       const expedientValue = r.expediente || r.numero_expediente || '';
-      const normalizedExpedient = normalizeExpedient(expedientValue);
-      const entryBulletinUrl = entryBulletinByExpedient.get(normalizedExpedient) || '';
-      const entryPromoter = promoterByExpedient.get(normalizedExpedient) || '';
+
+      // Puede haber varios proyectos con el mismo expediente, asi que se confirma
+      // la identidad por nombre o promovente antes de enlazar al boletin de ingreso.
+      const entry = (entryIndex.get(claveExpediente(expedientValue)) ?? []).find((p) =>
+        mismaIdentidad(r, p),
+      );
+      const entryBulletinUrl = entry?.url || '';
+      const entryPromoter = entry?.promovente || '';
 
       return {
         name: r.nombre_proyecto || r.proyecto || r.name || '',
@@ -221,9 +291,18 @@ export default function EmailGeneratorPage() {
     setBulletinUrl(bulletinUrlValue);
 
     setBulletinData(transformedData);
+
+    const discarded =
+      countDiscarded(bulletin.proyectos_ingresados, projectsArray) +
+      countDiscarded(bulletin.boletines_resolutivos, resolutionsArray);
+
     toast({
       title: "Éxito",
-      description: `Boletín ${id} cargado: ${transformedData.projects.length} proyectos, ${transformedData.resolutions.length} resolutivos`
+      description:
+        `Boletín ${id} cargado: ${transformedData.projects.length} proyectos, ${transformedData.resolutions.length} resolutivos` +
+        (discarded > 0
+          ? ` (se descartaron ${discarded} filas duplicadas o vacías)`
+          : '')
     });
   };
 
@@ -421,7 +500,7 @@ export default function EmailGeneratorPage() {
   };
 
   function generateHTML() {
-    const normalizedBulletinUrl = bulletinUrl || '';
+    const normalizedBulletinUrl = normalizeExternalUrl(bulletinUrl);
     const siteUrl = 'https://mapeoverde.org';
     const platformBoletinesUrl = `${siteUrl}/boletines`;
     const fontSans = "system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif";
@@ -443,7 +522,7 @@ export default function EmailGeneratorPage() {
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:16px;">
         <tr>
           <td align="center">
-            <a href="${href}" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:14px 32px;border-radius:6px;text-decoration:none;font-family:${fontSans};font-size:15px;font-weight:700;color:${variant === 'primary' ? '#ffffff' : colorText};background-color:${variant === 'primary' ? colorAccent : colorPrimary};border:${variant === 'primary' ? 'none' : `1px solid ${colorBorder}`};">${label}</a>
+            <a href="${normalizeExternalUrl(href)}" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:14px 32px;border-radius:6px;text-decoration:none;font-family:${fontSans};font-size:15px;font-weight:700;color:${variant === 'primary' ? '#ffffff' : colorText};background-color:${variant === 'primary' ? colorAccent : colorPrimary};border:${variant === 'primary' ? 'none' : `1px solid ${colorBorder}`};">${label}</a>
           </td>
         </tr>
       </table>
@@ -781,7 +860,8 @@ const statsHTML = `
                           const { data, error, status } = await supabase
                             .from('boletines')
                             .select('id, fecha_publicacion')
-                            .order('id', { ascending: false })
+                            .order('fecha_publicacion', { ascending: false, nullsFirst: false })
+                            .order('id', { ascending: false, nullsFirst: false })
                             .limit(5);
 
                           console.log('📡 Respuesta de Supabase:', { status, error });
@@ -965,12 +1045,12 @@ const statsHTML = `
                       URL del Boletín:
                     </Label>
                     <a
-                      href={bulletinUrl}
+                      href={normalizeExternalUrl(bulletinUrl)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-sm text-blue-600 hover:text-blue-800 hover:underline break-all block"
                     >
-                      {bulletinUrl}
+                      {normalizeExternalUrl(bulletinUrl)}
                     </a>
                   </div>
                 )}
