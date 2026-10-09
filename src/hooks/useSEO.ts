@@ -7,6 +7,7 @@ interface SEOData {
   keywords?: string;
   image?: string;
   type?: string;
+  noindex?: boolean;
 }
 
 const defaultSEO: SEOData = {
@@ -80,7 +81,7 @@ export const useSEO = (customSEO?: Partial<SEOData>) => {
   const detailType = isDetailPage ? pathParts[0] : null;
 
   // Always use the canonical domain to avoid duplicate content issues
-  const siteUrl = 'https://www.mapeoverde.org${baseUrl === '/' ? '' : baseUrl}';
+  const siteUrl = baseUrl === '/' ? 'https://www.mapeoverde.org' : `https://www.mapeoverde.org${baseUrl}`;
 
   useEffect(() => {
     let routeSEO = seoByRoute[normalizedPath] || defaultSEO;
@@ -109,6 +110,7 @@ export const useSEO = (customSEO?: Partial<SEOData>) => {
 
     // Meta tags
     updateMetaTag('description', seo.description);
+    updateMetaTag('robots', seo.noindex ? 'noindex, follow' : 'index, follow');
 
     if (seo.keywords) {
       updateMetaTag('keywords', seo.keywords);

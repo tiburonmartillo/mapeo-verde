@@ -4,7 +4,8 @@ Allow: /
 # Sitemap
 Sitemap: https://www.mapeoverde.org/sitemap.xml
 
-# Disallow admin or private areas if any
-# Disallow: /ingreso/
-# Disallow: /private/
+# Áreas privadas / de administración (no deben indexarse)
+Disallow: /admin
+Disallow: /ingreso
+Disallow: /email-generator
 
