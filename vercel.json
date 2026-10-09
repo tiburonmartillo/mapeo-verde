@@ -29,6 +29,6 @@
     }
   ],
   "rewrites": [
-    { "source": "/((?!api/|assets/|.*\\.(js|css|png|jpg|jpeg|gif|svg|ico|json|txt|webmanifest)$).*)", "destination": "/index.html" }
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }
