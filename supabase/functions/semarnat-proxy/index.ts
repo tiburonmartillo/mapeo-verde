@@ -1,3 +1,5 @@
+import { rateLimit, clientKey } from "../_shared/rateLimit.ts"
+
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -147,6 +149,14 @@ async function fetchSemarnatPdf(pdfPath: string): Promise<Response | Record<stri
 }
 
 Deno.serve(async (req: Request) => {
+  const rl = rateLimit(clientKey(req, "semarnat"), 20, 60_000)
+  if (!rl.ok) {
+    return new Response(JSON.stringify({ error: "Demasiadas solicitudes" }), {
+      status: 429,
+      headers: { ...CORS_HEADERS, "Retry-After": String(rl.retryAfter) },
+    })
+  }
+
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: CORS_HEADERS })
   }

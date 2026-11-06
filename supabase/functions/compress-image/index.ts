@@ -1,4 +1,5 @@
 import { Hono } from "hono"
+import { rateLimit, clientKey } from "../_shared/rateLimit.ts"
 import { cors } from "hono/cors"
 import { logger } from "hono/logger"
 import {
@@ -21,6 +22,13 @@ const DEFAULT_QUALITY = 80
 
 app.use("*", logger(console.log))
 app.use("*", cors({ origin: "*", allowHeaders: ["Content-Type", "Authorization", "X-Quality"], allowMethods: ["POST", "OPTIONS"] }))
+app.use("*", async (c, next) => {
+  const rl = rateLimit(clientKey(c.req.raw, "compress"), 20, 60_000)
+  if (!rl.ok) {
+    return c.json({ error: "Demasiadas solicitudes" }, 429, { "Retry-After": String(rl.retryAfter) })
+  }
+  await next()
+})
 
 app.post("/*", async (c) => {
   try {

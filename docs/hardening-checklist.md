@@ -20,8 +20,8 @@ Leyenda de estado: ✅ aplicado · ⚠️ parcial · ❌ pendiente · N/A no apl
 | 8 | Idempotencia en pagos | Llamadas externas | No hay pagos en este repo. | N/A |
 | 9 | Transacciones cuando hay >1 escritura | Base de datos | Revisar seeds/migraciones; `seed` hace múltiples upserts sin transacción. | ⚠️ (seed no crítico; auditar si se usa en prod) |
 | 10 | Health check verifica la BD | Operación | `/functions/v1/server/health` consulta `events`. | ✅ |
-| 11 | Respuesta 429 (con `Retry-After`) ante saturación, no 500 | Operación | Implementar rate limiting + 429 en endpoints públicos si aplica. | ❌ (no implementado) |
-| 12 | Backups y restore probado periódicamente | Operación | Activar PITR en Supabase; documentar y probar restore 1x/mes. | ❌ (configurar) |
+| 11 | Respuesta 429 (con `Retry-After`) ante saturación, no 500 | Operación | Rate limit en middleware (Vercel) y `_shared/rateLimit.ts` (Supabase). | ✅ |
+| 12 | Backups y restore probado periódicamente | Operación | Runbook en `docs/ops-runbook.md`; activar PITR y probar restore mensual. | ⚠️ (runbook listo; ejecutar) |
 
 ## 2. Altos (riesgo serio si se omiten)
 
@@ -34,9 +34,9 @@ Leyenda de estado: ✅ aplicado · ⚠️ parcial · ❌ pendiente · N/A no apl
 | 17 | No borrar columnas en el mismo deploy | Base de datos | Proceso de 2 deploys: deprecar → eliminar después. | 📋 (proceso) |
 | 18 | Request id en todos los logs | Operación | `X-Request-Id` en respuestas; logs incluyen id. | ✅ (server) ⚠️ (otras functions) |
 | 19 | CORS estricto (no `*` con credenciales) | Seguridad | `server/index.ts` ya condiciona credentials al origin. Revisar otras functions. | ⚠️ |
-| 20 | Headers de seguridad (CSP, HSTS, X-Frame-Options, nosniff) | Seguridad | Configurar en `vercel.json` / middleware. Vercel pone algunos por defecto. | ⚠️ (auditar) |
+| 20 | Headers de seguridad (CSP, HSTS, X-Frame-Options, nosniff) | Seguridad | Configurados en `vercel.json`. | ✅ |
 | 21 | Gestión de dependencias (SCA) y lockfile | Seguridad | `npm audit`, Dependabot, `package-lock.json` commiteado. | ⚠️ |
-| 22 | MFA en cuentas admin (Vercel, Supabase, GitHub) | Seguridad | Activar MFA en cada proveedor. | ❌ (verificar) |
+| 22 | MFA en cuentas admin (Vercel, Supabase, GitHub) | Seguridad | Pasos en `docs/ops-runbook.md`. | ⚠️ (ejecutar) |
 
 ## 3. Medios (mejoran resiliencia y observabilidad)
 
@@ -58,7 +58,7 @@ Leyenda de estado: ✅ aplicado · ⚠️ parcial · ❌ pendiente · N/A no apl
 | 31 | Entender el dominio antes de proponer cambios | Criterio | Documentar flujos de negocio; preguntar si algo no está claro. | 📋 |
 | 32 | Diseñar “on-call ready” (no proponer lo que no operarías) | Criterio | Revisar cada cambio con esta lente. | 📋 |
 | 33 | Restore probado y documentado | Operación | Runbook de restore en `docs/`. | ❌ |
-| 34 | Monitoreo/alertas (errores 5xx, latencia) | Operación | Configurar alertas en Vercel + Supabase (o Sentry). | ❌ |
+| 34 | Monitoreo/alertas (errores 5xx, latencia) | Operación | Pasos en `docs/ops-runbook.md`. | ⚠️ (ejecutar) |
 | 35 | Revisión de código con formato AGENTS.md (críticos primero) | Formato de respuesta | Usar `AGENTS.md` en revisiones. | ✅ |
 
 ---

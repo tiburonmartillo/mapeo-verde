@@ -7,13 +7,54 @@ const publicAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 const BOT_PATTERN = /bot|crawler|spider|facebookexternalhit|facebot|twitterbot|whatsapp|telegram|slack|discord|googlebot|bingbot|yandex|duckduckbot|slurp|ia_archiver/i;
 
 export const config = {
-  matcher: ['/e/:path*'],
+  matcher: ['/e/:path*', '/api/:path*'],
 };
 
+// In-memory rate limiter (per edge instance). Good enough as a first line of
+// defense; for global enforcement use an external store (Upstash/Redis).
+const RATE_LIMITS: Record<string, { windowMs: number; max: number }> = {
+  '/api/': { windowMs: 60_000, max: 30 },
+  default: { windowMs: 60_000, max: 120 },
+};
+
+const buckets = new Map<string, { count: number; reset: number }>();
+
+function rateLimit(key: string, cfg: { windowMs: number; max: number }): { ok: boolean; retryAfter: number } {
+  const now = Date.now();
+  let b = buckets.get(key);
+  if (!b || now > b.reset) {
+    b = { count: 0, reset: now + cfg.windowMs };
+    buckets.set(key, b);
+  }
+  b.count++;
+  if (b.count > cfg.max) {
+    return { ok: false, retryAfter: Math.ceil((b.reset - now) / 1000) };
+  }
+  return { ok: true, retryAfter: 0 };
+}
+
 export default async function middleware(request: Request) {
+  const url = new URL(request.url);
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+
+  // Rate limit (429) for API and general traffic.
+  const cfg = url.pathname.startsWith('/api/') ? RATE_LIMITS['/api/'] : RATE_LIMITS.default;
+  const rl = rateLimit(`${ip}:${url.pathname.startsWith('/api/') ? 'api' : 'web'}`, cfg);
+  if (!rl.ok) {
+    return new Response(JSON.stringify({ error: 'Too many requests' }), {
+      status: 429,
+      headers: {
+        'Content-Type': 'application/json',
+        'Retry-After': String(rl.retryAfter),
+      },
+    });
+  }
+
   const ua = request.headers.get('user-agent') || '';
-  if (!BOT_PATTERN.test(ua)) {
-    return next();
+  if (!BOT_PATTERN.test(ua) || !url.pathname.startsWith('/e/')) {
+    // Only run OG rewriting for bot requests on /e/:id
+    if (!url.pathname.startsWith('/e/')) return next();
+    if (!BOT_PATTERN.test(ua)) return next();
   }
 
   const eventId = new URL(request.url).pathname.match(/^\/e\/(\d+)/)?.[1];

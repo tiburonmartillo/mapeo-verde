@@ -5,6 +5,8 @@
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
 const FROM = Deno.env.get('RESEND_FROM') ?? 'Mapeo Verde <onboarding@resend.dev>';
 
+import { rateLimit, clientKey } from "../_shared/rateLimit.ts"
+
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -52,6 +54,14 @@ function escapeHtml(s: string): string {
 }
 
 Deno.serve(async (req: Request) => {
+  const rl = rateLimit(clientKey(req, "send-confirmation"), 10, 60_000)
+  if (!rl.ok) {
+    return new Response(JSON.stringify({ error: "Demasiadas solicitudes" }), {
+      status: 429,
+      headers: { ...CORS_HEADERS, "Retry-After": String(rl.retryAfter) },
+    })
+  }
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: CORS_HEADERS });
   }

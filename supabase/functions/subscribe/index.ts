@@ -1,4 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2"
+import { rateLimit, clientKey } from "../_shared/rateLimit.ts"
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -7,6 +8,14 @@ const CORS_HEADERS = {
 }
 
 Deno.serve(async (req: Request) => {
+  const rl = rateLimit(clientKey(req, "subscribe"), 10, 60_000)
+  if (!rl.ok) {
+    return new Response(JSON.stringify({ error: "Demasiadas solicitudes" }), {
+      status: 429,
+      headers: { ...CORS_HEADERS, "Retry-After": String(rl.retryAfter) },
+    })
+  }
+
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: CORS_HEADERS })
   }
