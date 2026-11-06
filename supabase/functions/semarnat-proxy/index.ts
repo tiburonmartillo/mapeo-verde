@@ -6,22 +6,28 @@ const CORS_HEADERS = {
 
 const SEMARNAT_API_BASE = "https://apps1.semarnat.gob.mx/ws-bitacora-tramite"
 
-const BEARER_TOKEN =
-  "Bearer eyJhbGciOiJIUzUxMiJ9.eyJqdGkiOiJzZW1hcm5hdEpXVCIsInN1YiI6IlVzdWFyaW97c2VnVXN1YXJpb3NJZDoxLHNlZ1VzdWFyaW9zTm9tYnJlVXN1YXJpbzogJ2FuYV9vbHZlcmFfc2FyZ2F6bycsc2VnVXN1YXJpb3NQYXNzd29yZDogJyQyYSQxMCRqb21vU2JCT0VycWhoWmU3cEFER2J1WjA4ZDhhUUpucEk0dkhOZU9ScVZjbFRtNWJYZUFHQyd9IiwiYXV0aG9yaXRpZXMiOlsic2FyZ2F6byJdLCJpYXQiOjE2NTk5NDEyODZ9.qd17vj3iTjaGnB8w8wq4Eb-44o_2Zcy-x1o8vF9WvRmYGYupShpLaYXK8vL7FxxXy5MDIlOIhnTCQL-rpUw_ow"
+// Secret loaded from environment (never hardcode credentials in the repo).
+function getBearerToken(): string {
+  const token = Deno.env.get("SEMARNAT_BEARER_TOKEN");
+  if (!token) throw new Error("SEMARNAT_BEARER_TOKEN not configured");
+  return token.startsWith("Bearer ") ? token : `Bearer ${token}`;
+}
 
-const COMMON_HEADERS = {
-  "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:145.0) Gecko/20100101 Firefox/145.0",
-  Accept: "application/json, text/plain, */*",
-  "Accept-Language": "en-US,en;q=0.5",
-  Authorization: BEARER_TOKEN,
-  Origin: "https://app.semarnat.gob.mx",
-  Connection: "keep-alive",
-  Referer: "https://app.semarnat.gob.mx/",
-  "Sec-Fetch-Dest": "empty",
-  "Sec-Fetch-Mode": "cors",
-  "Sec-Fetch-Site": "same-site",
-  DNT: "1",
-  "Sec-GPC": "1",
+function commonHeaders(): Record<string, string> {
+  return {
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:145.0) Gecko/20100101 Firefox/145.0",
+    Accept: "application/json, text/plain, */*",
+    "Accept-Language": "en-US,en;q=0.5",
+    Authorization: getBearerToken(),
+    Origin: "https://app.semarnat.gob.mx",
+    Connection: "keep-alive",
+    Referer: "https://app.semarnat.gob.mx/",
+    "Sec-Fetch-Dest": "empty",
+    "Sec-Fetch-Mode": "cors",
+    "Sec-Fetch-Site": "same-site",
+    DNT: "1",
+    "Sec-GPC": "1",
+  };
 }
 
 const FETCH_TIMEOUT_MS = 8_000
@@ -55,6 +61,10 @@ function combineSignals(...signals: AbortSignal[]): AbortSignal {
 async function fetchSemarnat(url: string, init: RequestInit): Promise<Record<string, unknown>> {
   try {
     const res = await fetchWithTimeout(url, init)
+    if (res.status === 401 || res.status === 403) {
+      console.error("fetchSemarnat unauthorized:", res.status, url)
+      return { error: "Token SEMARNAT inválido o expirado", status: 502 }
+    }
     const body = await res.json()
     body.status = res.ok ? 200 : res.status
     return body as Record<string, unknown>
@@ -117,7 +127,7 @@ async function fetchSemarnatPdf(pdfPath: string): Promise<Response | Record<stri
   try {
     const res = await fetchWithTimeout(`${SEMARNAT_API_BASE}/proyectos/archivopdf`, {
       method: "POST",
-      headers: { ...COMMON_HEADERS, "Content-Type": "text/plain" },
+      headers: { ...commonHeaders(), "Content-Type": "text/plain" },
       body: pdfPath,
     })
 
@@ -158,11 +168,11 @@ Deno.serve(async (req: Request) => {
   try {
     if (path === "/proyecto" || path === "/proyecto/") {
       const { clave } = await req.json()
-      if (!clave) return new Response(JSON.stringify({ error: "Clave del proyecto es requerida" }), { status: 400, headers: CORS_HEADERS })
+      if (!clave || typeof clave !== "string" || !clave.trim()) return new Response(JSON.stringify({ error: "Clave del proyecto es requerida" }), { status: 400, headers: CORS_HEADERS })
 
       const data = await fetchSemarnat(`${SEMARNAT_API_BASE}/proyectos/search-files`, {
         method: "POST",
-        headers: { ...COMMON_HEADERS, "Content-Type": "application/json" },
+        headers: { ...commonHeaders(), "Content-Type": "application/json" },
         body: JSON.stringify({ clave }),
       })
 
@@ -171,11 +181,11 @@ Deno.serve(async (req: Request) => {
 
     if (path === "/historial" || path === "/historial/") {
       const { numBitacora } = await req.json()
-      if (!numBitacora) return new Response(JSON.stringify({ error: "Número de bitácora es requerido" }), { status: 400, headers: CORS_HEADERS })
+      if (!numBitacora || typeof numBitacora !== "string" || !numBitacora.trim()) return new Response(JSON.stringify({ error: "Número de bitácora es requerido" }), { status: 400, headers: CORS_HEADERS })
 
       const data = await fetchSemarnat(`${SEMARNAT_API_BASE}/historial/search-historial-bitacora`, {
         method: "POST",
-        headers: { ...COMMON_HEADERS, "Content-Type": "application/json" },
+        headers: { ...commonHeaders(), "Content-Type": "application/json" },
         body: JSON.stringify({ numBitacora }),
       })
 
@@ -184,7 +194,7 @@ Deno.serve(async (req: Request) => {
 
     if (path === "/pdf" || path === "/pdf/") {
       const pdfPath = await req.text()
-      if (!pdfPath || !pdfPath.trim()) {
+      if (!pdfPath || typeof pdfPath !== "string" || !pdfPath.trim()) {
         return new Response(JSON.stringify({ error: "Ruta del PDF es requerida" }), { status: 400, headers: CORS_HEADERS })
       }
 

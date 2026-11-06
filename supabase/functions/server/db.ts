@@ -1,12 +1,25 @@
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
+let cachedClient: ReturnType<typeof createClient> | null = null;
+
 const getClient = () => {
   const url = Deno.env.get("SUPABASE_URL");
   const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!url || !key) {
     throw new Error("Missing Supabase credentials");
   }
-  return createClient(url, key);
+  // Reuse a single client (connection pooling) instead of one per request.
+  if (!cachedClient) {
+    cachedClient = createClient(url, key);
+  }
+  return cachedClient;
+};
+
+export const healthCheck = async () => {
+  const supabase = getClient();
+  const { error } = await supabase.from("kv_store_183eaf28").select("key").limit(1);
+  if (error) throw error;
+  return true;
 };
 
 export const getByPrefix = async (prefix: string) => {

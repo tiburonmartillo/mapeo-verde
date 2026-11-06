@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { useState, useEffect } from 'react';
 import { LogoMap } from '../../../components/common/LogoMap';
 import { getNavbarHeight } from '../../../utils/helpers/layoutHelpers';
+import { BookOpen, TrendingUp } from 'lucide-react';
 
 const HeroSection = () => {
   const navigate = useNavigate();
@@ -164,6 +165,52 @@ const HeroSection = () => {
               aria-label="Leer el manifiesto de Mapeo Verde"
             >
               Leer manifiesto
+            </motion.button>
+          </motion.div>
+
+          {/* CTA Informe de Análisis */}
+          <motion.div
+            variants={{
+              hidden: { opacity: 0, y: 20 },
+              visible: { opacity: 1, y: 0 }
+            }}
+            className="mt-8 w-full max-w-2xl"
+          >
+            <motion.button
+              whileHover={{ scale: 1.02, boxShadow: "0 8px 0 0 rgba(0,0,0,1)" }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => navigate('/informe-analisis')}
+              className="relative group w-full overflow-hidden border-2 border-black bg-white hover:bg-[#b4ff6f] transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-black"
+              aria-label="Ver informe de análisis de boletines ambientales"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-[#b4ff6f] to-[#ff7e67] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="relative flex items-center gap-4 p-5">
+                <div className="flex-shrink-0 w-14 h-14 bg-black border-2 border-black flex items-center justify-center">
+                  <BookOpen className="w-7 h-7 text-white group-hover:text-black transition-colors" />
+                </div>
+                <div className="flex-1 text-left">
+                  <p className="text-xs font-mono uppercase tracking-widest text-gray-500 group-hover:text-black transition-colors">
+                    Informe Interactivo
+                  </p>
+                  <h3 className="font-bold text-lg sm:text-xl text-black group-hover:text-black transition-colors">
+                    Análisis de Boletines Ambientales
+                  </h3>
+                  <p className="text-sm text-gray-600 mt-1 group-hover:text-black transition-colors">
+                    10 años de datos · 496 boletines · Patrones por administración
+                  </p>
+                </div>
+                <div className="flex-shrink-0 flex items-center gap-2 text-black font-mono text-xs uppercase tracking-wider">
+                  <span>Ver análisis</span>
+                  <motion.div
+                    animate={{ x: [0, 4, 0] }}
+                    transition={{ duration: 1, repeat: Infinity }}
+                    className="flex items-center"
+                  >
+                    <TrendingUp className="w-4 h-4" />
+                  </motion.div>
+                </div>
+              </div>
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-black origin-left group-hover:origin-right transition-transform duration-300 scale-x-0 group-hover:scale-x-100" />
             </motion.button>
           </motion.div>
         </div>

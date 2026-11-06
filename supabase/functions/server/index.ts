@@ -12,20 +12,33 @@ const PAST_EVENTS_DATA = data.PAST_EVENTS_DATA || [];
 
 const app = new Hono();
 
+// Request id for tracing in logs
+app.use("*", async (c, next) => {
+  const incoming = c.req.header("x-request-id");
+  const requestId = incoming && incoming.trim() ? incoming.trim() : crypto.randomUUID();
+  c.set("requestId", requestId);
+  c.res.headers.set("X-Request-Id", requestId);
+  await next();
+});
+
 // Enable logger
 app.use('*', logger(console.log));
 
 // CORS para el cliente web
 app.use("*", async (c, next) => {
-  const origin = c.req.header("Origin") || "*";
+  const origin = c.req.header("Origin");
   
   // Set CORS headers for all requests
-  c.res.headers.set("Access-Control-Allow-Origin", origin);
+  if (origin) {
+    c.res.headers.set("Access-Control-Allow-Origin", origin);
+    c.res.headers.set("Access-Control-Allow-Credentials", "true");
+  } else {
+    c.res.headers.set("Access-Control-Allow-Origin", "*");
+  }
   c.res.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
   c.res.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  c.res.headers.set("Access-Control-Expose-Headers", "Content-Length");
+  c.res.headers.set("Access-Control-Expose-Headers", "Content-Length, X-Request-Id");
   c.res.headers.set("Access-Control-Max-Age", "600");
-  c.res.headers.set("Access-Control-Allow-Credentials", "true");
   
   // Handle preflight requests
   if (c.req.method === "OPTIONS") {
@@ -43,8 +56,17 @@ const PREFIX_MAP = {
   'past_events': 'past_event'
 };
 
-// Health check
-app.get("/health", (c) => c.json({ status: "ok" }));
+// Health check (verifies database connectivity)
+app.get("/health", async (c) => {
+  const requestId = c.get("requestId");
+  try {
+    await kv.healthCheck();
+    return c.json({ status: "ok", request_id: requestId });
+  } catch (error) {
+    console.error(`[${requestId}] health check failed:`, error);
+    return c.json({ status: "error", request_id: requestId }, 503);
+  }
+});
 
 // Seed endpoint
 app.post("/seed", async (c) => {
@@ -120,43 +142,59 @@ app.get("/data/:type", async (c) => {
 
 // Participation submission
 app.post("/participation", async (c) => {
+  const requestId = c.get("requestId");
   try {
-    const body = await c.req.json();
+    const body = await c.req.json().catch(() => null);
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return c.json({ error: "Cuerpo inválido", request_id: requestId }, 400);
+    }
+    // Basic size guard to avoid oversized payloads
+    const serialized = JSON.stringify(body);
+    if (serialized.length > 50_000) {
+      return c.json({ error: "Cuerpo demasiado grande", request_id: requestId }, 413);
+    }
     const id = crypto.randomUUID();
     const entry = {
       id,
       ...body,
       submitted_at: new Date().toISOString()
     };
-    
+
     await kv.set(`participation:${id}`, entry);
-    return c.json({ success: true, id });
+    return c.json({ success: true, id, request_id: requestId });
   } catch (error) {
-    return c.json({ error: error.message }, 500);
+    console.error(`[${requestId}] participation error:`, error);
+    return c.json({ error: error instanceof Error ? error.message : "Error", request_id: requestId }, 500);
   }
 });
 
 // Newsletter subscription
 app.post("/subscribe", async (c) => {
+  const requestId = c.get("requestId");
   try {
-    const { email } = await c.req.json();
-    if (!email) return c.json({ error: "Email required" }, 400);
-    
+    const body = await c.req.json().catch(() => null);
+    const email = body?.email;
+    if (!email || typeof email !== "string" || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email.trim())) {
+      return c.json({ error: "Email inválido", request_id: requestId }, 400);
+    }
+    const normalized = email.trim().toLowerCase();
+
     // Check if exists
-    const existing = await kv.get(`subscriber:${email}`);
+    const existing = await kv.get(`subscriber:${normalized}`);
     if (existing) {
-      return c.json({ message: "Already subscribed" });
+      return c.json({ message: "Already subscribed", request_id: requestId });
     }
 
     const entry = {
-      email,
+      email: normalized,
       subscribed_at: new Date().toISOString()
     };
-    
-    await kv.set(`subscriber:${email}`, entry);
-    return c.json({ success: true });
+
+    await kv.set(`subscriber:${normalized}`, entry);
+    return c.json({ success: true, request_id: requestId });
   } catch (error) {
-    return c.json({ error: error.message }, 500);
+    console.error(`[${requestId}] subscribe error:`, error);
+    return c.json({ error: error instanceof Error ? error.message : "Error", request_id: requestId }, 500);
   }
 });
 

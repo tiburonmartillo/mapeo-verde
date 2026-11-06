@@ -5,6 +5,12 @@ import tailwindcss from '@tailwindcss/vite';
 import path from 'path';
 import { visualizer } from 'rollup-plugin-visualizer';
 import { handleSemarnatProxy, resolveSemarnatPath, PROXY_MOUNT } from './api/_lib/semarnat-proxy';
+import { loadEnv } from 'vite';
+
+const _env = loadEnv(process.env.NODE_ENV || 'development', process.cwd(), '');
+if (_env.SEMARNAT_BEARER_TOKEN && !process.env.SEMARNAT_BEARER_TOKEN) {
+  process.env.SEMARNAT_BEARER_TOKEN = _env.SEMARNAT_BEARER_TOKEN;
+}
 
 const analyze = process.env.ANALYZE === '1' || process.env.ANALYZE === 'true';
 

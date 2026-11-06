@@ -1,22 +1,61 @@
 export const SEMARNAT_API_BASE = 'https://apps1.semarnat.gob.mx/ws-bitacora-tramite'
 
-const BEARER_TOKEN =
-  'Bearer eyJhbGciOiJIUzUxMiJ9.eyJqdGkiOiJzZW1hcm5hdEpXVCIsInN1YiI6IlVzdWFyaW97c2VnVXN1YXJpb3NJZDoxLHNlZ1VzdWFyaW9zTm9tYnJlVXN1YXJpbzogJ2FuYV9vbHZlcmFfc2FyZ2F6bycsc2VnVXN1YXJpb3NQYXNzd29yZDogJyQyYSQxMCRqb21vU2JCT0VycWhoWmU3cEFER2J1WjA4ZDhhUUpucEk0dkhOZU9ScVZjbFRtNWJYZUFHQyd9IiwiYXV0aG9yaXRpZXMiOlsic2FyZ2F6byJdLCJpYXQiOjE2NTk5NDEyODZ9.qd17vj3iTjaGnB8w8wq4Eb-44o_2Zcy-x1o8vF9WvRmYGYupShpLaYXK8vL7FxxXy5MDIlOIhnTCQL-rpUw_ow'
+const FETCH_TIMEOUT_MS = 8_000;
 
-export const COMMON_HEADERS: Record<string, string> = {
-  'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:145.0) Gecko/20100101 Firefox/145.0',
-  Accept: 'application/json, text/plain, */*',
-  'Accept-Language': 'en-US,en;q=0.5',
-  Authorization: BEARER_TOKEN,
-  Origin: 'https://app.semarnat.gob.mx',
-  Connection: 'keep-alive',
-  Referer: 'https://app.semarnat.gob.mx/',
-  'Sec-Fetch-Dest': 'empty',
-  'Sec-Fetch-Mode': 'cors',
-  'Sec-Fetch-Site': 'same-site',
-  DNT: '1',
-  'Sec-GPC': '1',
+function fetchWithTimeout(url: string, init: RequestInit = {}): Promise<Response> {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  const signal = init.signal ? combineSignals(init.signal, controller.signal) : controller.signal;
+  return fetch(url, { ...init, signal }).finally(() => clearTimeout(id));
 }
+
+function combineSignals(a: AbortSignal, b: AbortSignal): AbortSignal {
+  const controller = new AbortController();
+  const abort = () => controller.abort();
+  if (a.aborted || b.aborted) {
+    controller.abort();
+    return controller.signal;
+  }
+  a.addEventListener('abort', abort, { once: true });
+  b.addEventListener('abort', abort, { once: true });
+  return controller.signal;
+}
+
+export function getBearerToken(): string {
+  const token = process.env.SEMARNAT_BEARER_TOKEN;
+  if (!token) throw new Error('SEMARNAT_BEARER_TOKEN not configured');
+  return token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+}
+
+export function commonHeaders(): Record<string, string> {
+  return {
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:145.0) Gecko/20100101 Firefox/145.0',
+    Accept: 'application/json, text/plain, */*',
+    'Accept-Language': 'en-US,en;q=0.5',
+    Authorization: getBearerToken(),
+    Origin: 'https://app.semarnat.gob.mx',
+    Connection: 'keep-alive',
+    Referer: 'https://app.semarnat.gob.mx/',
+    'Sec-Fetch-Dest': 'empty',
+    'Sec-Fetch-Mode': 'cors',
+    'Sec-Fetch-Site': 'same-site',
+    DNT: '1',
+    'Sec-GPC': '1',
+  };
+}
+
+// Backwards-compatible alias (deprecated: use commonHeaders()).
+export const COMMON_HEADERS = new Proxy({} as Record<string, string>, {
+  get(_target, prop: string) {
+    return commonHeaders()[prop];
+  },
+  ownKeys() {
+    return Object.keys(commonHeaders());
+  },
+  getOwnPropertyDescriptor(_target, prop: string) {
+    return { value: commonHeaders()[prop], writable: true, enumerable: true, configurable: true };
+  },
+})
 
 export const PROXY_MOUNT = '/api/semarnat-proxy'
 
@@ -37,11 +76,15 @@ export async function handleSemarnatProxy(path: string, body: unknown): Promise<
     const clave = (body as { clave?: string } | null)?.clave
     if (!clave) return { kind: 'json', status: 400, data: { error: 'Clave del proyecto es requerida' } }
 
-    const apiRes = await fetch(`${SEMARNAT_API_BASE}/proyectos/search-files`, {
+    const apiRes = await fetchWithTimeout(`${SEMARNAT_API_BASE}/proyectos/search-files`, {
       method: 'POST',
-      headers: { ...COMMON_HEADERS, 'Content-Type': 'application/json' },
+      headers: { ...commonHeaders(), 'Content-Type': 'application/json' },
       body: JSON.stringify({ clave }),
     })
+
+    if (apiRes.status === 401 || apiRes.status === 403) {
+      return { kind: 'json', status: 502, data: { error: 'Token SEMARNAT inválido o expirado' } }
+    }
 
     const data = await apiRes.json()
 
@@ -51,9 +94,9 @@ export async function handleSemarnatProxy(path: string, body: unknown): Promise<
     let numBitacora: string | null = null
     let tramite: unknown = null
     try {
-      const proyRes = await fetch(`${SEMARNAT_API_BASE}/proyectos/search-proyecto`, {
+      const proyRes = await fetchWithTimeout(`${SEMARNAT_API_BASE}/proyectos/search-proyecto`, {
         method: 'POST',
-        headers: { ...COMMON_HEADERS, 'Content-Type': 'application/json' },
+        headers: { ...commonHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify({ clave }),
       })
       if (proyRes.ok) {
@@ -78,9 +121,9 @@ export async function handleSemarnatProxy(path: string, body: unknown): Promise<
     const numBitacora = (body as { numBitacora?: string } | null)?.numBitacora
     if (!numBitacora) return { kind: 'json', status: 400, data: { error: 'Número de bitácora es requerido' } }
 
-    const apiRes = await fetch(`${SEMARNAT_API_BASE}/historial/search-historial-bitacora`, {
+    const apiRes = await fetchWithTimeout(`${SEMARNAT_API_BASE}/historial/search-historial-bitacora`, {
       method: 'POST',
-      headers: { ...COMMON_HEADERS, 'Content-Type': 'application/json' },
+      headers: { ...commonHeaders(), 'Content-Type': 'application/json' },
       body: JSON.stringify({ numBitacora }),
     })
 
@@ -94,9 +137,9 @@ export async function handleSemarnatProxy(path: string, body: unknown): Promise<
       return { kind: 'json', status: 400, data: { error: 'Ruta del PDF es requerida' } }
     }
 
-    const apiRes = await fetch(`${SEMARNAT_API_BASE}/proyectos/archivopdf`, {
+    const apiRes = await fetchWithTimeout(`${SEMARNAT_API_BASE}/proyectos/archivopdf`, {
       method: 'POST',
-      headers: { ...COMMON_HEADERS, 'Content-Type': 'text/plain' },
+      headers: { ...commonHeaders(), 'Content-Type': 'text/plain' },
       body: pdfPath.trim(),
     })
 

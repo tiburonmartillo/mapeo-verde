@@ -33,7 +33,15 @@ app.post("/*", async (c) => {
     } else if (ct.includes("application/json")) {
       const body = await c.req.json()
       if (body.url) {
-        const resp = await fetch(body.url)
+        if (typeof body.url !== "string") return c.json({ error: "URL inválida" }, 400)
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 8000)
+        let resp!: Response
+        try {
+          resp = await fetch(body.url, { signal: controller.signal })
+        } finally {
+          clearTimeout(timeoutId)
+        }
         if (!resp.ok) return c.json({ error: "No se pudo descargar la imagen desde la URL" }, 400)
         const blob = await resp.blob()
         file = new File([blob], "download.jpg", { type: blob.type })

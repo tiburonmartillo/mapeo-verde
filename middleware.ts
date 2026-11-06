@@ -21,13 +21,17 @@ export default async function middleware(request: Request) {
 
   const supabaseUrl = `https://${projectId}.supabase.co`;
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 5000);
   try {
     const res = await fetch(`${supabaseUrl}/rest/v1/events?id=eq.${eventId}&select=title,description,image`, {
       headers: {
         apikey: publicAnonKey,
         Authorization: `Bearer ${publicAnonKey}`,
       },
+      signal: controller.signal,
     });
+    if (!res.ok) return next();
 
     const events = await res.json();
     const event = events?.[0];
@@ -70,7 +74,10 @@ export default async function middleware(request: Request) {
       headers: { 'content-type': 'text/html; charset=utf-8' },
     });
   } catch {
+    clearTimeout(timeoutId);
     return next();
+  } finally {
+    clearTimeout(timeoutId);
   }
 }
 

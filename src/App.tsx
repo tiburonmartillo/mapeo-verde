@@ -20,6 +20,7 @@ const BoletinesDashboardPage = React.lazy(
 );
 const GazettesPage = React.lazy(() => import('./features/gazettes/components/GazettesPage'));
 const InvestigacionPage = React.lazy(() => import('./features/investigacion/components/InvestigacionPage'));
+const InformeAnalisisPage = React.lazy(() => import('./features/investigacion/components/InformeAnalisisPage'));
 const ParticipationPage = React.lazy(() => import('./features/participation/components/ParticipationPage'));
 const ManifestoPage = React.lazy(() => import('./features/manifesto/components/ManifestoPage'));
 const LinktreePage = React.lazy(() => import('./features/linktree/components/LinktreePage'));
@@ -119,6 +120,15 @@ const MainApp = () => {
       return (
         <Suspense fallback={<PageLoader />}>
           <BoletinesDashboardPage />
+        </Suspense>
+      );
+    }
+
+    // Informe de análisis interactivo
+    if (location.pathname === '/informe-analisis') {
+      return (
+        <Suspense fallback={<PageLoader />}>
+          <InformeAnalisisPage />
         </Suspense>
       );
     }
@@ -355,6 +365,7 @@ export default function App() {
         <Route path="/boletines/dashboard" element={<MainApp />} />
         <Route path="/gacetas" element={<MainApp />} />
         <Route path="/investigacion" element={<MainApp />} />
+        <Route path="/informe-analisis" element={<MainApp />} />
         <Route path="/participacion" element={<MainApp />} />
         <Route path="/manifiesto" element={<ManifestoPageWrapper />} />
         <Route path="/links" element={<LinktreePageWrapper />} />
