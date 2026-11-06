@@ -198,4 +198,15 @@ app.post("/subscribe", async (c) => {
   }
 });
 
-Deno.serve(app.fetch);
+Deno.serve((req) => {
+  // Supabase Edge Functions are served under /functions/v1/<name>; strip
+  // that prefix so Hono routes (/health, /data/:type, ...) match.
+  const url = new URL(req.url);
+  for (const prefix of ["/functions/v1/server", "/server"]) {
+    if (url.pathname.startsWith(prefix)) {
+      url.pathname = url.pathname.slice(prefix.length) || "/";
+      break;
+    }
+  }
+  return app.fetch(new Request(url, req));
+});

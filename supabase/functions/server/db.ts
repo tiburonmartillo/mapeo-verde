@@ -17,7 +17,8 @@ const getClient = () => {
 
 export const healthCheck = async () => {
   const supabase = getClient();
-  const { error } = await supabase.from("kv_store_183eaf28").select("key").limit(1);
+  // Verify DB connectivity against an existing table.
+  const { error } = await supabase.from("events").select("id").limit(1);
   if (error) throw error;
   return true;
 };
